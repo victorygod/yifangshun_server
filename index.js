@@ -9,8 +9,8 @@ const { init: initDB, Counter, User, Booking, ChatMessage, Prescription } = requ
 const logger = morgan("tiny");
 
 const app = express();
-app.use(express.urlencoded({ extended: false }));
-app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+app.use(bodyParser.json({ limit: '10mb' }));
 app.use(cors());
 app.use(logger);
 
