@@ -15,8 +15,224 @@ app.use(cors());
 app.use(logger);
 
 // 首页
+// 首页 - 显示已绑定手机号的用户
 app.get("/", async (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  try {
+    const users = await User.findAll({
+      where: {
+        phone: {
+          [Sequelize.Op.ne]: null
+        }
+      },
+      order: [['createTime', 'DESC']]
+    });
+
+    const html = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>易方顺诊所助手 - 用户列表</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      text-align: center;
+      min-width: 150px;
+    }
+    .stat-number {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: #f9f9f9;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th {
+      background: #667eea;
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+    td {
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      color: #555;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background: #f0f0f0;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+      font-size: 18px;
+    }
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+    .phone {
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      color: #667eea;
+    }
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-new {
+      background: #4CAF50;
+      color: white;
+    }
+    .badge-old {
+      background: #9E9E9E;
+      color: white;
+    }
+    .time {
+      color: #999;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏥 易方顺诊所助手</h1>
+    <p class="subtitle">已绑定手机号的用户列表</p>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number">${users.length}</div>
+        <div class="stat-label">已绑定用户</div>
+      </div>
+    </div>
+
+    ${users.length > 0 ? `
+      <table>
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>手机号</th>
+            <th>用户状态</th>
+            <th>绑定时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${users.map(user => `
+            <tr>
+              <td>${user.name || '-'}</td>
+              <td><span class="phone">${user.phone}</span></td>
+              <td>
+                <span class="badge ${user.isNewUser ? 'badge-new' : 'badge-old'}">
+                  ${user.isNewUser ? '新用户' : '老用户'}
+                </span>
+              </td>
+              <td><span class="time">${user.createTime ? new Date(user.createTime).toLocaleString('zh-CN') : '-'}</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    ` : `
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>暂无已绑定手机号的用户</p>
+      </div>
+    `}
+  </div>
+</body>
+</html>
+    `;
+
+    res.send(html);
+  } catch (error) {
+    console.error("获取用户列表失败:", error);
+    res.status(500).send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>错误</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #f5f5f5;
+          }
+          .error {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+          }
+          h1 { color: #e74c3c; }
+        </style>
+      </head>
+      <body>
+        <div class="error">
+          <h1>❌ 获取用户列表失败</h1>
+          <p>${error.message}</p>
+        </div>
+      </body>
+      </html>
+    `);
+  }
 });
 
 // ==================== 旧接口（保留兼容） ====================
@@ -404,10 +620,11 @@ app.post("/api/prescription/ocr", async (req, res) => {
     const mockResult = `处方单\n\n姓名：张三\n性别：男\n年龄：35岁\n\n【诊断】\n脾胃虚弱\n\n【处方】\n1. 白术 15g\n2. 茯苓 15g\n3. 陈皮 10g\n4. 半夏 10g\n5. 甘草 6g\n\n【用法】\n水煎服，每日一剂，分早晚两次服用。\n\n【注意事项】\n忌食生冷辛辣食物，注意保暖。`;
 
     const prescriptionId = generateId();
+
+    // 保存处方记录（不保存图片，只保存识别结果）
     await Prescription.create({
       prescriptionId,
       openid: openid || "anonymous",
-      image,
       text: mockResult,
     });
 
