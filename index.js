@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
-const { init: initDB, Counter, User, Booking, ChatMessage, Prescription } = require("./db");
+const { init: initDB, Counter, User, Booking, ChatMessage, Prescription, sequelize } = require("./db");
 
 const logger = morgan("tiny");
 
@@ -21,7 +21,7 @@ app.get("/", async (req, res) => {
     const users = await User.findAll({
       where: {
         phone: {
-          [Sequelize.Op.ne]: null
+          [sequelize.Op.ne]: null
         }
       },
       order: [['createTime', 'DESC']]
