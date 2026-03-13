@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
-const tcb = require("tcb-admin-node");
+const tcb = require("wx-server-sdk");
 const { init: initDB, Counter, User, Booking, ChatMessage, Prescription, sequelize } = require("./db");
 
 const logger = morgan("tiny");
@@ -717,14 +717,42 @@ app.post("/api/prescription/ocr", async (req, res) => {
     // 如果是云存储 URL，尝试删除图片
     if (isURL) {
       try {
-        // 从临时链接中提取文件 ID
-        const fileIdMatch = image.match(/prescriptions\/[^?]+/);
-        if (fileIdMatch) {
-          const fileId = fileIdMatch[0];
-          console.log('准备删除云存储文件:', fileId);
+        console.log('准备删除云存储文件');
 
-          const result = await tcb.storage.deleteFile({
-            fileList: [fileId]
+        // 尝试多种方式提取 fileID
+        let fileID = null;
+
+        // 方式1: 检查 URL 中是否已经包含完整的 fileID（cloud://... 格式）
+        if (image.startsWith('cloud://')) {
+          // 提取 cloud:// 后面的部分，去掉查询参数
+          fileID = image.split('?')[0];
+        } else {
+          // 方式2: 从临时链接中提取文件路径，然后构建完整 fileID
+          // 临时链接格式可能是: https://xxx.tcb.qcloud.la/path/to/file.ext?sign=xxx
+          // 需要重构为: cloud://env-id/path/to/file.ext
+
+          // 提取文件路径（去掉域名和查询参数）
+          const pathMatch = image.match(/tcb\.qcloud\.la\/([^?]+)/);
+          if (pathMatch) {
+            const filePath = pathMatch[1];
+
+            // 获取当前环境 ID 并构建完整 fileID
+            const envId = tcb.config().env;
+            fileID = `cloud://${envId}.${filePath}`;
+          } else {
+            // 备用方式: 直接使用提取的路径
+            const fileIdMatch = image.match(/prescriptions\/[^?]+/);
+            if (fileIdMatch) {
+              fileID = fileIdMatch[0];
+            }
+          }
+        }
+
+        if (fileID) {
+          console.log('  文件 ID:', fileID);
+
+          const result = await tcb.deleteFile({
+            fileList: [fileID]
           });
 
           console.log('云存储文件删除结果:', result);
@@ -886,15 +914,15 @@ const port = process.env.PORT || 80;
 async function bootstrap() {
   await initDB();
 
-  // 初始化云存储
+  // 初始化云存储（云托管环境会自动获取凭证）
   try {
     tcb.init({
-      env: process.env.TCB_ENV_ID || 'prod-0gsuhft3a537d887',
-      region: 'ap-shanghai'
+      env: tcb.DYNAMIC_CURRENT_ENV  // 使用当前云开发环境
     });
     console.log("云存储初始化成功");
   } catch (error) {
     console.error("云存储初始化失败:", error);
+    // 云存储初始化失败不影响服务启动
   }
 
   app.listen(port, () => {
