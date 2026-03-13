@@ -8,6 +8,33 @@ const { init: initDB, Counter, User, Booking, ChatMessage, Prescription, sequeli
 
 const logger = morgan("tiny");
 
+// 加载管理员配置文件
+let adminsConfig = { admins: [] };
+try {
+  const adminsPath = path.join(__dirname, "admins.json");
+  if (fs.existsSync(adminsPath)) {
+    const adminsData = fs.readFileSync(adminsPath, 'utf8');
+    adminsConfig = JSON.parse(adminsData);
+  }
+} catch (error) {
+  console.error("加载管理员配置文件失败:", error);
+}
+
+// 检查用户是否为管理员
+const isAdmin = (code, openid) => {
+  return adminsConfig.admins.some(admin => {
+    // 优先通过 openid 匹配
+    if (openid && admin.openid === openid) {
+      return true;
+    }
+    // 其次通过 code 匹配
+    if (code && admin.code === code) {
+      return true;
+    }
+    return false;
+  });
+};
+
 const app = express();
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 app.use(bodyParser.json({ limit: '10mb' }));
@@ -301,12 +328,16 @@ app.post("/api/login", async (req, res) => {
         isNewUser: true,
       });
 
+      // 检查是否为管理员（通过 openid 匹配）
+      const userIsAdmin = isAdmin(null, openid);
+
       return res.json({
         code: 0,
         data: {
           openid,
           sessionKey,
           isNewUser: true,
+          isAdmin: userIsAdmin,
         },
       });
     } else {
@@ -314,6 +345,9 @@ app.post("/api/login", async (req, res) => {
       const sessionKey = `session_${generateId()}`;
       user.sessionKey = sessionKey;
       await user.save();
+
+      // 检查用户是否为管理员（优先通过 openid 匹配）
+      const isUserAdmin = isAdmin(null, user.openid);
 
       return res.json({
         code: 0,
@@ -323,12 +357,44 @@ app.post("/api/login", async (req, res) => {
           phone: user.phone,
           name: user.name,
           isNewUser: false,
+          isAdmin: isUserAdmin,
         },
       });
     }
   } catch (error) {
     console.error("登录失败:", error);
     return res.status(500).json({ code: 1, message: "登录失败" });
+  }
+});
+
+// 检查用户是否为管理员
+app.post("/api/check-admin", async (req, res) => {
+  const { openid } = req.body;
+
+  if (!openid) {
+    return res.status(400).json({ code: 1, message: "缺少用户标识" });
+  }
+
+  try {
+    // 查找用户信息
+    const user = await User.findByPk(openid);
+
+    if (!user) {
+      return res.status(404).json({ code: 1, message: "用户不存在" });
+    }
+
+    // 检查是否为管理员
+    const isUserAdmin = isAdmin(user.code, user.openid);
+
+    return res.json({
+      code: 0,
+      data: {
+        isAdmin: isUserAdmin,
+      },
+    });
+  } catch (error) {
+    console.error("检查管理员状态失败:", error);
+    return res.status(500).json({ code: 1, message: "检查管理员状态失败" });
   }
 });
 
