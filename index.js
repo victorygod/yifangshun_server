@@ -4,7 +4,6 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
-const cloud = require("wx-server-sdk");
 const { init: initDB, Counter, User, Booking, ChatMessage, Prescription, sequelize } = require("./db");
 
 const logger = morgan("tiny");
@@ -680,7 +679,6 @@ app.post("/api/prescription/ocr", async (req, res) => {
   console.log('========================================');
   console.log('收到处方 OCR 请求');
   console.log('  请求时间:', new Date().toISOString());
-  console.log('  请求体大小:', JSON.stringify(req.body).length, 'bytes');
   console.log('  openid:', req.body.openid || '未提供');
 
   const { image, openid } = req.body;
@@ -690,13 +688,7 @@ app.post("/api/prescription/ocr", async (req, res) => {
     return res.status(400).json({ code: 1, message: "缺少图片数据" });
   }
 
-  // 检测图片类型：fileID 还是 Base64
-  const isFileID = image.startsWith('cloud://');
-  console.log('  图片类型:', isFileID ? '云存储 fileID' : 'Base64');
-  console.log('  图片数据长度:', image.length);
-  if (isFileID) {
-    console.log('  文件 ID:', image);
-  }
+  console.log('  文件 ID:', image);
   console.log('========================================');
 
   try {
@@ -713,23 +705,6 @@ app.post("/api/prescription/ocr", async (req, res) => {
     });
 
     console.log('OCR 识别成功，返回结果');
-
-    // 如果是云存储 fileID，尝试删除图片（参考样例代码）
-    if (isFileID) {
-      try {
-        console.log('准备删除云存储文件:', image);
-
-        const result = await cloud.deleteFile({
-          fileList: [image]
-        });
-
-        console.log('云存储文件删除结果:', result.fileList);
-      } catch (deleteError) {
-        console.error('删除云存储文件失败:', deleteError);
-        // 删除失败不影响 OCR 识别结果，只记录日志
-      }
-    }
-
     console.log('========================================');
 
     res.json({
@@ -878,17 +853,6 @@ const port = process.env.PORT || 80;
 
 async function bootstrap() {
   await initDB();
-
-  // 初始化云存储（参考样例代码）
-  try {
-    cloud.init({
-      env: cloud.DYNAMIC_CURRENT_ENV  // 使用当前云开发环境
-    });
-    console.log("云存储初始化成功");
-  } catch (error) {
-    console.error("云存储初始化失败:", error);
-    // 云存储初始化失败不影响服务启动
-  }
 
   app.listen(port, () => {
     console.log("=================================");
