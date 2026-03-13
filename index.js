@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
-const tcb = require("wx-server-sdk");
+const cloud = require("wx-server-sdk");
 const { init: initDB, Counter, User, Booking, ChatMessage, Prescription, sequelize } = require("./db");
 
 const logger = morgan("tiny");
@@ -690,12 +690,12 @@ app.post("/api/prescription/ocr", async (req, res) => {
     return res.status(400).json({ code: 1, message: "缺少图片数据" });
   }
 
-  // 检测图片类型
-  const isURL = image.startsWith('http://') || image.startsWith('https://');
-  console.log('  图片类型:', isURL ? 'URL（云存储临时链接）' : 'Base64');
+  // 检测图片类型：fileID 还是 Base64
+  const isFileID = image.startsWith('cloud://');
+  console.log('  图片类型:', isFileID ? '云存储 fileID' : 'Base64');
   console.log('  图片数据长度:', image.length);
-  if (isURL) {
-    console.log('  图片 URL:', image);
+  if (isFileID) {
+    console.log('  文件 ID:', image);
   }
   console.log('========================================');
 
@@ -714,51 +714,16 @@ app.post("/api/prescription/ocr", async (req, res) => {
 
     console.log('OCR 识别成功，返回结果');
 
-    // 如果是云存储 URL，尝试删除图片
-    if (isURL) {
+    // 如果是云存储 fileID，尝试删除图片（参考样例代码）
+    if (isFileID) {
       try {
-        console.log('准备删除云存储文件');
+        console.log('准备删除云存储文件:', image);
 
-        // 尝试多种方式提取 fileID
-        let fileID = null;
+        const result = await cloud.deleteFile({
+          fileList: [image]
+        });
 
-        // 方式1: 检查 URL 中是否已经包含完整的 fileID（cloud://... 格式）
-        if (image.startsWith('cloud://')) {
-          // 提取 cloud:// 后面的部分，去掉查询参数
-          fileID = image.split('?')[0];
-        } else {
-          // 方式2: 从临时链接中提取文件路径，然后构建完整 fileID
-          // 临时链接格式可能是: https://xxx.tcb.qcloud.la/path/to/file.ext?sign=xxx
-          // 需要重构为: cloud://env-id/path/to/file.ext
-
-          // 提取文件路径（去掉域名和查询参数）
-          const pathMatch = image.match(/tcb\.qcloud\.la\/([^?]+)/);
-          if (pathMatch) {
-            const filePath = pathMatch[1];
-
-            // 获取当前环境 ID 并构建完整 fileID
-            const envId = tcb.config().env;
-            fileID = `cloud://${envId}.${filePath}`;
-          } else {
-            // 备用方式: 直接使用提取的路径
-            const fileIdMatch = image.match(/prescriptions\/[^?]+/);
-            if (fileIdMatch) {
-              fileID = fileIdMatch[0];
-            }
-          }
-        }
-
-        if (fileID) {
-          console.log('  文件 ID:', fileID);
-
-          const result = await tcb.deleteFile({
-            fileList: [fileID]
-          });
-
-          console.log('云存储文件删除结果:', result);
-        } else {
-          console.log('无法从 URL 中提取文件 ID，跳过删除');
-        }
+        console.log('云存储文件删除结果:', result.fileList);
       } catch (deleteError) {
         console.error('删除云存储文件失败:', deleteError);
         // 删除失败不影响 OCR 识别结果，只记录日志
@@ -914,10 +879,10 @@ const port = process.env.PORT || 80;
 async function bootstrap() {
   await initDB();
 
-  // 初始化云存储（云托管环境会自动获取凭证）
+  // 初始化云存储（参考样例代码）
   try {
-    tcb.init({
-      env: tcb.DYNAMIC_CURRENT_ENV  // 使用当前云开发环境
+    cloud.init({
+      env: cloud.DYNAMIC_CURRENT_ENV  // 使用当前云开发环境
     });
     console.log("云存储初始化成功");
   } catch (error) {
