@@ -688,7 +688,10 @@ app.post("/api/prescription/ocr", async (req, res) => {
     return res.status(400).json({ code: 1, message: "缺少图片数据" });
   }
 
+  // 提取文件名
+  const fileName = image.split('/').pop();
   console.log('  文件 ID:', image);
+  console.log('  文件名称:', fileName);
   console.log('========================================');
 
   try {
@@ -696,13 +699,6 @@ app.post("/api/prescription/ocr", async (req, res) => {
     const mockResult = `处方单\n\n姓名：张三\n性别：男\n年龄：35岁\n\n【诊断】\n脾胃虚弱\n\n【处方】\n1. 白术 15g\n2. 茯苓 15g\n3. 陈皮 10g\n4. 半夏 10g\n5. 甘草 6g\n\n【用法】\n水煎服，每日一剂，分早晚两次服用。\n\n【注意事项】\n忌食生冷辛辣食物，注意保暖。`;
 
     const prescriptionId = generateId();
-
-    // 保存处方记录（不保存图片，只保存识别结果）
-    await Prescription.create({
-      prescriptionId,
-      openid: openid || "anonymous",
-      text: mockResult,
-    });
 
     console.log('OCR 识别成功，返回结果');
     console.log('========================================');
@@ -716,7 +712,7 @@ app.post("/api/prescription/ocr", async (req, res) => {
     });
   } catch (error) {
     console.error("处方识别失败:", error);
-    return res.status(500).json({ code: 1, message: "处方识别失败" });
+    return res.status(500).json({ code: 1, message: "处方识别失败，请稍后重试" });
   }
 });
 
