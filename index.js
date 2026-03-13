@@ -28,7 +28,7 @@ app.get("/", async (req, res) => {
           [Op.ne]: null
         }
       },
-      order: [['createTime', 'DESC']]
+      order: [['createdAt', 'DESC']]
     });
 
     const html = `
@@ -183,7 +183,7 @@ app.get("/", async (req, res) => {
                   ${user.isNewUser ? '新用户' : '老用户'}
                 </span>
               </td>
-              <td><span class="time">${user.createTime ? new Date(user.createTime).toLocaleString('zh-CN') : '-'}</span></td>
+              <td><span class="time">${user.createdAt ? new Date(user.createdAt).toLocaleString('zh-CN') : '-'}</span></td>
             </tr>
           `).join('')}
         </tbody>
@@ -328,8 +328,8 @@ app.post("/api/bind-phone", async (req, res) => {
 // 获取可预约日期
 app.get("/api/available-slots", async (req, res) => {
   try {
-    const { startDate } = req.query;
-    const result = await booking.getAvailableSlots(startDate);
+    const { startDate, openid } = req.query;
+    const result = await booking.getAvailableSlots(startDate, openid);
     res.json(result);
   } catch (error) {
     console.error("获取可预约日期失败:", error);
