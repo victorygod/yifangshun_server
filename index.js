@@ -4,6 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
+const tcb = require("tcb-admin-node");
 const { init: initDB, Counter, User, Booking, ChatMessage, Prescription, sequelize } = require("./db");
 
 const logger = morgan("tiny");
@@ -712,6 +713,30 @@ app.post("/api/prescription/ocr", async (req, res) => {
     });
 
     console.log('OCR 识别成功，返回结果');
+
+    // 如果是云存储 URL，尝试删除图片
+    if (isURL) {
+      try {
+        // 从临时链接中提取文件 ID
+        const fileIdMatch = image.match(/prescriptions\/[^?]+/);
+        if (fileIdMatch) {
+          const fileId = fileIdMatch[0];
+          console.log('准备删除云存储文件:', fileId);
+
+          const result = await tcb.storage.deleteFile({
+            fileList: [fileId]
+          });
+
+          console.log('云存储文件删除结果:', result);
+        } else {
+          console.log('无法从 URL 中提取文件 ID，跳过删除');
+        }
+      } catch (deleteError) {
+        console.error('删除云存储文件失败:', deleteError);
+        // 删除失败不影响 OCR 识别结果，只记录日志
+      }
+    }
+
     console.log('========================================');
 
     res.json({
@@ -860,6 +885,18 @@ const port = process.env.PORT || 80;
 
 async function bootstrap() {
   await initDB();
+
+  // 初始化云存储
+  try {
+    tcb.init({
+      env: process.env.TCB_ENV_ID || 'prod-0gsuhft3a537d887',
+      region: 'ap-shanghai'
+    });
+    console.log("云存储初始化成功");
+  } catch (error) {
+    console.error("云存储初始化失败:", error);
+  }
+
   app.listen(port, () => {
     console.log("=================================");
     console.log("易方顺诊所助手服务器已启动");
