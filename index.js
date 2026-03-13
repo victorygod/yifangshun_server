@@ -679,11 +679,8 @@ app.post("/api/prescription/ocr", async (req, res) => {
   console.log('========================================');
   console.log('收到处方 OCR 请求');
   console.log('  请求时间:', new Date().toISOString());
-  console.log('  请求头:', JSON.stringify(req.headers));
   console.log('  请求体大小:', JSON.stringify(req.body).length, 'bytes');
-  console.log('  图片数据长度:', req.body.image ? req.body.image.length : 0);
   console.log('  openid:', req.body.openid || '未提供');
-  console.log('========================================');
 
   const { image, openid } = req.body;
 
@@ -691,6 +688,15 @@ app.post("/api/prescription/ocr", async (req, res) => {
     console.error('缺少图片数据');
     return res.status(400).json({ code: 1, message: "缺少图片数据" });
   }
+
+  // 检测图片类型
+  const isURL = image.startsWith('http://') || image.startsWith('https://');
+  console.log('  图片类型:', isURL ? 'URL（云存储临时链接）' : 'Base64');
+  console.log('  图片数据长度:', image.length);
+  if (isURL) {
+    console.log('  图片 URL:', image);
+  }
+  console.log('========================================');
 
   try {
     console.log('开始处理 OCR 识别...');
