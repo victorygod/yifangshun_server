@@ -3,6 +3,14 @@ const { Booking, Op } = require('../db');
 // 生成随机 ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
+// 获取本地日期字符串（YYYY-MM-DD 格式，考虑东八区）
+function getLocalDateString(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // 生成可预约日期（内部函数）
 async function generateAvailableSlots(startDate, openid) {
   const start = new Date(startDate);
@@ -29,14 +37,14 @@ async function generateAvailableSlots(startDate, openid) {
   });
 
   const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = getLocalDateString(today);
   const maxBookingsPerDay = 10; // 每日最多10个预约
 
   for (let i = 0; i < 14; i++) {
     const date = new Date(start);
     date.setDate(date.getDate() + i);
 
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = getLocalDateString(date);
     const dayOfWeek = date.getDay(); // 0是周日，1是周一，...，6是周六
 
     const bookingInfo = bookingCountMap[dateStr] || { count: 0, users: new Set() };
@@ -71,10 +79,9 @@ async function generateAvailableSlots(startDate, openid) {
 
 // 获取可预约日期
 async function getAvailableSlots(startDate, openid) {
-  const slots = await generateAvailableSlots(
-    startDate || new Date().toISOString().split("T")[0],
-    openid
-  );
+  const start = startDate ? new Date(startDate) : new Date();
+  const startStr = getLocalDateString(start);
+  const slots = await generateAvailableSlots(startStr, openid);
   return { code: 0, data: slots };
 }
 
@@ -84,14 +91,16 @@ async function createBooking(date, openid) {
     throw new Error("缺少必要参数");
   }
 
-  // 计算今天的日期
+  // 计算今天的日期（使用本地时间）
   const today = new Date();
-  const todayStr = today.toISOString().split("T")[0];
+  const todayStr = getLocalDateString(today);
   
-  // 计算明天的日期
+  // 计算明天的日期（使用本地时间）
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const tomorrowStr = tomorrow.toISOString().split("T")[0];
+  const tomorrowStr = getLocalDateString(tomorrow);
+
+  console.log(`预约检查 - 今天: ${todayStr}, 明天: ${tomorrowStr}, 预约日期: ${date}`);
 
   // 检查用户是否已有预约（一个用户最多同时预约一天，从明天开始检查）
   const existingBooking = await Booking.findOne({
@@ -99,12 +108,13 @@ async function createBooking(date, openid) {
       openid, 
       status: "confirmed",
       date: {
-        [Op.gte]: tomorrowStr  // 大于等于明天
+        [Op.gt]: tomorrowStr  // 大于明天（不包括今天）
       }
     },
   });
 
   if (existingBooking) {
+    console.log(`找到已有预约: ${existingBooking.date}`);
     // 格式化日期为月日格式
     const dateObj = new Date(existingBooking.date);
     const month = dateObj.getMonth() + 1;
@@ -174,11 +184,23 @@ async function cancelBooking(bookingId, openid) {
   // 检查是否可以取消（最晚提前一天）
   const bookingDate = new Date(booking.date);
   const today = new Date();
+  
+  // 只比较日期部分，忽略时间
+  const bookingDateStr = getLocalDateString(bookingDate);
+  const todayStr = getLocalDateString(today);
+  
+  // 计算日期差
   const diffTime = bookingDate - today;
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (diffDays < 1) {
+  // 如果预约日期就是今天，不能取消
+  if (bookingDateStr === todayStr) {
     throw new Error("预约当天不能取消，请提前一天取消");
+  }
+
+  // 如果预约日期在过去，也不能取消
+  if (diffDays < 0) {
+    throw new Error("预约已过期，无法取消");
   }
 
   booking.status = "cancelled";
