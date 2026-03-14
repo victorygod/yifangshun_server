@@ -3,6 +3,45 @@ const { Prescription } = require('../db');
 // 生成随机 ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
+// 将微信云存储 fileID 转换为 HTTPS URL
+function convertCloudFileIdToUrl(fileId) {
+  // fileID 格式: cloud://envID.zoneID/path/to/file
+  // 转换为: https://zoneID.tcb.qcloud.la/path/to/file
+
+  if (!fileId || !fileId.startsWith('cloud://')) {
+    console.warn('不是有效的云存储 fileID:', fileId);
+    return fileId;
+  }
+
+  // 去掉 cloud:// 前缀
+  const withoutPrefix = fileId.substring(8);
+
+  // 分割环境 ID 和 zoneID
+  // 格式: envID.zoneID/path/to/file
+  const lastDotIndex = withoutPrefix.indexOf('.');
+  const firstSlashIndex = withoutPrefix.indexOf('/');
+
+  if (lastDotIndex === -1 || firstSlashIndex === -1) {
+    console.warn('fileID 格式不正确:', fileId);
+    return fileId;
+  }
+
+  const envId = withoutPrefix.substring(0, lastDotIndex);
+  const zoneId = withoutPrefix.substring(lastDotIndex + 1, firstSlashIndex);
+  const filePath = withoutPrefix.substring(firstSlashIndex);
+
+  // 构建 HTTPS URL
+  const httpsUrl = `https://${zoneId}.tcb.qcloud.la${filePath}`;
+
+  console.log('========================================');
+  console.log('云存储 URL 转换');
+  console.log('  原始 fileID:', fileId);
+  console.log('  转换后 URL:', httpsUrl);
+  console.log('========================================');
+
+  return httpsUrl;
+}
+
 // 处方 OCR 识别
 async function handlePrescriptionOCR(image, openid) {
   if (!image) {
@@ -15,12 +54,15 @@ async function handlePrescriptionOCR(image, openid) {
   console.log('收到处方 OCR 请求');
   console.log('  请求时间:', new Date().toISOString());
   console.log('  openid:', openid || '未提供');
-  console.log('  云存储 URL:', image);
+  console.log('  云存储 fileID:', image);
   console.log('  文件名称:', fileName);
   console.log('========================================');
 
   try {
-    // 直接调用 Qwen-VL API，使用云存储 URL
+    // 将云存储 fileID 转换为 HTTPS URL
+    const imageUrl = convertCloudFileIdToUrl(image);
+
+    // 直接调用 Qwen-VL API，使用转换后的 HTTPS URL
     console.log('开始调用 Qwen-VL API...');
     const apiKey = 'sk-25ad83b975ba4458a9983367888dd0dd';
     const apiUrl = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
@@ -34,7 +76,7 @@ async function handlePrescriptionOCR(image, openid) {
             {
               type: 'image_url',
               image_url: {
-                url: image
+                url: imageUrl
               }
             },
             {
