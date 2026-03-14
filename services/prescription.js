@@ -81,12 +81,13 @@ async function handlePrescriptionOCR(image, openid) {
             },
             {
               type: 'text',
-              text: '识别图片'
+              text: "识别中医处方，以json格式返回，遵循以下输出格式(药方里主要写Rp中每款中药以及数量，不是药名的内容不用写)：{'姓名': '','年龄': '','日期': '','脉象': '','舌像': '','症状及诊断': '','Rp': '完整的Rp内容','药方': [{'药名':'', '数量': ''}],'医师': '肖笃凯'}"
             }
           ]
         }
       ],
-      stream: false
+      stream: false,
+      response_format: {type: "json_object"}
     };
 
     console.log('请求数据:', JSON.stringify(requestData, null, 2));
