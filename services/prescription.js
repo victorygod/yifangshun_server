@@ -1,4 +1,4 @@
-const { Prescription } = require('../db');
+const { Prescription, Op } = require('../db');
 
 // 生成随机 ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -333,40 +333,53 @@ async function deletePrescription(prescriptionId) {
   }
 }
 
-// 获取所有处方列表（管理员）
-async function getPrescriptionsList() {
+// 获取所有处方列表（管理员，支持分页）
+async function getPrescriptionsList(options = {}) {
+  const { page = 1, pageSize = 20, keyword = '' } = options;
+
   console.log('========================================');
   console.log('收到获取处方列表请求');
   console.log('  请求时间:', new Date().toISOString());
+  console.log('  页码:', page);
+  console.log('  每页数量:', pageSize);
+  console.log('  搜索关键词:', keyword || '无');
   console.log('========================================');
 
   try {
+    const where = {};
+    if (keyword && keyword.trim()) {
+      // 构建搜索条件（使用 LIKE 模糊查询）
+      where[Op.or] = [
+        Sequelize.where(Sequelize.col('text'), 'LIKE', `%${keyword}%`)
+      ];
+    }
+
+    const totalCount = await Prescription.count({ where });
+    const totalPages = Math.ceil(totalCount / pageSize);
+
     const prescriptions = await Prescription.findAll({
+      where,
       order: [["createTime", "DESC"]],
+      limit: pageSize,
+      offset: (page - 1) * pageSize
     });
 
-    // 中文键名到英文键名的映射
-    const keyMap = {
-      '姓名': 'name',
-      '年龄': 'age',
-      '日期': 'date',
-      '脉象': 'pulse',
-      '舌像': 'tongue',
-      '症状及诊断': 'symptoms',
-      'Rp': 'rp',
-      '药方': 'medicines',
-      '医师': 'doctor'
-    };
-
     const prescriptionList = prescriptions.map((p) => {
-      let parsedText = {};
-      try {
-        parsedText = JSON.parse(p.text);
-      } catch (e) {
-        console.error('解析处方数据失败:', e);
-      }
-
+      const parsedText = JSON.parse(p.text || '{}');
+      
       // 将中文键名转换为英文键名
+      const keyMap = {
+        '姓名': 'name',
+        '年龄': 'age',
+        '日期': 'date',
+        '脉象': 'pulse',
+        '舌像': 'tongue',
+        '症状及诊断': 'symptoms',
+        'Rp': 'rp',
+        '药方': 'medicines',
+        '医师': 'doctor'
+      };
+
       const convertedData = {};
       for (const [key, value] of Object.entries(parsedText)) {
         const englishKey = keyMap[key] || key;
@@ -382,18 +395,26 @@ async function getPrescriptionsList() {
 
       return {
         prescriptionId: p.prescriptionId,
-        openid: p.openid,
         data: convertedData,
         createTime: p.createTime
       };
     });
 
-    console.log('获取处方列表成功，共', prescriptionList.length, '条记录');
+    console.log('获取处方列表成功');
+    console.log('  总记录数:', totalCount);
+    console.log('  总页数:', totalPages);
+    console.log('  当前页记录数:', prescriptionList.length);
     console.log('========================================');
 
     return {
       code: 0,
-      data: prescriptionList
+      data: prescriptionList,
+      pagination: {
+        page: page,
+        pageSize: pageSize,
+        totalCount: totalCount,
+        totalPages: totalPages
+      }
     };
   } catch (error) {
     console.error('========================================');

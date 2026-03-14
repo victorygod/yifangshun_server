@@ -445,7 +445,12 @@ app.post("/api/prescription/delete", async (req, res) => {
 // 获取所有处方列表（管理员）
 app.get("/api/prescription/list", async (req, res) => {
   try {
-    const result = await prescription.getPrescriptionsList();
+    const { page = 1, pageSize = 20, keyword = '' } = req.query;
+    const result = await prescription.getPrescriptionsList({ 
+      page: parseInt(page), 
+      pageSize: parseInt(pageSize),
+      keyword 
+    });
     res.json(result);
   } catch (error) {
     console.error("获取处方列表失败:", error);
