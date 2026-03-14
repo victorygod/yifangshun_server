@@ -195,7 +195,17 @@ async function getPrescriptionHistory(openid) {
   return { code: 0, data: prescriptionList };
 }
 
-// 保存处方
+// 将处方数据序列化为 JSON 字符串
+function serializePrescriptionData(prescriptionData) {
+  // 如果已经是字符串，直接返回
+  if (typeof prescriptionData === 'string') {
+    return prescriptionData;
+  }
+  // 否则序列化为 JSON 字符串
+  return JSON.stringify(prescriptionData);
+}
+
+// 保存处方（创建新记录）
 async function savePrescription(prescriptionData, openid) {
   if (!prescriptionData) {
     throw new Error("缺少处方数据");
@@ -210,12 +220,13 @@ async function savePrescription(prescriptionData, openid) {
 
   try {
     const prescriptionId = generateId();
+    const textData = serializePrescriptionData(prescriptionData);
 
     const newPrescription = await Prescription.create({
       prescriptionId,
       openid: openid || 'system',
       image: '',
-      text: JSON.stringify(prescriptionData),
+      text: textData,
       createTime: new Date()
     });
 
@@ -235,6 +246,90 @@ async function savePrescription(prescriptionData, openid) {
     console.error('  错误信息:', error.message);
     console.error('========================================');
     throw new Error(`处方保存失败: ${error.message}`);
+  }
+}
+
+// 更新处方
+async function updatePrescription(prescriptionId, prescriptionData) {
+  if (!prescriptionId) {
+    throw new Error("缺少处方ID");
+  }
+
+  if (!prescriptionData) {
+    throw new Error("缺少处方数据");
+  }
+
+  console.log('========================================');
+  console.log('收到更新处方请求');
+  console.log('  请求时间:', new Date().toISOString());
+  console.log('  处方ID:', prescriptionId);
+  console.log('  处方数据:', JSON.stringify(prescriptionData, null, 2));
+  console.log('========================================');
+
+  try {
+    const textData = serializePrescriptionData(prescriptionData);
+
+    const [updatedCount] = await Prescription.update(
+      { text: textData },
+      { where: { prescriptionId } }
+    );
+
+    if (updatedCount === 0) {
+      throw new Error('处方不存在');
+    }
+
+    console.log('处方更新成功');
+    console.log('  处方ID:', prescriptionId);
+    console.log('========================================');
+
+    return {
+      code: 0,
+      message: '处方更新成功'
+    };
+  } catch (error) {
+    console.error('========================================');
+    console.error('处方更新失败');
+    console.error('  错误信息:', error.message);
+    console.error('========================================');
+    throw new Error(`处方更新失败: ${error.message}`);
+  }
+}
+
+// 删除处方
+async function deletePrescription(prescriptionId) {
+  if (!prescriptionId) {
+    throw new Error("缺少处方ID");
+  }
+
+  console.log('========================================');
+  console.log('收到删除处方请求');
+  console.log('  请求时间:', new Date().toISOString());
+  console.log('  处方ID:', prescriptionId);
+  console.log('========================================');
+
+  try {
+    const deletedCount = await Prescription.destroy({
+      where: { prescriptionId }
+    });
+
+    if (deletedCount === 0) {
+      throw new Error('处方不存在');
+    }
+
+    console.log('处方删除成功');
+    console.log('  处方ID:', prescriptionId);
+    console.log('========================================');
+
+    return {
+      code: 0,
+      message: '处方删除成功'
+    };
+  } catch (error) {
+    console.error('========================================');
+    console.error('处方删除失败');
+    console.error('  错误信息:', error.message);
+    console.error('========================================');
+    throw new Error(`处方删除失败: ${error.message}`);
   }
 }
 
@@ -314,4 +409,6 @@ module.exports = {
   getPrescriptionHistory,
   savePrescription,
   getPrescriptionsList,
+  deletePrescription,
+  updatePrescription,
 };

@@ -412,6 +412,36 @@ app.post("/api/prescription/save", async (req, res) => {
   }
 });
 
+// 更新处方
+app.post("/api/prescription/update", async (req, res) => {
+  try {
+    const { prescriptionId, ...prescriptionData } = req.body;
+    if (!prescriptionId) {
+      return res.status(400).json({ code: 1, message: "缺少处方ID" });
+    }
+    const result = await prescription.updatePrescription(prescriptionId, prescriptionData);
+    res.json(result);
+  } catch (error) {
+    console.error("更新处方失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "更新处方失败，请稍后重试" });
+  }
+});
+
+// 删除处方
+app.post("/api/prescription/delete", async (req, res) => {
+  try {
+    const { prescriptionId } = req.body;
+    if (!prescriptionId) {
+      return res.status(400).json({ code: 1, message: "缺少处方ID" });
+    }
+    const result = await prescription.deletePrescription(prescriptionId);
+    res.json(result);
+  } catch (error) {
+    console.error("删除处方失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "删除处方失败，请稍后重试" });
+  }
+});
+
 // 获取所有处方列表（管理员）
 app.get("/api/prescription/list", async (req, res) => {
   try {
@@ -514,6 +544,8 @@ async function bootstrap() {
     console.log("POST   /api/prescription/ocr");
     console.log("GET    /api/prescription/history");
     console.log("POST   /api/prescription/save");
+    console.log("POST   /api/prescription/update");
+    console.log("POST   /api/prescription/delete");
     console.log("GET    /api/prescription/list");
     console.log("POST   /api/chat");
     console.log("GET    /api/chat/history");
