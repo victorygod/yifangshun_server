@@ -365,7 +365,18 @@ async function getPrescriptionsList(options = {}) {
     });
 
     const prescriptionList = prescriptions.map((p) => {
-      const parsedText = JSON.parse(p.text || '{}');
+      let parsedText = {};
+      
+      // 尝试解析 JSON，如果失败则使用默认空对象
+      try {
+        if (p.text && p.text.trim()) {
+          parsedText = JSON.parse(p.text);
+        }
+      } catch (error) {
+        console.warn(`解析处方 ${p.prescriptionId} 的 JSON 失败:`, error.message);
+        console.warn('原始 text:', p.text);
+        parsedText = {};
+      }
       
       // 将中文键名转换为英文键名
       const keyMap = {
