@@ -195,7 +195,123 @@ async function getPrescriptionHistory(openid) {
   return { code: 0, data: prescriptionList };
 }
 
+// 保存处方
+async function savePrescription(prescriptionData, openid) {
+  if (!prescriptionData) {
+    throw new Error("缺少处方数据");
+  }
+
+  console.log('========================================');
+  console.log('收到保存处方请求');
+  console.log('  请求时间:', new Date().toISOString());
+  console.log('  openid:', openid || '未提供');
+  console.log('  处方数据:', JSON.stringify(prescriptionData, null, 2));
+  console.log('========================================');
+
+  try {
+    const prescriptionId = generateId();
+
+    const newPrescription = await Prescription.create({
+      prescriptionId,
+      openid: openid || 'system',
+      image: '',
+      text: JSON.stringify(prescriptionData),
+      createTime: new Date()
+    });
+
+    console.log('处方保存成功');
+    console.log('========================================');
+
+    return {
+      code: 0,
+      data: {
+        prescriptionId: newPrescription.prescriptionId,
+        message: '处方保存成功'
+      }
+    };
+  } catch (error) {
+    console.error('========================================');
+    console.error('处方保存失败');
+    console.error('  错误信息:', error.message);
+    console.error('========================================');
+    throw new Error(`处方保存失败: ${error.message}`);
+  }
+}
+
+// 获取所有处方列表（管理员）
+async function getPrescriptionsList() {
+  console.log('========================================');
+  console.log('收到获取处方列表请求');
+  console.log('  请求时间:', new Date().toISOString());
+  console.log('========================================');
+
+  try {
+    const prescriptions = await Prescription.findAll({
+      order: [["createTime", "DESC"]],
+    });
+
+    // 中文键名到英文键名的映射
+    const keyMap = {
+      '姓名': 'name',
+      '年龄': 'age',
+      '日期': 'date',
+      '脉象': 'pulse',
+      '舌像': 'tongue',
+      '症状及诊断': 'symptoms',
+      'Rp': 'rp',
+      '药方': 'medicines',
+      '医师': 'doctor'
+    };
+
+    const prescriptionList = prescriptions.map((p) => {
+      let parsedText = {};
+      try {
+        parsedText = JSON.parse(p.text);
+      } catch (e) {
+        console.error('解析处方数据失败:', e);
+      }
+
+      // 将中文键名转换为英文键名
+      const convertedData = {};
+      for (const [key, value] of Object.entries(parsedText)) {
+        const englishKey = keyMap[key] || key;
+        if (englishKey === 'medicines' && Array.isArray(value)) {
+          convertedData[englishKey] = value.map(med => ({
+            name: med.药名 || med.name || '',
+            quantity: med.数量 || med.quantity || ''
+          }));
+        } else {
+          convertedData[englishKey] = value;
+        }
+      }
+
+      return {
+        prescriptionId: p.prescriptionId,
+        openid: p.openid,
+        data: convertedData,
+        createTime: p.createTime
+      };
+    });
+
+    console.log('获取处方列表成功，共', prescriptionList.length, '条记录');
+    console.log('========================================');
+
+    return {
+      code: 0,
+      data: prescriptionList
+    };
+  } catch (error) {
+    console.error('========================================');
+    console.error('获取处方列表失败');
+    console.error('  错误信息:', error.message);
+    console.error('========================================');
+    throw new Error(`获取处方列表失败: ${error.message}`);
+  }
+}
+
 module.exports = {
   handlePrescriptionOCR,
   getPrescriptionHistory,
+  savePrescription,
+  getPrescriptionsList,
 };

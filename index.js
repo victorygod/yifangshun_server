@@ -400,6 +400,29 @@ app.get("/api/prescription/history", async (req, res) => {
   }
 });
 
+// 保存处方
+app.post("/api/prescription/save", async (req, res) => {
+  try {
+    const { openid, ...prescriptionData } = req.body;
+    const result = await prescription.savePrescription(prescriptionData, openid);
+    res.json(result);
+  } catch (error) {
+    console.error("保存处方失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "保存处方失败，请稍后重试" });
+  }
+});
+
+// 获取所有处方列表（管理员）
+app.get("/api/prescription/list", async (req, res) => {
+  try {
+    const result = await prescription.getPrescriptionsList();
+    res.json(result);
+  } catch (error) {
+    console.error("获取处方列表失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "获取处方列表失败" });
+  }
+});
+
 // ==================== AI咨询接口 ====================
 
 // AI聊天
@@ -490,6 +513,8 @@ async function bootstrap() {
     console.log("GET    /api/my-bookings");
     console.log("POST   /api/prescription/ocr");
     console.log("GET    /api/prescription/history");
+    console.log("POST   /api/prescription/save");
+    console.log("GET    /api/prescription/list");
     console.log("POST   /api/chat");
     console.log("GET    /api/chat/history");
     console.log("GET    /health");
