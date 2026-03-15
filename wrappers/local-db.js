@@ -90,13 +90,35 @@ class Model {
       });
     }
     
-    return data;
+    return data.map(item => {
+      const itemWithMethods = { ...item };
+      itemWithMethods.update = async (updates) => {
+        return await this.update(updates, { where: { [this.primaryKey]: item[this.primaryKey] } });
+      };
+      itemWithMethods.destroy = async () => {
+        return await this.destroy({ where: { [this.primaryKey]: item[this.primaryKey] } });
+      };
+      return itemWithMethods;
+    });
   }
 
   // 根据主键查找
   async findByPk(id) {
     const data = readJsonFile(`${this.tableName}.json`);
-    return data.find(item => item[this.primaryKey] === id) || null;
+    const item = data.find(item => item[this.primaryKey] === id);
+    
+    if (!item) return null;
+    
+    // 为返回的对象添加update和destroy方法
+    const itemWithMethods = { ...item };
+    itemWithMethods.update = async (updates) => {
+      return await this.update(updates, { where: { [this.primaryKey]: id } });
+    };
+    itemWithMethods.destroy = async () => {
+      return await this.destroy({ where: { [this.primaryKey]: id } });
+    };
+    
+    return itemWithMethods;
   }
 
   // 根据条件查找一条记录
@@ -113,6 +135,14 @@ class Model {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
+    
+    // 为prescriptions表添加复合主键：prescriptionId + status
+    if (this.tableName === 'prescriptions') {
+      if (newRecord.prescriptionId && newRecord.status) {
+        newRecord.id = `${newRecord.prescriptionId}_${newRecord.status}`;
+      }
+    }
+    
     list.push(newRecord);
     writeJsonFile(`${this.tableName}.json`, list);
     return newRecord;
@@ -219,7 +249,7 @@ const Counter = new Model('counters', 'id');
 const User = new Model('users', 'openid');
 const Booking = new Model('bookings', 'bookingId');
 const ChatMessage = new Model('chat_messages', 'messageId');
-const Prescription = new Model('prescriptions', 'prescriptionId');
+const Prescription = new Model('prescriptions', 'id');
 
 // 数据库初始化方法
 async function init() {

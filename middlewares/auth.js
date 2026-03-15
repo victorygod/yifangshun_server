@@ -13,10 +13,25 @@ function requireRole(allowedRoles) {
     try {
       // 从请求中获取openid
       const openid = req.body.openid || req.query.openid || req.headers['x-openid'];
+      const isHomePage = req.headers['x-home-page'] === 'true'; // 标识是否为主页请求
       
-      console.log('权限验证 - 接收到的openid:', openid);
+      console.log('========================================');
+      console.log('权限验证中间件');
+      console.log('openid:', openid);
+      console.log('isHomePage:', isHomePage);
+      console.log('allowedRoles:', allowedRoles);
+      console.log('========================================');
+      
+      // 主页请求（非微信环境），给予超级管理员权限
+      // 注意：主页请求的优先级高于openid检查
+      if (isHomePage) {
+        req.user = { role: 'super_admin', openid: null, isHomePage: true };
+        console.log('✅ 权限验证通过 - 主页请求，赋予超级管理员权限');
+        return next();
+      }
       
       if (!openid) {
+        console.log('❌ 权限验证失败 - 缺少openid');
         return res.status(401).json({ 
           code: 1, 
           message: '未授权，缺少openid' 
@@ -41,11 +56,14 @@ function requireRole(allowedRoles) {
       
       // 检查角色权限
       if (!allowedRoles.includes(user.role)) {
+        console.log(`❌ 权限验证失败 - 用户角色不匹配: 期望 ${allowedRoles.join(', ')}, 实际 ${user.role}`);
         return res.status(403).json({ 
           code: 1, 
           message: '权限不足' 
         });
       }
+      
+      console.log(`✅ 权限验证通过 - 用户角色: ${user.role}, 允许角色: ${allowedRoles.join(', ')}`);
       
       // 将用户信息附加到请求对象
       req.user = user;

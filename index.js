@@ -306,7 +306,7 @@ app.delete("/api/prescription/:prescriptionId", async (req, res) => {
 app.get("/api/prescription/pending", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     // 管理员查看待审核列表时自动清理过期处方
-    await prescription.cleanExpiredPrescriptions();
+    const cleanResult = await prescription.cleanExpiredPrescriptions();
     
     const { page = 1, pageSize = 20 } = req.query;
     const result = await prescription.getPrescriptionsList({
@@ -314,6 +314,10 @@ app.get("/api/prescription/pending", requireRole(['admin', 'super_admin']), asyn
       pageSize: parseInt(pageSize),
       status: '待审核'
     });
+    
+    // 将清理结果附加到响应中，前端可以根据清理的缩略图链接删除对应的云存储文件
+    result.cleaned = cleanResult;
+    
     res.json(result);
   } catch (error) {
     console.error("获取待审核处方列表失败:", error);

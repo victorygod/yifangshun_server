@@ -180,10 +180,30 @@
       await loadUsers();
     });
 
+    // 主页专用的fetch包装器，自动添加超级管理员权限标识
+    async function homeFetch(url, options = {}) {
+      const defaultOptions = {
+        headers: {}
+      };
+      
+      // 合并headers，确保添加主页标识
+      const mergedOptions = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+          ...defaultOptions.headers,
+          ...options.headers,
+          'x-home-page': 'true'  // 标识这是主页请求
+        }
+      };
+      
+      return fetch(url, mergedOptions);
+    }
+
     // 加载用户列表
     async function loadUsers() {
       try {
-        const response = await fetch('/api/home/users');
+        const response = await homeFetch('/api/home/users');
         const result = await response.json();
         
         if (result.code === 0) {
@@ -294,11 +314,10 @@
       selectElement.dataset.originalRole = newRole;
       
       try {
-        const response = await fetch('/api/user/set-role', {
+        const response = await homeFetch('/api/user/set-role', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'x-openid': 'system_super_admin'
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             openid: openid,

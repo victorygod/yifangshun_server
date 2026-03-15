@@ -315,9 +315,19 @@ async function deletePrescription(prescriptionId, openid) {
     throw new Error("缺少用户标识");
   }
 
-  const prescription = await Prescription.findOne({
-    where: { prescriptionId }
-  });
+  // 尝试使用复合主键查找（prescriptionId_status格式）
+  let prescription = await Prescription.findByPk(prescriptionId);
+  
+  console.log('删除处方 - 复合主键查找结果:', prescription ? '找到' : '未找到');
+  
+  // 如果找不到，尝试使用prescriptionId字段查找
+  if (!prescription) {
+    console.log('删除处方 - 尝试使用prescriptionId字段查找:', prescriptionId);
+    prescription = await Prescription.findOne({
+      where: { prescriptionId, status: '待审核' }
+    });
+    console.log('删除处方 - 字段查找结果:', prescription ? '找到' : '未找到');
+  }
   
   if (!prescription) {
     throw new Error("处方不存在");
@@ -332,6 +342,12 @@ async function deletePrescription(prescriptionId, openid) {
 
   // 普通用户和管理员只能删除自己上传的待审核处方
   if (user.role !== 'super_admin') {
+    console.log('删除处方 - 权限检查:');
+    console.log('  处方openid:', prescription.openid);
+    console.log('  用户openid:', openid);
+    console.log('  用户role:', user.role);
+    console.log('  处方状态:', prescription.status);
+    
     if (prescription.openid !== openid) {
       throw new Error("权限不足，只能删除自己的处方");
     }
@@ -340,9 +356,7 @@ async function deletePrescription(prescriptionId, openid) {
     }
   }
 
-  await Prescription.destroy({
-    where: { prescriptionId }
-  });
+  await prescription.destroy();
 
   return { code: 0, message: "删除成功" };
 }
@@ -598,6 +612,9 @@ async function updatePrescriptionIdByPrescriptionId(oldPrescriptionId, newPrescr
     const newData = JSON.parse(prescription.data);
     newData.prescriptionId = newPrescriptionId;
     
+    console.log('existingPrescription对象:', existingPrescription);
+    console.log('existingPrescription.update方法:', typeof existingPrescription.update);
+    
     await existingPrescription.update({
       data: JSON.stringify(newData),
       modifyDate: new Date()
@@ -616,9 +633,26 @@ async function updatePrescriptionIdByPrescriptionId(oldPrescriptionId, newPrescr
   const prescriptionData = JSON.parse(prescription.data);
   prescriptionData.prescriptionId = newPrescriptionId;
 
-  await prescription.update({
+  // 由于主键包含prescriptionId，需要删除旧记录并创建新记录
+  const oldId = prescription.id;
+  const newId = `${newPrescriptionId}_${prescription.status}`;
+  
+  console.log('准备删除处方记录');
+  console.log('prescription对象:', prescription);
+  console.log('prescription.destroy方法:', typeof prescription.destroy);
+  
+  await prescription.destroy();
+  
+  console.log('处方记录删除成功');
+  
+  const newPrescription = await Prescription.create({
+    id: newId,
     prescriptionId: newPrescriptionId,
+    openid: prescription.openid,
+    status: prescription.status,
     data: JSON.stringify(prescriptionData),
+    thumbnail: prescription.thumbnail,
+    prescriptionDate: prescription.prescriptionDate,
     modifyDate: new Date()
   });
 
@@ -641,14 +675,26 @@ async function cleanExpiredPrescriptions() {
     }
   });
 
+  // 收集需要清理的缩略图链接
+  const thumbnailsToClean = [];
+
   // 删除过期处方
   for (const prescription of expiredPrescriptions) {
+    // 如果有缩略图，添加到清理列表
+    if (prescription.thumbnail) {
+      thumbnailsToClean.push(prescription.thumbnail);
+    }
+
     await prescription.destroy();
     console.log(`删除过期处方: ${prescription.prescriptionId}`);
   }
 
-  console.log(`清理完成，共删除 ${expiredPrescriptions.length} 条过期处方`);
-  return expiredPrescriptions.length;
+  console.log(`清理完成，共删除 ${expiredPrescriptions.length} 条过期处方，${thumbnailsToClean.length} 个缩略图`);
+  
+  return {
+    count: expiredPrescriptions.length,
+    thumbnails: thumbnailsToClean
+  };
 }
 
 // 检查用户今日待审核处方数

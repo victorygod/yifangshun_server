@@ -1,1 +1,0 @@
-{"admins": [{"code": "", "openid": "user_1y6d258wy", "name": "管理员", "phone": ""}], "description": "管理员配置文件", "note": "管理员 openid 需要手动录入，步骤如下：\n1. 用户通过管理员入口登录，控制台会打印出用户的 openid\n2. 或访问后端首页 http://localhost:3000/ 查看所有用户的 openid\n3. 将 openid 复制到上面 admin 列表中\n4. code 字段已废弃，仅作兼容保留，实际不使用"}
