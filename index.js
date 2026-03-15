@@ -388,11 +388,12 @@ app.post("/api/prescription/update-prescription-id", requireRole(['admin', 'supe
 // 获取所有处方列表（管理员）
 app.get("/api/prescription/list", async (req, res) => {
   try {
-    const { page = 1, pageSize = 20, keyword = '' } = req.query;
+    const { page = 1, pageSize = 20, keyword = '', status = 'all' } = req.query;
     const result = await prescription.getPrescriptionsList({ 
       page: parseInt(page), 
       pageSize: parseInt(pageSize),
-      keyword 
+      keyword,
+      status
     });
     res.json(result);
   } catch (error) {

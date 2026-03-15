@@ -188,15 +188,47 @@ async function getPrescriptionHistory(openid) {
     order: [["updatedAt", "DESC"]],
   });
 
-  const prescriptionList = prescriptions.map((p) => ({
-    id: p.id,
-    prescriptionId: p.prescriptionId,
-    status: p.status,
-    data: p.data ? JSON.parse(p.data) : null,
-    thumbnail: p.thumbnail,
-    createTime: p.createTime,
-    updatedAt: p.updatedAt,
-  }));
+  const prescriptionList = prescriptions.map((p) => {
+    const data = p.data ? JSON.parse(p.data) : {};
+    
+    // 中文键名到英文键名的映射（与 getPrescriptionsList 保持一致）
+    const keyMap = {
+      '处方号': 'prescriptionId',
+      '姓名': 'name',
+      '年龄': 'age',
+      '日期': 'date',
+      'Rp': 'rp',
+      '剂数': 'dosage',
+      '服用方式': 'administrationMethod',
+      '药方': 'medicines',
+      '医师': 'doctor'
+    };
+
+    // 转换中文键名为英文键名
+    const convertedData = {};
+    for (const [key, value] of Object.entries(data)) {
+      const englishKey = keyMap[key] || key;
+      if (englishKey === 'medicines' && Array.isArray(value)) {
+        convertedData[englishKey] = value.map(med => ({
+          name: med.药名 || med.name || '',
+          quantity: med.数量 || med.quantity || '',
+          note: med.备注 || med.note || ''
+        }));
+      } else {
+        convertedData[englishKey] = value;
+      }
+    }
+
+    return {
+      id: p.id,
+      prescriptionId: p.prescriptionId,
+      status: p.status,
+      data: convertedData,
+      thumbnail: p.thumbnail,
+      createTime: p.createTime,
+      updatedAt: p.updatedAt,
+    };
+  });
 
   return { code: 0, data: prescriptionList };
 }
@@ -289,10 +321,43 @@ async function updatePrescription(id, prescriptionData, thumbnail = null) {
     throw new Error("缺少处方ID");
   }
 
-  const prescription = await Prescription.findByPk(id);
+  console.log('========================================');
+  console.log('更新处方 - 输入参数:');
+  console.log('  id:', id);
+  console.log('  是否包含下划线:', id.includes('_'));
+  console.log('========================================');
+
+  let prescription = await Prescription.findByPk(id);
+  
+  console.log('更新处方 - findByPk 查找结果:', prescription ? '找到' : '未找到');
+  
+  // 如果找不到，尝试使用 prescriptionId 字段查找
+  if (!prescription) {
+    console.log('更新处方 - 尝试使用 prescriptionId 字段查找:', id);
+    prescription = await Prescription.findOne({
+      where: { prescriptionId: id }
+    });
+    console.log('更新处方 - 字段查找结果:', prescription ? '找到' : '未找到');
+    
+    if (!prescription) {
+      throw new Error("处方不存在");
+    }
+    
+    // 如果找到多个处方，默认更新第一个（通常是待审核的）
+    if (Array.isArray(prescription)) {
+      console.warn('找到多个相同 prescriptionId 的处方，使用第一个');
+      prescription = prescription[0];
+    }
+  }
+  
   if (!prescription) {
     throw new Error("处方不存在");
   }
+
+  console.log('更新处方 - 最终选择的处方:');
+  console.log('  id:', prescription.id);
+  console.log('  prescriptionId:', prescription.prescriptionId);
+  console.log('  status:', prescription.status);
 
   // 构建更新数据
   const updateData = {
@@ -305,7 +370,8 @@ async function updatePrescription(id, prescriptionData, thumbnail = null) {
     updateData.thumbnail = thumbnail;
   }
 
-  await Prescription.update(updateData, { where: { id } });
+  console.log('更新处方 - 准备更新，使用主键:', prescription.id);
+  await Prescription.update(updateData, { where: { id: prescription.id } });
 
   return { code: 0, message: "更新成功" };
 }
@@ -345,22 +411,23 @@ async function deletePrescription(prescriptionId, openid) {
     throw new Error("用户不存在");
   }
 
-  // 普通用户和管理员只能删除自己上传的待审核处方
-  if (user.role !== 'super_admin') {
-    console.log('删除处方 - 权限检查:');
-    console.log('  处方openid:', prescription.openid);
-    console.log('  用户openid:', openid);
-    console.log('  用户role:', user.role);
-    console.log('  处方状态:', prescription.status);
-    
-    if (prescription.openid !== openid) {
-      throw new Error("权限不足，只能删除自己的处方");
-    }
+  console.log('删除处方 - 权限检查:');
+  console.log('  处方openid:', prescription.openid);
+  console.log('  用户openid:', openid);
+  console.log('  用户role:', user.role);
+  console.log('  处方状态:', prescription.status);
+
+  // 普通用户只能删除自己上传的待审核处方
+  if (user.role === 'user') {
     if (prescription.status !== '待审核') {
       throw new Error("只能删除待审核状态的处方");
     }
+    if (prescription.openid !== openid) {
+      throw new Error("权限不足，只能删除自己的处方");
+    }
   }
 
+  // 管理员可以删除任意状态的处方
   await prescription.destroy();
 
   return { code: 0, message: "删除成功" };
@@ -476,10 +543,51 @@ async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
     throw new Error("无效的审核操作");
   }
 
-  const prescription = await Prescription.findByPk(id);
+  console.log('========================================');
+  console.log('审核处方 - 输入参数:');
+  console.log('  id:', id);
+  console.log('  是否包含下划线:', id.includes('_'));
+  console.log('  action:', action);
+  console.log('========================================');
+
+  let prescription = await Prescription.findByPk(id);
+  
+  console.log('审核处方 - findByPk 查找结果:', prescription ? '找到' : '未找到');
+  
+  // 如果找不到，尝试使用 prescriptionId 字段查找（优先找待审核的）
+  if (!prescription) {
+    console.log('审核处方 - 尝试使用 prescriptionId 字段查找:', id);
+    prescription = await Prescription.findOne({
+      where: { 
+        prescriptionId: id,
+        status: '待审核'
+      }
+    });
+    console.log('审核处方 - 字段查找结果（待审核）:', prescription ? '找到' : '未找到');
+    
+    // 如果找不到待审核的，查找已审核的（用于错误提示）
+    if (!prescription) {
+      const approvedPrescription = await Prescription.findOne({
+        where: { 
+          prescriptionId: id,
+          status: '已审核'
+        }
+      });
+      if (approvedPrescription) {
+        throw new Error(`处方ID "${id}" 已是已审核状态，无需重复审核`);
+      }
+      throw new Error("处方不存在");
+    }
+  }
+  
   if (!prescription) {
     throw new Error("处方不存在");
   }
+
+  console.log('审核处方 - 最终选择的处方:');
+  console.log('  id:', prescription.id);
+  console.log('  prescriptionId:', prescription.prescriptionId);
+  console.log('  status:', prescription.status);
 
   if (prescription.status !== '待审核') {
     throw new Error("只能审核待审核状态的处方");
@@ -497,7 +605,7 @@ async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
     where: {
       prescriptionId: prescriptionData.prescriptionId,
       status: '已审核',
-      id: { [Op.ne]: id }
+      id: { [Op.ne]: prescription.id }  // 使用处方的主键而不是输入的 id
     }
   });
 
@@ -521,12 +629,34 @@ async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
   }
 
   // 没有重复，直接通过审核
-  await prescription.update({
+  // 由于本地数据库的主键是 prescriptionId_status，需要删除旧记录并创建新记录
+  const newId = `${prescriptionData.prescriptionId}_已审核`;
+  
+  console.log('审核通过 - 准备创建新记录');
+  console.log('  旧 id:', prescription.id);
+  console.log('  新 id:', newId);
+  
+  // 删除旧记录
+  await prescription.destroy();
+  console.log('旧记录已删除');
+  
+  // 创建新记录（已审核状态）
+  const newPrescription = await Prescription.create({
+    id: newId,
+    prescriptionId: prescriptionData.prescriptionId,
+    openid: prescription.openid,
     status: '已审核',
+    data: JSON.stringify(prescriptionData),
+    thumbnail: prescription.thumbnail,
     reviewer: reviewerName,
     reviewDate: new Date(),
-    modifyDate: new Date()
+    modifyDate: new Date(),
+    prescriptionDate: prescription.prescriptionDate,
+    createTime: prescription.createTime,
+    updatedAt: new Date().toISOString()
   });
+  
+  console.log('新记录已创建:', newPrescription.id);
 
   return {
     code: 0,
@@ -557,12 +687,13 @@ async function confirmPrescriptionApprove(id, reviewerOpenid, reviewerName) {
   });
 
   if (existingPrescription) {
-    // 更新旧记录为新的处方信息
+    // 更新旧记录为新的处方信息，保留缩略图
     await existingPrescription.update({
       data: JSON.stringify(prescriptionData),
       reviewer: reviewerName,
       reviewDate: new Date(),
-      modifyDate: new Date()
+      modifyDate: new Date(),
+      thumbnail: prescription.thumbnail || existingPrescription.thumbnail
     });
     
     // 删除当前处方记录
@@ -575,12 +706,34 @@ async function confirmPrescriptionApprove(id, reviewerOpenid, reviewerName) {
   }
 
   // 更新当前处方为已审核
-  await prescription.update({
+  // 由于本地数据库的主键是 prescriptionId_status，需要删除旧记录并创建新记录
+  const newId = `${prescriptionData.prescriptionId}_已审核`;
+  
+  console.log('确认审核通过 - 准备创建新记录');
+  console.log('  旧 id:', prescription.id);
+  console.log('  新 id:', newId);
+  
+  // 删除当前处方记录
+  await prescription.destroy();
+  console.log('旧记录已删除');
+  
+  // 创建新记录（已审核状态）
+  const newPrescription = await Prescription.create({
+    id: newId,
+    prescriptionId: prescriptionData.prescriptionId,
+    openid: prescription.openid,
     status: '已审核',
+    data: JSON.stringify(prescriptionData),
+    thumbnail: prescription.thumbnail,
     reviewer: reviewerName,
     reviewDate: new Date(),
-    modifyDate: new Date()
+    modifyDate: new Date(),
+    prescriptionDate: prescription.prescriptionDate,
+    createTime: prescription.createTime,
+    updatedAt: new Date().toISOString()
   });
+  
+  console.log('新记录已创建:', newPrescription.id);
 
   return {
     code: 0,
