@@ -300,12 +300,43 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
     }
   }
 
+  // 转换中文键名为英文键名（确保 data 字段中始终使用英文键名）
+  const keyMap = {
+    '处方号': 'prescriptionId',
+    '姓名': 'name',
+    '年龄': 'age',
+    '日期': 'date',
+    'Rp': 'rp',
+    '剂数': 'dosage',
+    '服用方式': 'administrationMethod',
+    '药方': 'medicines',
+    '医师': 'doctor'
+  };
+
+  const convertedData = {};
+  for (const [key, value] of Object.entries(prescriptionData)) {
+    const englishKey = keyMap[key] || key;
+    if (englishKey === 'medicines' && Array.isArray(value)) {
+      convertedData[englishKey] = value.map(med => ({
+        name: med.药名 || med.name || '',
+        quantity: med.数量 || med.quantity || '',
+        note: med.备注 || med.note || ''
+      }));
+    } else {
+      convertedData[englishKey] = value;
+    }
+  }
+
+  console.log('转换后的数据:');
+  console.log(JSON.stringify(convertedData, null, 2));
+  console.log('========================================');
+
   // 创建新记录（不检查处方ID是否已存在）
   const newPrescription = await Prescription.create({
     prescriptionId: prescriptionId,
     openid,
     status: '待审核',
-    data: JSON.stringify(prescriptionData),
+    data: JSON.stringify(convertedData),
     thumbnail: thumbnail || '',
     prescriptionDate: prescriptionData.date || new Date().toISOString().split('T')[0],
   });
@@ -359,9 +390,40 @@ async function updatePrescription(id, prescriptionData, thumbnail = null) {
   console.log('  prescriptionId:', prescription.prescriptionId);
   console.log('  status:', prescription.status);
 
+  // 转换中文键名为英文键名（确保 data 字段中始终使用英文键名）
+  const keyMap = {
+    '处方号': 'prescriptionId',
+    '姓名': 'name',
+    '年龄': 'age',
+    '日期': 'date',
+    'Rp': 'rp',
+    '剂数': 'dosage',
+    '服用方式': 'administrationMethod',
+    '药方': 'medicines',
+    '医师': 'doctor'
+  };
+
+  const convertedData = {};
+  for (const [key, value] of Object.entries(prescriptionData)) {
+    const englishKey = keyMap[key] || key;
+    if (englishKey === 'medicines' && Array.isArray(value)) {
+      convertedData[englishKey] = value.map(med => ({
+        name: med.药名 || med.name || '',
+        quantity: med.数量 || med.quantity || '',
+        note: med.备注 || med.note || ''
+      }));
+    } else {
+      convertedData[englishKey] = value;
+    }
+  }
+
+  console.log('更新处方 - 转换后的数据:');
+  console.log(JSON.stringify(convertedData, null, 2));
+  console.log('========================================');
+
   // 构建更新数据
   const updateData = {
-    data: JSON.stringify(prescriptionData),
+    data: JSON.stringify(convertedData),
     modifyDate: new Date()
   };
 
@@ -604,15 +666,43 @@ async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
 
   // 审核通过：检查是否有重复处方ID
   const prescriptionData = JSON.parse(prescription.data);
+  
+  // 优先使用 data 中的 prescriptionId，如果没有则从主键中提取
+  let targetPrescriptionId = prescriptionData.prescriptionId;
+  
+  if (!targetPrescriptionId && prescription.id.includes('_')) {
+    // 从主键 "prescriptionId_status" 中提取 prescriptionId
+    const parts = prescription.id.split('_');
+    if (parts.length > 0) {
+      targetPrescriptionId = parts[0];
+    }
+  }
+  
+  console.log('========================================');
+  console.log('审核通过 - 检查重复处方ID');
+  console.log('  当前处方ID:', targetPrescriptionId);
+  console.log('  data中的prescriptionId:', prescriptionData.prescriptionId);
+  console.log('  主键:', prescription.id);
+  console.log('  当前处方状态:', prescription.status);
+  console.log('========================================');
+
   const existingPrescription = await Prescription.findOne({
     where: {
-      prescriptionId: prescriptionData.prescriptionId,
+      prescriptionId: targetPrescriptionId,
       status: '已审核',
       id: { [Op.ne]: prescription.id }  // 使用处方的主键而不是输入的 id
     }
   });
 
+  console.log('重复检查结果:', existingPrescription ? '找到重复处方' : '未找到重复处方');
+  
   if (existingPrescription) {
+    console.log('重复处方信息:');
+    console.log('  id:', existingPrescription.id);
+    console.log('  prescriptionId:', existingPrescription.prescriptionId);
+    console.log('  status:', existingPrescription.status);
+    console.log('========================================');
+    
     // 返回需要确认的信息
     return {
       code: 2,
@@ -631,9 +721,13 @@ async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
     };
   }
 
+  console.log('========================================');
+  console.log('审核通过 - 检查完成，未找到重复处方');
+  console.log('========================================');
+
   // 没有重复，直接通过审核
   // 由于本地数据库的主键是 prescriptionId_status，需要删除旧记录并创建新记录
-  const newId = `${prescriptionData.prescriptionId}_已审核`;
+  const newId = `${targetPrescriptionId}_已审核`;
   
   console.log('审核通过 - 准备创建新记录');
   console.log('  旧 id:', prescription.id);
@@ -646,7 +740,7 @@ async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
   // 创建新记录（已审核状态）
   const newPrescription = await Prescription.create({
     id: newId,
-    prescriptionId: prescriptionData.prescriptionId,
+    prescriptionId: targetPrescriptionId,
     openid: prescription.openid,
     status: '已审核',
     data: JSON.stringify(prescriptionData),
@@ -679,11 +773,22 @@ async function confirmPrescriptionApprove(id, reviewerOpenid, reviewerName) {
   }
 
   const prescriptionData = JSON.parse(prescription.data);
+  
+  // 优先使用 data 中的 prescriptionId，如果没有则从主键中提取
+  let targetPrescriptionId = prescriptionData.prescriptionId;
+  
+  if (!targetPrescriptionId && prescription.id.includes('_')) {
+    // 从主键 "prescriptionId_status" 中提取 prescriptionId
+    const parts = prescription.id.split('_');
+    if (parts.length > 0) {
+      targetPrescriptionId = parts[0];
+    }
+  }
 
   // 检查"已审核"状态下是否已存在相同prescriptionId
   const existingPrescription = await Prescription.findOne({
     where: {
-      prescriptionId: prescriptionData.prescriptionId,
+      prescriptionId: targetPrescriptionId,
       status: '已审核',
       id: { [Op.ne]: id }
     }
@@ -710,7 +815,7 @@ async function confirmPrescriptionApprove(id, reviewerOpenid, reviewerName) {
 
   // 更新当前处方为已审核
   // 由于本地数据库的主键是 prescriptionId_status，需要删除旧记录并创建新记录
-  const newId = `${prescriptionData.prescriptionId}_已审核`;
+  const newId = `${targetPrescriptionId}_已审核`;
   
   console.log('确认审核通过 - 准备创建新记录');
   console.log('  旧 id:', prescription.id);
@@ -723,7 +828,7 @@ async function confirmPrescriptionApprove(id, reviewerOpenid, reviewerName) {
   // 创建新记录（已审核状态）
   const newPrescription = await Prescription.create({
     id: newId,
-    prescriptionId: prescriptionData.prescriptionId,
+    prescriptionId: targetPrescriptionId,
     openid: prescription.openid,
     status: '已审核',
     data: JSON.stringify(prescriptionData),
