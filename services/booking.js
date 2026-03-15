@@ -1,4 +1,4 @@
-const { Booking, Op } = require('../db');
+const { Booking, Op } = require('../wrappers/db-wrapper');
 
 // 生成随机 ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -21,8 +21,7 @@ async function generateAvailableSlots(startDate, openid) {
 
   // 获取所有已预约的日期，并统计每个日期的预约数量
   const bookings = await Booking.findAll({
-    where: { status: "confirmed" },
-    attributes: ["date", "openid"],
+    where: { status: "confirmed" }
   });
 
   // 统计每个日期的预约数量
@@ -102,13 +101,13 @@ async function createBooking(date, openid) {
 
   console.log(`预约检查 - 今天: ${todayStr}, 明天: ${tomorrowStr}, 预约日期: ${date}`);
 
-  // 检查用户是否已有预约（一个用户最多同时预约一天，从明天开始检查）
+  // 检查用户是否已有预约（一个用户最多同时预约一天）
   const existingBooking = await Booking.findOne({
     where: { 
       openid, 
       status: "confirmed",
       date: {
-        [Op.gt]: tomorrowStr  // 大于明天（不包括今天）
+        [Op.gte]: tomorrowStr  // 大于等于明天（明天及以后的所有日期）
       }
     },
   });
@@ -125,12 +124,14 @@ async function createBooking(date, openid) {
   }
 
   // 检查该日期的预约数量是否已达上限
-  const dateBookingsCount = await Booking.count({
+  const allBookings = await Booking.findAll({
     where: { 
       date, 
       status: "confirmed"
     },
   });
+  
+  const dateBookingsCount = allBookings.length;
 
   const maxBookingsPerDay = 10; // 每日最多10个预约
   if (dateBookingsCount >= maxBookingsPerDay) {
@@ -203,8 +204,10 @@ async function cancelBooking(bookingId, openid) {
     throw new Error("预约已过期，无法取消");
   }
 
-  booking.status = "cancelled";
-  await booking.save();
+  // 直接删除预约记录
+  await Booking.destroy({
+    where: { bookingId }
+  });
 
   return { code: 0, message: "预约已取消" };
 }

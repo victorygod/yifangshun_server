@@ -1,0 +1,20 @@
+[
+  {
+    "openid": "user_15n239ith",
+    "code": "admin_code_001",
+    "sessionKey": "session_se4eyyoa8",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T07:24:52.385Z",
+    "updatedAt": "2026-03-15T09:22:49.811Z",
+    "phone": "15201927095"
+  },
+  {
+    "openid": "user_5sgge0ltp",
+    "code": "test_user_code",
+    "sessionKey": "session_k91kyt67b",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T07:25:59.486Z",
+    "updatedAt": "2026-03-15T09:22:34.352Z",
+    "phone": "15201927053"
+  }
+]

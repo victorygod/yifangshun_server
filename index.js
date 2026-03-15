@@ -2,7 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
-const { init: initDB, Counter, User, Booking, ChatMessage, Prescription, sequelize, Op } = require("./db");
+const fs = require("fs");
+const path = require("path");
+const { init: initDB, Counter, User, Booking, ChatMessage, Prescription, sequelize, Op } = require("./wrappers/db-wrapper");
 
 // 导入 service 模块
 const auth = require("./services/auth");
@@ -374,6 +376,8 @@ app.get("/api/my-bookings", async (req, res) => {
   }
 });
 
+
+
 // ==================== 处方识别接口 ====================
 
 // 处方OCR识别
@@ -468,13 +472,10 @@ app.post("/api/chat", async (req, res) => {
       return res.status(400).json({ code: 1, message: "消息内容不能为空" });
     }
 
-    // 保存用户消息
-    await chat.saveUserMessage(openid, message);
-
     // 模拟延迟1-2秒
     setTimeout(async () => {
       try {
-        // 获取回复并保存
+        // handleChat 内部会自动保存用户消息和机器人回复
         const result = await chat.handleChat(message, openid);
         res.json(result);
       } catch (error) {

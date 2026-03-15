@@ -1,4 +1,4 @@
-const { ChatMessage } = require('../db');
+const { ChatMessage } = require('../wrappers/db-wrapper');
 
 // 生成随机 ID
 const generateId = () => Math.random().toString(36).substr(2, 9);

@@ -1,4 +1,4 @@
-const { User } = require('../db');
+const { User } = require('../wrappers/db-wrapper');
 const fs = require('fs');
 const path = require('path');
 
@@ -69,8 +69,10 @@ async function handleLogin(code) {
   } else {
     // 老用户，更新sessionKey
     const sessionKey = `session_${generateId()}`;
-    user.sessionKey = sessionKey;
-    await user.save();
+    await User.update(
+      { sessionKey },
+      { where: { openid: user.openid } }
+    );
 
     // 检查用户是否为管理员（优先通过 openid 匹配）
     const isUserAdmin = isAdmin(null, user.openid);
@@ -79,7 +81,7 @@ async function handleLogin(code) {
       code: 0,
       data: {
         openid: user.openid,
-        sessionKey: user.sessionKey,
+        sessionKey: sessionKey,
         phone: user.phone,
         name: user.name,
         isNewUser: false,
@@ -105,10 +107,10 @@ async function handleBindUserInfo(openid, name, phone) {
     throw new Error("用户不存在");
   }
 
-  user.phone = phone;
-  user.name = name;
-  user.isNewUser = false;
-  await user.save();
+  await User.update(
+    { phone, name, isNewUser: false },
+    { where: { openid } }
+  );
 
   return { code: 0, message: "绑定成功" };
 }
@@ -129,9 +131,10 @@ async function handleBindPhone(openid, phone) {
     throw new Error("用户不存在");
   }
 
-  user.phone = phone;
-  user.isNewUser = false;
-  await user.save();
+  await User.update(
+    { phone, isNewUser: false },
+    { where: { openid } }
+  );
 
   return { code: 0, message: "绑定成功" };
 }

@@ -1,0 +1,18 @@
+[
+  {
+    "messageId": "7t4riqfwy",
+    "openid": "anonymous",
+    "content": "诊所营业时间是什么？",
+    "type": "user",
+    "createdAt": "2026-03-15T07:35:01.276Z",
+    "updatedAt": "2026-03-15T07:35:01.276Z"
+  },
+  {
+    "messageId": "ghguwqyro",
+    "openid": "anonymous",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "createdAt": "2026-03-15T07:35:01.278Z",
+    "updatedAt": "2026-03-15T07:35:01.278Z"
+  }
+]
