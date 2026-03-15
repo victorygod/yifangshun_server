@@ -667,12 +667,23 @@ async function cleanExpiredPrescriptions() {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
+  console.log(`========================================`);
+  console.log(`开始清理过期处方`);
+  console.log(`当前时间: ${new Date().toISOString()}`);
+  console.log(`过期时间界限: ${sevenDaysAgo.toISOString()}`);
+  console.log(`========================================`);
+
   // 查找超过7天未审核的处方
   const expiredPrescriptions = await Prescription.findAll({
     where: {
       status: '待审核',
       createTime: { [Op.lt]: sevenDaysAgo }
     }
+  });
+
+  console.log(`找到 ${expiredPrescriptions.length} 条过期处方`);
+  expiredPrescriptions.forEach(p => {
+    console.log(`  - ${p.prescriptionId}: ${p.createTime}`);
   });
 
   // 收集需要清理的缩略图链接
@@ -690,7 +701,8 @@ async function cleanExpiredPrescriptions() {
   }
 
   console.log(`清理完成，共删除 ${expiredPrescriptions.length} 条过期处方，${thumbnailsToClean.length} 个缩略图`);
-  
+  console.log(`========================================`);
+
   return {
     count: expiredPrescriptions.length,
     thumbnails: thumbnailsToClean
