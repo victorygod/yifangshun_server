@@ -263,8 +263,8 @@ app.get("/api/prescription/user-history", async (req, res) => {
 // 保存处方
 app.post("/api/prescription/save", async (req, res) => {
   try {
-    const { openid, ...prescriptionData } = req.body;
-    const result = await prescription.savePrescription(prescriptionData, openid);
+    const { openid, thumbnail, skipValidation, ...prescriptionData } = req.body;
+    const result = await prescription.savePrescription(prescriptionData, openid, thumbnail, false, skipValidation);
     res.json(result);
   } catch (error) {
     console.error("保存处方失败:", error);

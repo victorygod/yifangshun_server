@@ -234,7 +234,7 @@ async function getPrescriptionHistory(openid) {
 }
 
 // 保存处方
-async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave = false) {
+async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave = false, skipValidation = false) {
   console.log('========================================');
   console.log('保存处方 - 接收到的数据:');
   console.log(JSON.stringify(prescriptionData, null, 2));
@@ -269,34 +269,37 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
   console.log('  medicines:', medicines);
   console.log('========================================');
 
-  // 验证必填字段
+  // 验证必填字段（如果是skipValidation模式，只校验处方ID）
   if (!prescriptionId) {
     throw new Error("缺少处方ID");
   }
 
-  if (!name || name.trim() === '') {
-    throw new Error("请填写姓名");
-  }
-
-  if (!rp || rp.trim() === '') {
-    throw new Error("请填写Rp内容");
-  }
-
-  if (!medicines || !Array.isArray(medicines) || medicines.length === 0) {
-    throw new Error("请填写药方");
-  }
-
-  // 验证药方每一项
-  for (let i = 0; i < medicines.length; i++) {
-    const med = medicines[i];
-    const medName = med.name || med['药名'];
-    const medQuantity = med.quantity || med['数量'];
-    
-    if (!medName || medName.trim() === '') {
-      throw new Error(`第${i + 1}味药：请填写药名`);
+  // 如果不是跳过校验模式，并且是管理员，需要校验所有字段
+  if (!skipValidation && (user.role === 'admin' || user.role === 'super_admin')) {
+    if (!name || name.trim() === '') {
+      throw new Error("请填写姓名");
     }
-    if (!medQuantity || medQuantity.trim() === '') {
-      throw new Error(`第${i + 1}味药：请填写数量`);
+
+    if (!rp || rp.trim() === '') {
+      throw new Error("请填写Rp内容");
+    }
+
+    if (!medicines || !Array.isArray(medicines) || medicines.length === 0) {
+      throw new Error("请填写药方");
+    }
+
+    // 验证药方每一项
+    for (let i = 0; i < medicines.length; i++) {
+      const med = medicines[i];
+      const medName = med.name || med['药名'];
+      const medQuantity = med.quantity || med['数量'];
+      
+      if (!medName || medName.trim() === '') {
+        throw new Error(`第${i + 1}味药：请填写药名`);
+      }
+      if (!medQuantity || medQuantity.trim() === '') {
+        throw new Error(`第${i + 1}味药：请填写数量`);
+      }
     }
   }
 
@@ -331,14 +334,37 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
   console.log(JSON.stringify(convertedData, null, 2));
   console.log('========================================');
 
+  // 根据用户角色设置状态
+  // 如果是 skipValidation 模式（从普通用户页面发来的请求），无论用户角色如何，都设置为待审核
+  const status = skipValidation ? '待审核' : ((user.role === 'admin' || user.role === 'super_admin') ? '已审核' : '待审核');
+  const reviewer = skipValidation ? null : ((user.role === 'admin' || user.role === 'super_admin') ? user.name : null);
+  const reviewDate = skipValidation ? null : ((user.role === 'admin' || user.role === 'super_admin') ? new Date() : null);
+
+  // 如果是 skipValidation 模式（从普通用户页面发来的请求），检查是否有重复的处方ID（待审核状态）
+  if (skipValidation) {
+    const existingPrescription = await Prescription.findOne({
+      where: {
+        prescriptionId: prescriptionId,
+        status: '待审核',
+        openid: openid
+      }
+    });
+
+    if (existingPrescription) {
+      throw new Error(`处方ID "${prescriptionId}" 已存在待审核状态，请勿重复上传`);
+    }
+  }
+
   // 创建新记录（不检查处方ID是否已存在）
   const newPrescription = await Prescription.create({
     prescriptionId: prescriptionId,
     openid,
-    status: '待审核',
+    status: status,
     data: JSON.stringify(convertedData),
     thumbnail: thumbnail || '',
     prescriptionDate: prescriptionData.date || new Date().toISOString().split('T')[0],
+    reviewer: reviewer,
+    reviewDate: reviewDate,
   });
 
   console.log('处方创建成功:', newPrescription);
