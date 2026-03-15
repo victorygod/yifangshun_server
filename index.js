@@ -283,7 +283,7 @@ app.post("/api/prescription/update", async (req, res) => {
       return res.status(400).json({ code: 1, message: "缺少处方ID" });
     }
     
-    const result = await prescription.updatePrescription(targetId, prescriptionData, thumbnail);
+    const result = await prescription.updatePrescription(targetId, prescriptionId, prescriptionData, thumbnail);
     res.json(result);
   } catch (error) {
     console.error("更新处方失败:", error);

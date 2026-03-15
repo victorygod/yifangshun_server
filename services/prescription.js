@@ -373,7 +373,7 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
 }
 
 // 更新处方
-async function updatePrescription(id, prescriptionData, thumbnail = null) {
+async function updatePrescription(id, prescriptionId, prescriptionData, thumbnail = null) {
   if (!id) {
     throw new Error("缺少处方ID");
   }
@@ -452,6 +452,12 @@ async function updatePrescription(id, prescriptionData, thumbnail = null) {
     data: JSON.stringify(convertedData),
     modifyDate: new Date()
   };
+
+  // 如果提供了新的处方ID，则更新处方ID
+  if (prescriptionId && prescriptionId !== prescription.prescriptionId) {
+    updateData.prescriptionId = prescriptionId;
+    console.log('更新处方 - 准备更新处方ID:', prescriptionId);
+  }
 
   // 如果提供了新的缩略图，则更新缩略图
   if (thumbnail !== null && thumbnail !== undefined) {
@@ -551,7 +557,9 @@ async function getPrescriptionsList({ page = 1, pageSize = 20, keyword = '', sta
       return (
         p.prescriptionId.toLowerCase().includes(keywordLower) ||
         (data['姓名'] && data['姓名'].toLowerCase().includes(keywordLower)) ||
-        (data['处方号'] && data['处方号'].toLowerCase().includes(keywordLower))
+        (data['name'] && data['name'].toLowerCase().includes(keywordLower)) ||
+        (data['处方号'] && data['处方号'].toLowerCase().includes(keywordLower)) ||
+        (data['prescriptionId'] && data['prescriptionId'].toLowerCase().includes(keywordLower))
       );
     });
   }
@@ -691,7 +699,29 @@ async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
   }
 
   // 审核通过：检查是否有重复处方ID
-  const prescriptionData = JSON.parse(prescription.data);
+  let prescriptionData;
+  
+  try {
+    // 检查 data 字段是否为字符串
+    if (typeof prescription.data !== 'string') {
+      console.error('审核通过 - data字段不是字符串类型:', typeof prescription.data);
+      throw new Error('处方数据格式错误');
+    }
+    
+    prescriptionData = JSON.parse(prescription.data);
+    
+    // 验证解析后的数据结构
+    if (!prescriptionData || typeof prescriptionData !== 'object') {
+      console.error('审核通过 - data解析后不是对象:', prescriptionData);
+      throw new Error('处方数据格式错误');
+    }
+    
+    console.log('审核通过 - data解析成功:', prescriptionData);
+  } catch (error) {
+    console.error('审核通过 - JSON.parse失败:', error);
+    console.error('  data字段原始值:', prescription.data);
+    throw new Error('处方数据格式错误，无法解析');
+  }
   
   // 优先使用 data 中的 prescriptionId，如果没有则从主键中提取
   let targetPrescriptionId = prescriptionData.prescriptionId;
@@ -751,6 +781,23 @@ async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
   console.log('审核通过 - 检查完成，未找到重复处方');
   console.log('========================================');
 
+  // 验证药材数量不为空（管理员审核时需要验证）
+  const medicines = prescriptionData.medicines || prescriptionData['药方'];
+  if (medicines && Array.isArray(medicines) && medicines.length > 0) {
+    for (let i = 0; i < medicines.length; i++) {
+      const med = medicines[i];
+      const medName = med.name || med['药名'];
+      const medQuantity = med.quantity || med['数量'];
+      
+      if (!medName || medName.trim() === '') {
+        throw new Error(`第${i + 1}味药：请填写药名`);
+      }
+      if (!medQuantity || medQuantity.trim() === '') {
+        throw new Error(`第${i + 1}味药：请填写数量`);
+      }
+    }
+  }
+
   // 没有重复，直接通过审核
   // 由于本地数据库的主键是 prescriptionId_status，需要删除旧记录并创建新记录
   const newId = `${targetPrescriptionId}_已审核`;
@@ -798,7 +845,46 @@ async function confirmPrescriptionApprove(id, reviewerOpenid, reviewerName) {
     throw new Error("处方不存在");
   }
 
-  const prescriptionData = JSON.parse(prescription.data);
+  let prescriptionData;
+  
+  try {
+    // 检查 data 字段是否为字符串
+    if (typeof prescription.data !== 'string') {
+      console.error('确认审核通过 - data字段不是字符串类型:', typeof prescription.data);
+      throw new Error('处方数据格式错误');
+    }
+    
+    prescriptionData = JSON.parse(prescription.data);
+    
+    // 验证解析后的数据结构
+    if (!prescriptionData || typeof prescriptionData !== 'object') {
+      console.error('确认审核通过 - data解析后不是对象:', prescriptionData);
+      throw new Error('处方数据格式错误');
+    }
+    
+    console.log('确认审核通过 - data解析成功:', prescriptionData);
+  } catch (error) {
+    console.error('确认审核通过 - JSON.parse失败:', error);
+    console.error('  data字段原始值:', prescription.data);
+    throw new Error('处方数据格式错误，无法解析');
+  }
+
+  // 验证药材数量不为空（管理员审核时需要验证）
+  const medicines = prescriptionData.medicines || prescriptionData['药方'];
+  if (medicines && Array.isArray(medicines) && medicines.length > 0) {
+    for (let i = 0; i < medicines.length; i++) {
+      const med = medicines[i];
+      const medName = med.name || med['药名'];
+      const medQuantity = med.quantity || med['数量'];
+      
+      if (!medName || medName.trim() === '') {
+        throw new Error(`第${i + 1}味药：请填写药名`);
+      }
+      if (!medQuantity || medQuantity.trim() === '') {
+        throw new Error(`第${i + 1}味药：请填写数量`);
+      }
+    }
+  }
   
   // 优先使用 data 中的 prescriptionId，如果没有则从主键中提取
   let targetPrescriptionId = prescriptionData.prescriptionId;
@@ -866,7 +952,7 @@ async function confirmPrescriptionApprove(id, reviewerOpenid, reviewerName) {
     createTime: prescription.createTime,
     updatedAt: new Date().toISOString()
   });
-  
+
   console.log('新记录已创建:', newPrescription.id);
 
   return {
@@ -874,7 +960,6 @@ async function confirmPrescriptionApprove(id, reviewerOpenid, reviewerName) {
     message: "审核成功"
   };
 }
-
 // 更新处方ID（通过处方ID）
 async function updatePrescriptionIdByPrescriptionId(oldPrescriptionId, newPrescriptionId) {
   if (!oldPrescriptionId || !newPrescriptionId) {
