@@ -12,6 +12,9 @@ const booking = require("./services/booking");
 const prescription = require("./services/prescription");
 const chat = require("./services/chat");
 
+// 导入权限中间件
+const { requireRole } = require("./middlewares/auth");
+
 const logger = morgan("tiny");
 
 const app = express();
@@ -20,9 +23,8 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(cors());
 app.use(logger);
 
-// 首页
-// 首页 - 显示已绑定手机号的用户
-app.get("/", async (req, res) => {
+// 首页 - 返回用户列表数据（前端通过AJAX获取）
+app.get("/api/home/users", async (req, res) => {
   try {
     const users = await User.findAll({
       where: {
@@ -33,246 +35,25 @@ app.get("/", async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
-    const html = `
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>易方顺诊所助手 - 用户列表</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      margin: 0;
-      padding: 20px;
-      min-height: 100vh;
-    }
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 15px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      padding: 40px;
-    }
-    h1 {
-      color: #333;
-      text-align: center;
-      margin-bottom: 10px;
-      font-size: 32px;
-    }
-    .subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 30px;
-      font-size: 14px;
-    }
-    .stats {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
-    .stat-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px 30px;
-      border-radius: 10px;
-      text-align: center;
-      min-width: 150px;
-    }
-    .stat-number {
-      font-size: 36px;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    .stat-label {
-      font-size: 14px;
-      opacity: 0.9;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background: #f9f9f9;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    th {
-      background: #667eea;
-      color: white;
-      padding: 15px;
-      text-align: left;
-      font-weight: 600;
-    }
-    td {
-      padding: 15px;
-      border-bottom: 1px solid #e0e0e0;
-      color: #555;
-    }
-    tr:last-child td {
-      border-bottom: none;
-    }
-    tr:hover td {
-      background: #f0f0f0;
-    }
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #999;
-      font-size: 18px;
-    }
-    .empty-icon {
-      font-size: 48px;
-      margin-bottom: 15px;
-    }
-    .phone {
-      font-family: 'Courier New', monospace;
-      font-weight: bold;
-      color: #667eea;
-    }
-    .badge {
-      display: inline-block;
-      padding: 5px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .badge-new {
-      background: #4CAF50;
-      color: white;
-    }
-    .badge-old {
-      background: #9E9E9E;
-      color: white;
-    }
-    .time {
-      color: #999;
-      font-size: 13px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h1>🏥 易方顺诊所助手</h1>
-    <p class="subtitle">已绑定手机号的用户列表</p>
-
-    <div class="stats">
-      <div class="stat-card">
-        <div class="stat-number">${users.length}</div>
-        <div class="stat-label">已绑定用户</div>
-      </div>
-    </div>
-
-    ${users.length > 0 ? `
-      <table>
-        <thead>
-          <tr>
-            <th>姓名</th>
-            <th>手机号</th>
-            <th>用户状态</th>
-            <th>绑定时间</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${users.map(user => `
-            <tr>
-              <td>${user.name || '-'}</td>
-              <td><span class="phone">${user.phone}</span></td>
-              <td>
-                <span class="badge ${user.isNewUser ? 'badge-new' : 'badge-old'}">
-                  ${user.isNewUser ? '新用户' : '老用户'}
-                </span>
-              </td>
-              <td><span class="time">${user.createdAt ? new Date(user.createdAt).toLocaleString('zh-CN') : '-'}</span></td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    ` : `
-      <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <p>暂无已绑定手机号的用户</p>
-      </div>
-    `}
-  </div>
-</body>
-</html>
-    `;
-
-    res.send(html);
+    res.json({
+      code: 0,
+      data: users.map(user => ({
+        openid: user.openid,
+        name: user.name,
+        phone: user.phone,
+        role: user.role,
+        createdAt: user.createdAt
+      }))
+    });
   } catch (error) {
     console.error("获取用户列表失败:", error);
-    res.status(500).send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>错误</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background: #f5f5f5;
-          }
-          .error {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-          }
-          h1 { color: #e74c3c; }
-        </style>
-      </head>
-      <body>
-        <div class="error">
-          <h1>❌ 获取用户列表失败</h1>
-          <p>${error.message}</p>
-        </div>
-      </body>
-      </html>
-    `);
+    res.status(500).json({ code: 1, message: error.message || "获取用户列表失败" });
   }
 });
 
-// ==================== 旧接口（保留兼容） ====================
-
-// 更新计数
-app.post("/api/count", async (req, res) => {
-  const { action } = req.body;
-  if (action === "inc") {
-    await Counter.create();
-  } else if (action === "clear") {
-    await Counter.destroy({
-      truncate: true,
-    });
-  }
-  res.send({
-    code: 0,
-    data: await Counter.count(),
-  });
-});
-
-// 获取计数
-app.get("/api/count", async (req, res) => {
-  const result = await Counter.count();
-  res.send({
-    code: 0,
-    data: result,
-  });
-});
-
-// 小程序调用，获取微信 Open ID
-app.get("/api/wx_openid", async (req, res) => {
-  if (req.headers["x-wx-source"]) {
-    res.send(req.headers["x-wx-openid"]);
-  }
+// 首页 - 返回HTML页面
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ==================== 登录相关接口 ====================
@@ -313,7 +94,7 @@ app.post("/api/bind-user-info", async (req, res) => {
   }
 });
 
-// 绑定手机号（首次登录）- 兼容旧接口
+// 绑定手机号
 app.post("/api/bind-phone", async (req, res) => {
   try {
     const { openid, phone } = req.body;
@@ -322,6 +103,78 @@ app.post("/api/bind-phone", async (req, res) => {
   } catch (error) {
     console.error("绑定手机号失败:", error);
     return res.status(400).json({ code: 1, message: error.message || "绑定失败" });
+  }
+});
+
+// ==================== 角色管理接口 ====================
+
+// 获取用户列表（带角色信息）
+app.get("/api/users", async (req, res) => {
+  try {
+    const { role = 'all', page = 1, pageSize = 20 } = req.query;
+    const where = {};
+    
+    if (role !== 'all') {
+      where.role = role;
+    }
+    
+    const users = await User.findAll({
+      where,
+      order: [['createdAt', 'DESC']]
+    });
+
+    const startIndex = (parseInt(page) - 1) * parseInt(pageSize);
+    const endIndex = startIndex + parseInt(pageSize);
+    const paginatedUsers = users.slice(startIndex, endIndex);
+
+    res.json({
+      code: 0,
+      data: paginatedUsers.map(user => ({
+        openid: user.openid,
+        name: user.name,
+        phone: user.phone,
+        role: user.role,
+        createdAt: user.createdAt
+      })),
+      pagination: {
+        page: parseInt(page),
+        pageSize: parseInt(pageSize),
+        totalCount: users.length,
+        totalPages: Math.ceil(users.length / parseInt(pageSize))
+      }
+    });
+  } catch (error) {
+    console.error("获取用户列表失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "获取用户列表失败" });
+  }
+});
+
+// 设置用户角色
+app.post("/api/user/set-role", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { openid, role } = req.body;
+    
+    if (!openid || !role) {
+      return res.status(400).json({ code: 1, message: "缺少必要参数" });
+    }
+
+    // 验证角色值
+    if (!['user', 'admin', 'super_admin'].includes(role)) {
+      return res.status(400).json({ code: 1, message: "无效的角色值" });
+    }
+
+    const user = await User.findByPk(openid);
+    if (!user) {
+      return res.status(404).json({ code: 1, message: "用户不存在" });
+    }
+
+    // 更新用户角色
+    await User.update({ role }, { where: { openid } });
+
+    res.json({ code: 0, message: "角色设置成功" });
+  } catch (error) {
+    console.error("设置用户角色失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "设置用户角色失败" });
   }
 });
 
@@ -393,7 +246,7 @@ app.post("/api/prescription/ocr", async (req, res) => {
 });
 
 // 获取处方历史
-app.get("/api/prescription/history", async (req, res) => {
+app.get("/api/prescription/user-history", async (req, res) => {
   try {
     const { openid } = req.query;
     const result = await prescription.getPrescriptionHistory(openid);
@@ -432,17 +285,92 @@ app.post("/api/prescription/update", async (req, res) => {
 });
 
 // 删除处方
-app.post("/api/prescription/delete", async (req, res) => {
+app.delete("/api/prescription/:prescriptionId", async (req, res) => {
   try {
-    const { prescriptionId } = req.body;
+    const { prescriptionId } = req.params;
+    const { openid } = req.query;
+    
     if (!prescriptionId) {
       return res.status(400).json({ code: 1, message: "缺少处方ID" });
     }
-    const result = await prescription.deletePrescription(prescriptionId);
+    
+    const result = await prescription.deletePrescription(prescriptionId, openid);
     res.json(result);
   } catch (error) {
     console.error("删除处方失败:", error);
     return res.status(400).json({ code: 1, message: error.message || "删除处方失败，请稍后重试" });
+  }
+});
+
+// 获取待审核处方列表
+app.get("/api/prescription/pending", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    // 管理员查看待审核列表时自动清理过期处方
+    await prescription.cleanExpiredPrescriptions();
+    
+    const { page = 1, pageSize = 20 } = req.query;
+    const result = await prescription.getPrescriptionsList({
+      page: parseInt(page),
+      pageSize: parseInt(pageSize),
+      status: '待审核'
+    });
+    res.json(result);
+  } catch (error) {
+    console.error("获取待审核处方列表失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "获取待审核处方列表失败" });
+  }
+});
+
+// 审核处方
+app.post("/api/prescription/review", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { id, action } = req.body;
+    
+    if (!id || !action) {
+      return res.status(400).json({ code: 1, message: "缺少必要参数" });
+    }
+
+    const reviewerName = req.user.name || req.user.openid;
+    const result = await prescription.reviewPrescription(id, action, req.user.openid, reviewerName);
+    res.json(result);
+  } catch (error) {
+    console.error("审核处方失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "审核处方失败" });
+  }
+});
+
+// 确认审核通过（覆盖旧记录）
+app.post("/api/prescription/confirm-approve", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { id } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({ code: 1, message: "缺少必要参数" });
+    }
+
+    const reviewerName = req.user.name || req.user.openid;
+    const result = await prescription.confirmPrescriptionApprove(id, req.user.openid, reviewerName);
+    res.json(result);
+  } catch (error) {
+    console.error("确认审核失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "确认审核失败" });
+  }
+});
+
+// 更新处方ID
+app.post("/api/prescription/update-prescription-id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { oldPrescriptionId, newPrescriptionId } = req.body;
+    
+    if (!oldPrescriptionId || !newPrescriptionId) {
+      return res.status(400).json({ code: 1, message: "缺少必要参数" });
+    }
+
+    const result = await prescription.updatePrescriptionIdByPrescriptionId(oldPrescriptionId, newPrescriptionId);
+    res.json(result);
+  } catch (error) {
+    console.error("更新处方ID失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "更新处方ID失败" });
   }
 });
 
@@ -543,6 +471,8 @@ async function bootstrap() {
     console.log("POST   /api/login");
     console.log("POST   /api/bind-user-info");
     console.log("POST   /api/bind-phone");
+    console.log("GET    /api/users");
+    console.log("POST   /api/user/set-role");
     console.log("GET    /api/available-slots");
     console.log("POST   /api/booking");
     console.log("DELETE /api/booking/:bookingId");
@@ -552,6 +482,10 @@ async function bootstrap() {
     console.log("POST   /api/prescription/save");
     console.log("POST   /api/prescription/update");
     console.log("POST   /api/prescription/delete");
+    console.log("GET    /api/prescription/pending");
+    console.log("POST   /api/prescription/review");
+    console.log("POST   /api/prescription/confirm-approve");
+    console.log("POST   /api/prescription/update-prescription-id");
     console.log("GET    /api/prescription/list");
     console.log("POST   /api/chat");
     console.log("GET    /api/chat/history");

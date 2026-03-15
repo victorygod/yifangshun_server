@@ -2,19 +2,219 @@
   {
     "openid": "user_15n239ith",
     "code": "admin_code_001",
-    "sessionKey": "session_l3ddqqzsf",
     "isNewUser": false,
     "createdAt": "2026-03-15T07:24:52.385Z",
-    "updatedAt": "2026-03-15T09:26:22.801Z",
-    "phone": "15201927095"
+    "updatedAt": "2026-03-15T11:22:33.535Z",
+    "phone": "15201927095",
+    "role": "user"
   },
   {
     "openid": "user_5sgge0ltp",
     "code": "test_user_code",
-    "sessionKey": "session_k91kyt67b",
     "isNewUser": false,
     "createdAt": "2026-03-15T07:25:59.486Z",
-    "updatedAt": "2026-03-15T09:22:34.352Z",
-    "phone": "15201927053"
+    "updatedAt": "2026-03-15T12:12:50.484Z",
+    "phone": "15201927053",
+    "role": "super_admin"
+  },
+  {
+    "openid": "user_zizc6ayl4",
+    "code": "test_normal_user_1773578044329",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:34:04.380Z",
+    "updatedAt": "2026-03-15T12:34:04.392Z",
+    "phone": "13800138001",
+    "name": "测试普通用户"
+  },
+  {
+    "openid": "user_hsaycm7de",
+    "code": "test_admin_user_1773578044329",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:34:04.394Z",
+    "updatedAt": "2026-03-15T12:34:04.396Z",
+    "phone": "13800138002",
+    "name": "测试管理员"
+  },
+  {
+    "openid": "user_tuzmugynr",
+    "code": "test_super_admin_1773578044329",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:34:04.398Z",
+    "updatedAt": "2026-03-15T12:34:04.400Z",
+    "phone": "13800138003",
+    "name": "测试超级管理员"
+  },
+  {
+    "openid": "user_ilwz76wro",
+    "code": "test_normal_user_1773578114596",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:35:14.639Z",
+    "updatedAt": "2026-03-15T12:35:14.648Z",
+    "phone": "13800138001",
+    "name": "测试普通用户"
+  },
+  {
+    "openid": "user_9vsbvk8fz",
+    "code": "test_admin_user_1773578114596",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:35:14.651Z",
+    "updatedAt": "2026-03-15T12:35:14.654Z",
+    "phone": "13800138002",
+    "name": "测试管理员"
+  },
+  {
+    "openid": "user_n24hss58j",
+    "code": "test_super_admin_1773578114596",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:35:14.655Z",
+    "updatedAt": "2026-03-15T12:35:14.657Z",
+    "phone": "13800138003",
+    "name": "测试超级管理员"
+  },
+  {
+    "openid": "user_89ig9ep2q",
+    "code": "test_normal_user_1773578128417",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:35:28.461Z",
+    "updatedAt": "2026-03-15T12:35:28.469Z",
+    "phone": "13800138001",
+    "name": "测试普通用户"
+  },
+  {
+    "openid": "user_fwpno10ss",
+    "code": "test_admin_user_1773578128417",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:35:28.471Z",
+    "updatedAt": "2026-03-15T12:35:28.473Z",
+    "phone": "13800138002",
+    "name": "测试管理员"
+  },
+  {
+    "openid": "user_agbwgp8eu",
+    "code": "test_super_admin_1773578128417",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:35:28.475Z",
+    "updatedAt": "2026-03-15T12:35:28.477Z",
+    "phone": "13800138003",
+    "name": "测试超级管理员"
+  },
+  {
+    "openid": "user_7qeqza8vl",
+    "code": "test_normal_user_1773578164953",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:36:04.996Z",
+    "updatedAt": "2026-03-15T12:36:05.004Z",
+    "phone": "13800138001",
+    "name": "测试普通用户"
+  },
+  {
+    "openid": "user_kf3uk95fe",
+    "code": "test_admin_user_1773578164953",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:36:05.006Z",
+    "updatedAt": "2026-03-15T12:36:05.008Z",
+    "phone": "13800138002",
+    "name": "测试管理员"
+  },
+  {
+    "openid": "user_wxhx009se",
+    "code": "test_super_admin_1773578164953",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:36:05.010Z",
+    "updatedAt": "2026-03-15T12:36:05.011Z",
+    "phone": "13800138003",
+    "name": "测试超级管理员"
+  },
+  {
+    "openid": "user_ejcaqyb3j",
+    "code": "test_normal_user_1773578178290",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:36:18.334Z",
+    "updatedAt": "2026-03-15T12:36:18.342Z",
+    "phone": "13800138001",
+    "name": "测试普通用户"
+  },
+  {
+    "openid": "user_gq07di44i",
+    "code": "test_admin_user_1773578178290",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:36:18.344Z",
+    "updatedAt": "2026-03-15T12:36:18.346Z",
+    "phone": "13800138002",
+    "name": "测试管理员"
+  },
+  {
+    "openid": "user_61o95fn17",
+    "code": "test_super_admin_1773578178290",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:36:18.348Z",
+    "updatedAt": "2026-03-15T12:36:18.349Z",
+    "phone": "13800138003",
+    "name": "测试超级管理员"
+  },
+  {
+    "openid": "user_r5doqh900",
+    "code": "test_normal_user_1773578183479",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:36:23.522Z",
+    "updatedAt": "2026-03-15T12:36:23.531Z",
+    "phone": "13800138001",
+    "name": "测试普通用户"
+  },
+  {
+    "openid": "user_fjn881sf4",
+    "code": "test_admin_user_1773578183479",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:36:23.534Z",
+    "updatedAt": "2026-03-15T12:36:23.536Z",
+    "phone": "13800138002",
+    "name": "测试管理员"
+  },
+  {
+    "openid": "user_2srjyhswz",
+    "code": "test_super_admin_1773578183479",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:36:23.538Z",
+    "updatedAt": "2026-03-15T12:36:23.540Z",
+    "phone": "13800138003",
+    "name": "测试超级管理员"
+  },
+  {
+    "openid": "user_5ebtoi4re",
+    "code": "test_normal_user_1773578252487",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:37:32.529Z",
+    "updatedAt": "2026-03-15T12:37:32.537Z",
+    "phone": "13800138001",
+    "name": "测试普通用户"
+  },
+  {
+    "openid": "user_oqjg2cl4z",
+    "code": "test_admin_user_1773578252487",
+    "role": "user",
+    "isNewUser": false,
+    "createdAt": "2026-03-15T12:37:32.539Z",
+    "updatedAt": "2026-03-15T12:37:32.541Z",
+    "phone": "13800138002",
+    "name": "测试管理员"
   }
 ]

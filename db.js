@@ -42,9 +42,18 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: true,
   },
-  sessionKey: {
-    type: DataTypes.STRING,
-    allowNull: true,
+  role: {
+    type: DataTypes.ENUM('user', 'admin', 'super_admin'),
+    defaultValue: 'user',
+    allowNull: false,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
   },
 });
 
@@ -103,25 +112,67 @@ const ChatMessage = sequelize.define("ChatMessage", {
 
 // 处方记录模型
 const Prescription = sequelize.define("Prescription", {
-  prescriptionId: {
-    type: DataTypes.STRING,
+  id: {
+    type: DataTypes.INTEGER,
     primaryKey: true,
+    autoIncrement: true,
+    comment: '内部主键'
+  },
+  prescriptionId: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    comment: '处方ID（业务标识）'
+  },
+  status: {
+    type: DataTypes.ENUM('待审核', '已审核'),
+    defaultValue: '待审核',
+    allowNull: false,
+    comment: '审核状态'
   },
   openid: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(50),
     allowNull: false,
+    comment: '用户openid'
   },
-  image: {
+  reviewer: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    comment: '审核药师'
+  },
+  reviewDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: '审核日期'
+  },
+  prescriptionDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+    comment: '处方日期'
+  },
+  modifyDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    comment: '修改日期'
+  },
+  data: {
     type: DataTypes.TEXT,
     allowNull: true,
+    comment: '处方完整数据JSON字符串'
   },
-  text: {
+  thumbnail: {
     type: DataTypes.TEXT,
     allowNull: true,
+    comment: '缩略图URL'
   },
   createTime: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
+    comment: '创建时间'
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+    comment: '更新时间'
   },
 });
 
