@@ -1,3 +1,6 @@
+// 加载环境变量
+require('dotenv').config();
+
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -272,11 +275,15 @@ app.post("/api/prescription/save", async (req, res) => {
 // 更新处方
 app.post("/api/prescription/update", async (req, res) => {
   try {
-    const { prescriptionId, ...prescriptionData } = req.body;
-    if (!prescriptionId) {
+    const { id, prescriptionId, thumbnail, ...prescriptionData } = req.body;
+    // 优先使用 id（数据库主键），如果没有则使用 prescriptionId
+    const targetId = id || prescriptionId;
+    
+    if (!targetId) {
       return res.status(400).json({ code: 1, message: "缺少处方ID" });
     }
-    const result = await prescription.updatePrescription(prescriptionId, prescriptionData);
+    
+    const result = await prescription.updatePrescription(targetId, prescriptionData, thumbnail);
     res.json(result);
   } catch (error) {
     console.error("更新处方失败:", error);

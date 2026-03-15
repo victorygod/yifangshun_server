@@ -284,7 +284,7 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
 }
 
 // 更新处方
-async function updatePrescription(id, prescriptionData) {
+async function updatePrescription(id, prescriptionData, thumbnail = null) {
   if (!id) {
     throw new Error("缺少处方ID");
   }
@@ -294,13 +294,18 @@ async function updatePrescription(id, prescriptionData) {
     throw new Error("处方不存在");
   }
 
-  await Prescription.update(
-    { 
-      data: JSON.stringify(prescriptionData),
-      modifyDate: new Date()
-    },
-    { where: { id } }
-  );
+  // 构建更新数据
+  const updateData = {
+    data: JSON.stringify(prescriptionData),
+    modifyDate: new Date()
+  };
+
+  // 如果提供了新的缩略图，则更新缩略图
+  if (thumbnail !== null && thumbnail !== undefined) {
+    updateData.thumbnail = thumbnail;
+  }
+
+  await Prescription.update(updateData, { where: { id } });
 
   return { code: 0, message: "更新成功" };
 }
