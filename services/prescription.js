@@ -386,6 +386,7 @@ async function getPrescriptionsList({ page = 1, pageSize = 20, keyword = '' }) {
       image: p.image,
       data: convertedData,
       createTime: p.createTime,
+      updatedAt: p.updatedAt,
     };
   });
 
