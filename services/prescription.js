@@ -368,6 +368,9 @@ async function updatePrescription(id, prescriptionData, thumbnail = null) {
   // 如果提供了新的缩略图，则更新缩略图
   if (thumbnail !== null && thumbnail !== undefined) {
     updateData.thumbnail = thumbnail;
+    console.log('更新处方 - 准备更新缩略图，长度:', thumbnail.length);
+  } else {
+    console.log('更新处方 - 未提供缩略图参数');
   }
 
   console.log('更新处方 - 准备更新，使用主键:', prescription.id);
