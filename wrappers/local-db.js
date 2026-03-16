@@ -14,6 +14,21 @@ if (!fs.existsSync(dataDir)) {
 // 生成随机ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
+// 将时间转换为东八区（CST）时间戳
+function toCST(date) {
+  if (!date) return date;
+  const d = new Date(date);
+  // 转换为时间戳，然后加上8小时的偏移量（东八区）
+  return new Date(d.getTime() + 8 * 60 * 60 * 1000);
+}
+
+// 获取当前东八区时间的ISO字符串
+function getNowCST() {
+  const now = new Date();
+  // 转换为东八区时间
+  return new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString();
+}
+
 // 读取JSON文件
 function readJsonFile(filename) {
   const filePath = path.join(dataDir, filename);
@@ -63,28 +78,28 @@ class Model {
             if (whereValue[Symbol.for('sequelize:op.gte')] !== undefined) {
               // 日期比较：如果是日期字段，转换为 Date 对象比较
               if (key === 'createTime' || key === 'createdAt' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
-                return new Date(itemValue) >= new Date(whereValue[Symbol.for('sequelize:op.gte')]);
+                return toCST(itemValue) >= toCST(whereValue[Symbol.for('sequelize:op.gte')]);
               }
               return itemValue >= whereValue[Symbol.for('sequelize:op.gte')];
             }
             if (whereValue[Symbol.for('sequelize:op.gt')] !== undefined) {
               // 日期比较：如果是日期字段，转换为 Date 对象比较
               if (key === 'createTime' || key === 'createdAt' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
-                return new Date(itemValue) > new Date(whereValue[Symbol.for('sequelize:op.gt')]);
+                return toCST(itemValue) > toCST(whereValue[Symbol.for('sequelize:op.gt')]);
               }
               return itemValue > whereValue[Symbol.for('sequelize:op.gt')];
             }
             if (whereValue[Symbol.for('sequelize:op.lte')] !== undefined) {
               // 日期比较：如果是日期字段，转换为 Date 对象比较
               if (key === 'createTime' || key === 'createdAt' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
-                return new Date(itemValue) <= new Date(whereValue[Symbol.for('sequelize:op.lte')]);
+                return toCST(itemValue) <= toCST(whereValue[Symbol.for('sequelize:op.lte')]);
               }
               return itemValue <= whereValue[Symbol.for('sequelize:op.lte')];
             }
             if (whereValue[Symbol.for('sequelize:op.lt')] !== undefined) {
               // 日期比较：如果是日期字段，转换为 Date 对象比较
               if (key === 'createTime' || key === 'createdAt' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
-                return new Date(itemValue) < new Date(whereValue[Symbol.for('sequelize:op.lt')]);
+                return toCST(itemValue) < toCST(whereValue[Symbol.for('sequelize:op.lt')]);
               }
               return itemValue < whereValue[Symbol.for('sequelize:op.lt')];
             }
@@ -148,8 +163,9 @@ class Model {
     const list = readJsonFile(`${this.tableName}.json`);
     const newRecord = {
       ...data,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      id: data.id || generateId(),
+      createdAt: getNowCST(),
+      updatedAt: getNowCST()
     };
     
     // 为prescriptions表添加复合主键：prescriptionId + status
@@ -198,7 +214,7 @@ class Model {
         
         if (matches) {
           updatedCount++;
-          return { ...item, ...updates, updatedAt: new Date().toISOString() };
+          return { ...item, ...updates, updatedAt: getNowCST() };
         }
       }
       return item;
@@ -281,7 +297,7 @@ async function init() {
   // 初始化counter表（如果为空）
   const counters = readJsonFile('counters.json');
   if (counters.length === 0) {
-    writeJsonFile('counters.json', [{ id: 1, count: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }]);
+    writeJsonFile('counters.json', [{ id: 1, count: 1, createdAt: getNowCST(), updatedAt: getNowCST() }]);
   }
   
   console.log('本地数据库初始化完成');
