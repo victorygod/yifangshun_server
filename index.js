@@ -407,12 +407,22 @@ app.post("/api/prescription/confirm-overwrite", requireRole(['admin', 'super_adm
 app.get("/api/prescription/list", async (req, res) => {
   try {
     const { page = 1, pageSize = 20, keyword = '', status = 'all' } = req.query;
+    
+    // 每次都执行清理（内部已有检查逻辑，不会有性能问题）
+    const cleanResult = await prescription.cleanExpiredPrescriptions();
+    
     const result = await prescription.getPrescriptionsList({ 
       page: parseInt(page), 
       pageSize: parseInt(pageSize),
       keyword,
       status
     });
+    
+    // 如果有清理结果，附加到响应中
+    if (cleanResult.count > 0) {
+      result.cleaned = cleanResult;
+    }
+    
     res.json(result);
   } catch (error) {
     console.error("获取处方列表失败:", error);

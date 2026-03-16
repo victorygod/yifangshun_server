@@ -1066,13 +1066,13 @@ async function cleanExpiredPrescriptions() {
   const expiredPrescriptions = await Prescription.findAll({
     where: {
       status: '待审核',
-      createTime: { [Op.lt]: sevenDaysAgo }
+      createdAt: { [Op.lt]: sevenDaysAgo }
     }
   });
 
   console.log(`找到 ${expiredPrescriptions.length} 条过期处方`);
   expiredPrescriptions.forEach(p => {
-    console.log(`  - ${p.prescriptionId}: ${p.createTime}`);
+    console.log(`  - ${p.prescriptionId}: ${p.createdAt}`);
   });
 
   // 收集需要清理的缩略图链接
