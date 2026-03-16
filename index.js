@@ -292,16 +292,16 @@ app.post("/api/prescription/update", async (req, res) => {
 });
 
 // 删除处方
-app.delete("/api/prescription/:prescriptionId", async (req, res) => {
+app.delete("/api/prescription/:id", async (req, res) => {
   try {
-    const { prescriptionId } = req.params;
+    const { id } = req.params;
     const { openid } = req.query;
     
-    if (!prescriptionId) {
+    if (!id) {
       return res.status(400).json({ code: 1, message: "缺少处方ID" });
     }
     
-    const result = await prescription.deletePrescription(prescriptionId, openid);
+    const result = await prescription.deletePrescription(id, openid);
     res.json(result);
   } catch (error) {
     console.error("删除处方失败:", error);
@@ -382,6 +382,24 @@ app.post("/api/prescription/update-prescription-id", requireRole(['admin', 'supe
   } catch (error) {
     console.error("更新处方ID失败:", error);
     return res.status(400).json({ code: 1, message: error.message || "更新处方ID失败" });
+  }
+});
+
+// 确认覆盖已存在的处方（管理员上传重复处方时使用）
+app.post("/api/prescription/confirm-overwrite", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { prescriptionId, prescriptionData, thumbnail } = req.body;
+    const openid = req.user.openid;
+    
+    if (!prescriptionId || !prescriptionData) {
+      return res.status(400).json({ code: 1, message: "缺少必要参数" });
+    }
+
+    const result = await prescription.confirmOverwritePrescription(prescriptionId, prescriptionData, thumbnail, openid);
+    res.json(result);
+  } catch (error) {
+    console.error("确认覆盖处方失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "确认覆盖处方失败" });
   }
 });
 
@@ -493,10 +511,11 @@ async function bootstrap() {
     console.log("GET    /api/prescription/history");
     console.log("POST   /api/prescription/save");
     console.log("POST   /api/prescription/update");
-    console.log("POST   /api/prescription/delete");
+    console.log("DELETE /api/prescription/:id");
     console.log("GET    /api/prescription/pending");
     console.log("POST   /api/prescription/review");
     console.log("POST   /api/prescription/confirm-approve");
+    console.log("POST   /api/prescription/confirm-overwrite");
     console.log("POST   /api/prescription/update-prescription-id");
     console.log("GET    /api/prescription/list");
     console.log("POST   /api/chat");

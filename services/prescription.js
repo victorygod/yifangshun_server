@@ -335,27 +335,52 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
   console.log('========================================');
 
   // 根据用户角色设置状态
-  // 如果是 skipValidation 模式（从普通用户页面发来的请求），无论用户角色如何，都设置为待审核
   const status = skipValidation ? '待审核' : ((user.role === 'admin' || user.role === 'super_admin') ? '已审核' : '待审核');
   const reviewer = skipValidation ? null : ((user.role === 'admin' || user.role === 'super_admin') ? user.name : null);
   const reviewDate = skipValidation ? null : ((user.role === 'admin' || user.role === 'super_admin') ? new Date() : null);
 
-  // 如果是 skipValidation 模式（从普通用户页面发来的请求），检查是否有重复的处方ID（待审核状态）
-  if (skipValidation) {
-    const existingPrescription = await Prescription.findOne({
-      where: {
-        prescriptionId: prescriptionId,
-        status: '待审核',
-        openid: openid
-      }
-    });
+  // 检查是否有重复的处方ID（无论普通用户还是管理员都需要检查）
+  const existingPrescription = await Prescription.findOne({
+    where: {
+      prescriptionId: prescriptionId,
+      status: status
+    }
+  });
 
-    if (existingPrescription) {
+  if (existingPrescription) {
+    // 普通用户：直接返回错误
+    if (user.role === 'user' || skipValidation) {
       throw new Error(`处方ID "${prescriptionId}" 已存在待审核状态，请勿重复上传`);
+    }
+    
+    // 管理员：返回需要确认的信息（类似审核流程）
+    if (user.role === 'admin' || user.role === 'super_admin') {
+      console.log('========================================');
+      console.log('发现重复处方ID');
+      console.log('  处方ID:', prescriptionId);
+      console.log('  状态:', status);
+      console.log('========================================');
+      
+      return {
+        code: 2,
+        message: `处方ID "${prescriptionId}" 已存在，是否覆盖？`,
+        existingPrescription: {
+          id: existingPrescription.id,
+          prescriptionId: existingPrescription.prescriptionId,
+          data: JSON.parse(existingPrescription.data),
+          reviewer: existingPrescription.reviewer,
+          reviewDate: existingPrescription.reviewDate
+        },
+        newPrescription: {
+          prescriptionId: prescriptionId,
+          data: convertedData,
+          thumbnail: thumbnail
+        }
+      };
     }
   }
 
-  // 创建新记录（不检查处方ID是否已存在）
+  // 创建新记录
   const newPrescription = await Prescription.create({
     prescriptionId: prescriptionId,
     openid,
@@ -378,34 +403,21 @@ async function updatePrescription(id, prescriptionId, prescriptionData, thumbnai
     throw new Error("缺少处方ID");
   }
 
+  // 验证 id 必须是复合主键格式（prescriptionId_status）
+  if (!id.includes('_')) {
+    throw new Error("请使用复合主键（格式：prescriptionId_status）作为id参数");
+  }
+
   console.log('========================================');
   console.log('更新处方 - 输入参数:');
   console.log('  id:', id);
   console.log('  是否包含下划线:', id.includes('_'));
   console.log('========================================');
 
+  // 只使用复合主键查找
   let prescription = await Prescription.findByPk(id);
   
   console.log('更新处方 - findByPk 查找结果:', prescription ? '找到' : '未找到');
-  
-  // 如果找不到，尝试使用 prescriptionId 字段查找
-  if (!prescription) {
-    console.log('更新处方 - 尝试使用 prescriptionId 字段查找:', id);
-    prescription = await Prescription.findOne({
-      where: { prescriptionId: id }
-    });
-    console.log('更新处方 - 字段查找结果:', prescription ? '找到' : '未找到');
-    
-    if (!prescription) {
-      throw new Error("处方不存在");
-    }
-    
-    // 如果找到多个处方，默认更新第一个（通常是待审核的）
-    if (Array.isArray(prescription)) {
-      console.warn('找到多个相同 prescriptionId 的处方，使用第一个');
-      prescription = prescription[0];
-    }
-  }
   
   if (!prescription) {
     throw new Error("处方不存在");
@@ -1102,6 +1114,51 @@ async function checkTodayPendingPrescriptions(openid) {
   return count;
 }
 
+// 确认覆盖已存在的处方（管理员上传重复处方时使用）
+async function confirmOverwritePrescription(prescriptionId, prescriptionData, thumbnail = null, openid) {
+  console.log('========================================');
+  console.log('确认覆盖处方');
+  console.log('  prescriptionId:', prescriptionId);
+  console.log('========================================');
+
+  // 查找已存在的处方
+  const existingPrescription = await Prescription.findOne({
+    where: {
+      prescriptionId: prescriptionId,
+      status: '已审核'
+    }
+  });
+
+  if (!existingPrescription) {
+    throw new Error("处方不存在");
+  }
+
+  // 获取用户信息
+  const { User } = require('../wrappers/db-wrapper');
+  const user = await User.findByPk(openid);
+  if (!user) {
+    throw new Error("用户不存在");
+  }
+
+  // 复用 updatePrescription 更新处方数据
+  // 传入复合主键（id）
+  await updatePrescription(existingPrescription.id, prescriptionId, prescriptionData, thumbnail);
+
+  // 单独更新 reviewer 和 reviewDate（updatePrescription 不会更新这些字段）
+  await existingPrescription.update({
+    reviewer: user.name,
+    reviewDate: new Date()
+  });
+
+  console.log('处方覆盖成功');
+  console.log('========================================');
+
+  return {
+    code: 0,
+    message: "处方覆盖成功"
+  };
+}
+
 module.exports = {
   handlePrescriptionOCR,
   getPrescriptionHistory,
@@ -1112,6 +1169,7 @@ module.exports = {
   getPendingPrescriptions,
   reviewPrescription,
   confirmPrescriptionApprove,
+  confirmOverwritePrescription,
   updatePrescriptionIdByPrescriptionId,
   cleanExpiredPrescriptions,
   checkTodayPendingPrescriptions,
