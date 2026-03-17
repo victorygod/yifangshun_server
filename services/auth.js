@@ -309,8 +309,8 @@ async function getUserInfo(openid) {
 }
 
 // 设置用户角色
-async function setUserRole(targetOpenid, newRole, operatorOpenid) {
-  if (!targetOpenid || !newRole || !operatorOpenid) {
+async function setUserRole(targetOpenid, newRole, operatorOpenid, isHomePage = false) {
+  if (!targetOpenid || !newRole) {
     throw new Error("缺少必要参数");
   }
 
@@ -319,15 +319,18 @@ async function setUserRole(targetOpenid, newRole, operatorOpenid) {
     throw new Error("无效的角色值");
   }
 
-  // 查找操作者
-  const operator = await User.findByPk(operatorOpenid);
-  if (!operator) {
-    throw new Error("操作者不存在");
-  }
+  // 主页请求跳过操作者验证（已通过中间件验证）
+  if (!isHomePage) {
+    // 查找操作者
+    const operator = await User.findByPk(operatorOpenid);
+    if (!operator) {
+      throw new Error("操作者不存在");
+    }
 
-  // 只有超级管理员可以设置角色
-  if (operator.role !== 'super_admin') {
-    throw new Error("权限不足，只有超级管理员可以设置角色");
+    // 只有超级管理员可以设置角色
+    if (operator.role !== 'super_admin') {
+      throw new Error("权限不足，只有超级管理员可以设置角色");
+    }
   }
 
   // 查找目标用户
@@ -337,7 +340,8 @@ async function setUserRole(targetOpenid, newRole, operatorOpenid) {
   }
 
   // 不能将自己降级为普通用户（至少保留一个管理员）
-  if (targetOpenid === operatorOpenid && newRole !== 'super_admin') {
+  // 主页请求没有操作者 openid，跳过此检查
+  if (!isHomePage && targetOpenid === operatorOpenid && newRole !== 'super_admin') {
     // 检查是否还有其他超级管理员
     const otherSuperAdmins = await User.findAll({
       where: {

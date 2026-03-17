@@ -59,8 +59,9 @@ app.post("/api/user/set-role", requireRole(['super_admin']), async (req, res) =>
   try {
     const { openid: targetOpenid, role: newRole } = req.body;
     const operatorOpenid = req.user.openid || 'system';
+    const isHomePage = req.user.isHomePage || false;
     
-    const result = await auth.setUserRole(targetOpenid, newRole, operatorOpenid);
+    const result = await auth.setUserRole(targetOpenid, newRole, operatorOpenid, isHomePage);
     res.json(result);
   } catch (error) {
     console.error("设置用户角色失败:", error);
@@ -466,11 +467,6 @@ app.delete("/api/admin/table/:name", requireRole(['super_admin']), async (req, r
     const model = TABLE_MODELS[name];
     if (!model) {
       return res.status(404).json({ code: 1, message: "表不存在" });
-    }
-    
-    // 不允许清空 users 表（会导致无法登录）
-    if (name === 'users') {
-      return res.status(403).json({ code: 1, message: "不允许清空用户表" });
     }
     
     const deletedCount = await model.destroy({ truncate: true });

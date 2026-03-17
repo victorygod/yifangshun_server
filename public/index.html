@@ -583,7 +583,7 @@
             <div class="table-actions">
               ${table.exists ? `
                 <button class="btn btn-primary btn-small" onclick="viewTableData('${table.name}')">📊 查看数据</button>
-                ${table.name !== 'users' ? `<button class="btn btn-danger btn-small" onclick="clearTable('${table.name}', '${table.displayName}')">🗑️ 清空</button>` : ''}
+                <button class="btn btn-danger btn-small" onclick="clearTable('${table.name}', '${table.displayName}')">🗑️ 清空</button>
               ` : `
                 <button class="btn btn-success btn-small" onclick="initTable('${table.name}')">🔧 初始化</button>
               `}
@@ -648,11 +648,21 @@
     }
 
     async function clearTable(tableName, displayName) {
-      if (!confirm(`确定要清空 ${displayName} 吗？此操作不可恢复！`)) {
-        return;
-      }
-      if (!confirm(`再次确认：清空 ${displayName} 的所有数据？`)) {
-        return;
+      // users 表额外警告
+      if (tableName === 'users') {
+        if (!confirm(`⚠️ 警告：清空用户表将删除所有用户数据，包括管理员账户！\n\n确定要清空 ${displayName} 吗？此操作不可恢复！`)) {
+          return;
+        }
+        if (!confirm(`🚨 最后确认：清空用户表后，所有用户需要重新登录！\n\n确定要清空 ${displayName} 的所有数据？`)) {
+          return;
+        }
+      } else {
+        if (!confirm(`确定要清空 ${displayName} 吗？此操作不可恢复！`)) {
+          return;
+        }
+        if (!confirm(`再次确认：清空 ${displayName} 的所有数据？`)) {
+          return;
+        }
       }
       
       try {
@@ -664,6 +674,10 @@
         if (result.code === 0) {
           alert(result.message);
           await loadTables();
+          // 如果清空了用户表，刷新用户列表
+          if (tableName === 'users') {
+            await loadUsers();
+          }
         } else {
           alert('清空失败：' + (result.message || '未知错误'));
         }
