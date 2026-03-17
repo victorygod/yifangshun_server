@@ -173,7 +173,15 @@ async function init() {
   await User.sync({ alter: true });
   await Booking.sync({ alter: true });
   await ChatMessage.sync({ alter: true });
-  await Prescription.sync({ alter: true });
+  
+  // Prescription 表如果结构不匹配，尝试强制重建
+  try {
+    await Prescription.sync({ alter: true });
+  } catch (error) {
+    console.warn('Prescription表同步失败，尝试强制重建:', error.message);
+    await Prescription.sync({ force: true });
+    console.log('Prescription表已重建');
+  }
 }
 
 // 导出初始化方法和模型
