@@ -1,4 +1,5 @@
 const { Prescription, Op } = require('../wrappers/db-wrapper');
+const https = require('https');
 
 // 生成随机 ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
@@ -123,16 +124,40 @@ async function handlePrescriptionOCR(image, openid, thumbnail) {
       text: ocrPrompt
     });
 
-    const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer sk-25ad83b975ba4458a9983367888dd0dd',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
+    // 使用 Node.js 内置 https 模块发送请求（兼容 Node.js 12+）
+    const requestBodyStr = JSON.stringify(requestBody);
+    
+    const result = await new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: 'dashscope.aliyuncs.com',
+        port: 443,
+        path: '/compatible-mode/v1/chat/completions',
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer sk-25ad83b975ba4458a9983367888dd0dd',
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(requestBodyStr)
+        }
+      }, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            reject(new Error('OCR响应解析失败: ' + e.message));
+          }
+        });
+      });
+      
+      req.on('error', (e) => {
+        reject(new Error('OCR请求失败: ' + e.message));
+      });
+      
+      req.write(requestBodyStr);
+      req.end();
     });
 
-    const result = await response.json();
     console.log('========================================');
     console.log('OCR 识别结果');
     console.log('  原始响应:', JSON.stringify(result, null, 2));
