@@ -1,5 +1,5 @@
 /**
- * 完整的API测试脚本
+ * 完整的API测试脚本（已删除未使用的API）
  * 测试所有API的各种情况，包括权限控制、错误处理等
  */
 
@@ -93,11 +93,11 @@ function assertEquals(actual, expected, message) {
  */
 async function runTests() {
   console.log('========================================');
-  console.log('开始运行完整API测试');
+  console.log('开始运行完整API测试（已清理未使用的API）');
   console.log('========================================');
 
-  // 1. 测试用户管理API
-  await testUserManagementAPIs();
+  // 1. 测试登录相关API
+  await testLoginAPIs();
 
   // 2. 测试预约管理API
   await testBookingAPIs();
@@ -130,29 +130,15 @@ async function runTests() {
 }
 
 /**
- * 1. 测试用户管理API
+ * 1. 测试登录相关API
  */
-async function testUserManagementAPIs() {
-  console.log('\n📋 用户管理API测试');
+async function testLoginAPIs() {
+  console.log('\n📋 登录相关API测试');
 
-  // 获取测试用户
   const testUser = await User.findOne({ where: { phone: { [require('sequelize').Op.ne]: null } } });
 
-  // 测试 GET /api/users - 权限控制测试
-  await testApi('GET /api/users - 不提供openid（任何人都可以访问）', async () => {
-    const { response, data } = await request('GET', '/api/users');
-
-    console.log(`  状态码: ${response.statusCode}`);
-    console.log(`  用户数量: ${data.data ? data.data.length : 0}`);
-
-    // 当前行为：任何人都可以访问
-    assertEquals(response.statusCode, 200, '请求成功');
-    assertEquals(data.code, 0, '返回成功');
-    assert(data.data && data.data.length > 0, '应该返回用户列表');
-  });
-
   // 测试 POST /api/login
-  await testApi('POST /api/login - 新用户登录', async () => {
+  await testApi('POST /api/login - 登录', async () => {
     const { response, data } = await request('POST', '/api/login', {
       code: 'test_login_' + Date.now()
     });
@@ -178,22 +164,6 @@ async function testUserManagementAPIs() {
       assertEquals(response.statusCode, 200, '请求成功');
     });
   }
-
-  // 测试 POST /api/user/set-role - 权限控制测试
-  await testApi('POST /api/user/set-role - 不提供openid（任何人都可以设置角色）', async () => {
-    if (testUser) {
-      const { response, data } = await request('POST', '/api/user/set-role', {
-        openid: testUser.openid,
-        role: 'user'
-      });
-
-      console.log(`  状态码: ${response.statusCode}`);
-
-      // 当前行为：任何人都可以设置角色（应该被限制）
-      // 这里只是测试当前行为，不判断是否正确
-      assert(response.statusCode === 200 || response.statusCode === 401 || response.statusCode === 403, '应该返回状态码');
-    }
-  });
 
   // 测试 GET /api/user/info
   if (testUser) {
@@ -265,14 +235,13 @@ async function testPrescriptionAPIs() {
 
   const testUser = await User.findOne({ where: { phone: { [require('sequelize').Op.ne]: null } } });
 
-  // 测试 GET /api/prescription/list - 权限控制测试
-  await testApi('GET /api/prescription/list - 不提供openid（任何人都可以访问）', async () => {
+  // 测试 GET /api/prescription/list
+  await testApi('GET /api/prescription/list - 获取处方列表', async () => {
     const { response, data } = await request('GET', '/api/prescription/list');
 
     console.log(`  状态码: ${response.statusCode}`);
     console.log(`  处方数量: ${data.data ? data.data.length : 0}`);
 
-    // 当前行为：任何人都可以访问
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
     assert(Array.isArray(data.data), '应该返回数组');
@@ -304,9 +273,9 @@ async function testPrescriptionAPIs() {
     });
   }
 
-  // 测试 POST /api/prescription/update - 权限控制测试
+  // 测试 POST /api/prescription/update
   if (testUser) {
-    await testApi('POST /api/prescription/update - 不提供openid（任何人都可以更新）', async () => {
+    await testApi('POST /api/prescription/update - 更新处方', async () => {
       const { response, data } = await request('POST', '/api/prescription/update', {
         id: 'TEST_FULL_UPDATE',
         name: '修改后的姓名',
@@ -323,7 +292,6 @@ async function testPrescriptionAPIs() {
 
       console.log(`  状态码: ${response.statusCode}`);
 
-      // 当前行为：任何人都可以更新（应该被限制）
       // 这里只是测试当前行为，不判断是否正确
       assert(response.statusCode === 200 || response.statusCode === 400, '应该返回状态码');
     });
@@ -393,19 +361,6 @@ async function testChatAPIs() {
       });
 
       console.log(`  状态码: ${response.statusCode}`);
-
-      assertEquals(response.statusCode, 200, '请求成功');
-      assertEquals(data.code, 0, '返回成功');
-    });
-  }
-
-  // 测试 GET /api/chat/history
-  if (testUser) {
-    await testApi('GET /api/chat/history - 获取聊天历史', async () => {
-      const { response, data } = await request('GET', `/api/chat/history?openid=${testUser.openid}`);
-
-      console.log(`  状态码: ${response.statusCode}`);
-      console.log(`  消息数量: ${data.data ? data.data.length : 0}`);
 
       assertEquals(response.statusCode, 200, '请求成功');
       assertEquals(data.code, 0, '返回成功');

@@ -111,76 +111,6 @@ app.post("/api/bind-phone", async (req, res) => {
 
 // ==================== 角色管理接口 ====================
 
-// 获取用户列表（带角色信息）
-app.get("/api/users", async (req, res) => {
-  try {
-    const { role = 'all', page = 1, pageSize = 20 } = req.query;
-    const where = {};
-    
-    if (role !== 'all') {
-      where.role = role;
-    }
-    
-    const users = await User.findAll({
-      where,
-      order: [['createdAt', 'DESC']]
-    });
-
-    const startIndex = (parseInt(page) - 1) * parseInt(pageSize);
-    const endIndex = startIndex + parseInt(pageSize);
-    const paginatedUsers = users.slice(startIndex, endIndex);
-
-    res.json({
-      code: 0,
-      data: paginatedUsers.map(user => ({
-        openid: user.openid,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-        createdAt: user.createdAt
-      })),
-      pagination: {
-        page: parseInt(page),
-        pageSize: parseInt(pageSize),
-        totalCount: users.length,
-        totalPages: Math.ceil(users.length / parseInt(pageSize))
-      }
-    });
-  } catch (error) {
-    console.error("获取用户列表失败:", error);
-    return res.status(400).json({ code: 1, message: error.message || "获取用户列表失败" });
-  }
-});
-
-// 设置用户角色
-app.post("/api/user/set-role", requireRole(['super_admin']), async (req, res) => {
-  try {
-    const { openid, role } = req.body;
-    
-    if (!openid || !role) {
-      return res.status(400).json({ code: 1, message: "缺少必要参数" });
-    }
-
-    // 验证角色值
-    if (!['user', 'admin', 'super_admin'].includes(role)) {
-      return res.status(400).json({ code: 1, message: "无效的角色值" });
-    }
-
-    const user = await User.findByPk(openid);
-    if (!user) {
-      return res.status(404).json({ code: 1, message: "用户不存在" });
-    }
-
-    // 更新用户角色
-    await User.update({ role }, { where: { openid } });
-
-    res.json({ code: 0, message: "角色设置成功" });
-  } catch (error) {
-    console.error("设置用户角色失败:", error);
-    return res.status(400).json({ code: 1, message: error.message || "设置用户角色失败" });
-  }
-});
-
 // ==================== 预约相关接口 ====================
 
 // 获取可预约日期
@@ -368,23 +298,6 @@ app.post("/api/prescription/confirm-approve", requireRole(['admin', 'super_admin
   }
 });
 
-// 更新处方ID
-app.post("/api/prescription/update-prescription-id", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const { oldPrescriptionId, newPrescriptionId } = req.body;
-    
-    if (!oldPrescriptionId || !newPrescriptionId) {
-      return res.status(400).json({ code: 1, message: "缺少必要参数" });
-    }
-
-    const result = await prescription.updatePrescriptionIdByPrescriptionId(oldPrescriptionId, newPrescriptionId);
-    res.json(result);
-  } catch (error) {
-    console.error("更新处方ID失败:", error);
-    return res.status(400).json({ code: 1, message: error.message || "更新处方ID失败" });
-  }
-});
-
 // 确认覆盖已存在的处方（管理员上传重复处方时使用）
 app.post("/api/prescription/confirm-overwrite", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
@@ -457,18 +370,6 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 
-// 获取聊天历史
-app.get("/api/chat/history", async (req, res) => {
-  try {
-    const { openid } = req.query;
-    const result = await chat.getChatHistory(openid);
-    res.json(result);
-  } catch (error) {
-    console.error("获取聊天历史失败:", error);
-    return res.status(400).json({ code: 1, message: error.message || "获取聊天历史失败" });
-  }
-});
-
 // ==================== 健康检查和日志接口 ====================
 
 // 健康检查
@@ -511,8 +412,6 @@ async function bootstrap() {
     console.log("POST   /api/login");
     console.log("POST   /api/bind-user-info");
     console.log("POST   /api/bind-phone");
-    console.log("GET    /api/users");
-    console.log("POST   /api/user/set-role");
     console.log("GET    /api/available-slots");
     console.log("POST   /api/booking");
     console.log("DELETE /api/booking/:bookingId");
@@ -526,10 +425,8 @@ async function bootstrap() {
     console.log("POST   /api/prescription/review");
     console.log("POST   /api/prescription/confirm-approve");
     console.log("POST   /api/prescription/confirm-overwrite");
-    console.log("POST   /api/prescription/update-prescription-id");
     console.log("GET    /api/prescription/list");
     console.log("POST   /api/chat");
-    console.log("GET    /api/chat/history");
     console.log("GET    /health");
     console.log("POST   /api/log");
     console.log("=================================\n");

@@ -7,5 +7,15 @@
     "time": "14:00",
     "createdAt": "2026-03-15T14:34:37.527Z",
     "updatedAt": "2026-03-15T14:34:37.527Z"
+  },
+  {
+    "bookingId": "zz054taop",
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "date": "2026-03-18",
+    "status": "confirmed",
+    "time": "14:00",
+    "id": "iydh78dob",
+    "createdAt": "2026-03-17T21:57:24.346Z",
+    "updatedAt": "2026-03-17T21:57:24.346Z"
   }
 ]
