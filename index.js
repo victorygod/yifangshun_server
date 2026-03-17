@@ -203,7 +203,7 @@ app.post("/api/prescription/save", async (req, res) => {
 });
 
 // 更新处方
-app.post("/api/prescription/update", async (req, res) => {
+app.post("/api/prescription/update", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { id, prescriptionId, thumbnail, ...prescriptionData } = req.body;
     // 优先使用 id（数据库主键），如果没有则使用 prescriptionId
@@ -236,29 +236,6 @@ app.delete("/api/prescription/:id", async (req, res) => {
   } catch (error) {
     console.error("删除处方失败:", error);
     return res.status(400).json({ code: 1, message: error.message || "删除处方失败，请稍后重试" });
-  }
-});
-
-// 获取待审核处方列表
-app.get("/api/prescription/pending", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    // 管理员查看待审核列表时自动清理过期处方
-    const cleanResult = await prescription.cleanExpiredPrescriptions();
-    
-    const { page = 1, pageSize = 20 } = req.query;
-    const result = await prescription.getPrescriptionsList({
-      page: parseInt(page),
-      pageSize: parseInt(pageSize),
-      status: '待审核'
-    });
-    
-    // 将清理结果附加到响应中，前端可以根据清理的缩略图链接删除对应的云存储文件
-    result.cleaned = cleanResult;
-    
-    res.json(result);
-  } catch (error) {
-    console.error("获取待审核处方列表失败:", error);
-    return res.status(400).json({ code: 1, message: error.message || "获取待审核处方列表失败" });
   }
 });
 
@@ -317,7 +294,7 @@ app.post("/api/prescription/confirm-overwrite", requireRole(['admin', 'super_adm
 });
 
 // 获取所有处方列表（管理员）
-app.get("/api/prescription/list", async (req, res) => {
+app.get("/api/prescription/list", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { page = 1, pageSize = 20, keyword = '', status = 'all' } = req.query;
     
@@ -421,7 +398,6 @@ async function bootstrap() {
     console.log("POST   /api/prescription/save");
     console.log("POST   /api/prescription/update");
     console.log("DELETE /api/prescription/:id");
-    console.log("GET    /api/prescription/pending");
     console.log("POST   /api/prescription/review");
     console.log("POST   /api/prescription/confirm-approve");
     console.log("POST   /api/prescription/confirm-overwrite");
