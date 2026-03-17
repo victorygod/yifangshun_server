@@ -277,7 +277,6 @@ class Model {
 }
 
 // 定义模型
-const Counter = new Model('counters', 'id');
 const User = new Model('users', 'openid');
 const Booking = new Model('bookings', 'bookingId');
 const ChatMessage = new Model('chat_messages', 'messageId');
@@ -286,19 +285,13 @@ const Prescription = new Model('prescriptions', 'id');
 // 数据库初始化方法
 async function init() {
   // 确保所有表文件存在
-  const tables = ['counters', 'users', 'bookings', 'chat_messages', 'prescriptions'];
+  const tables = ['users', 'bookings', 'chat_messages', 'prescriptions'];
   tables.forEach(table => {
     const filePath = path.join(dataDir, `${table}.json`);
     if (!fs.existsSync(filePath)) {
       writeJsonFile(`${table}.json`, []);
     }
   });
-  
-  // 初始化counter表（如果为空）
-  const counters = readJsonFile('counters.json');
-  if (counters.length === 0) {
-    writeJsonFile('counters.json', [{ id: 1, count: 1, createdAt: getNowCST(), updatedAt: getNowCST() }]);
-  }
   
   console.log('本地数据库初始化完成');
 }
@@ -323,7 +316,6 @@ const sequelize = {
 // 导出
 module.exports = {
   init,
-  Counter,
   User,
   Booking,
   ChatMessage,

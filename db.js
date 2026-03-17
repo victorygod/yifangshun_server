@@ -12,15 +12,6 @@ const sequelize = new Sequelize("nodejs_demo", MYSQL_USERNAME, MYSQL_PASSWORD, {
   timezone: '+08:00', // 设置时区为东八区
 });
 
-// 定义数据模型
-const Counter = sequelize.define("Counter", {
-  count: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 1,
-  },
-});
-
 // 用户模型
 const User = sequelize.define("User", {
   openid: {
@@ -179,7 +170,6 @@ const Prescription = sequelize.define("Prescription", {
 
 // 数据库初始化方法
 async function init() {
-  await Counter.sync({ alter: true });
   await User.sync({ alter: true });
   await Booking.sync({ alter: true });
   await ChatMessage.sync({ alter: true });
@@ -189,7 +179,6 @@ async function init() {
 // 导出初始化方法和模型
 module.exports = {
   init,
-  Counter,
   User,
   Booking,
   ChatMessage,

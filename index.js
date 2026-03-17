@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const fs = require("fs");
 const path = require("path");
-const { init: initDB, Counter, User, Booking, ChatMessage, Prescription, sequelize, Op } = require("./wrappers/db-wrapper");
+const { init: initDB, User, Booking, ChatMessage, Prescription, sequelize, Op } = require("./wrappers/db-wrapper");
 
 // 导入 service 模块
 const auth = require("./services/auth");
@@ -51,6 +51,20 @@ app.get("/api/home/users", async (req, res) => {
   } catch (error) {
     console.error("获取用户列表失败:", error);
     res.status(500).json({ code: 1, message: error.message || "获取用户列表失败" });
+  }
+});
+
+// 设置用户角色（仅超级管理员可调用，主页请求通过 x-home-page 标识自动获得超级管理员权限）
+app.post("/api/user/set-role", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { openid: targetOpenid, role: newRole } = req.body;
+    const operatorOpenid = req.user.openid || 'system';
+    
+    const result = await auth.setUserRole(targetOpenid, newRole, operatorOpenid);
+    res.json(result);
+  } catch (error) {
+    console.error("设置用户角色失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "设置用户角色失败" });
   }
 });
 
@@ -344,6 +358,150 @@ app.post("/api/chat", async (req, res) => {
   } catch (error) {
     console.error("AI聊天失败:", error);
     return res.status(500).json({ code: 1, message: "AI聊天失败" });
+  }
+});
+
+// ==================== 数据库管理接口（仅超级管理员） ====================
+
+// 表名与模型的映射
+const TABLE_MODELS = {
+  'users': User,
+  'bookings': Booking,
+  'chat_messages': ChatMessage,
+  'prescriptions': Prescription
+};
+
+// 表的中文名称
+const TABLE_NAMES = {
+  'users': '用户表',
+  'bookings': '预约表',
+  'chat_messages': '聊天消息表',
+  'prescriptions': '处方表'
+};
+
+// 获取所有表的状态
+app.get("/api/admin/tables", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const tables = [];
+    
+    for (const [name, model] of Object.entries(TABLE_MODELS)) {
+      try {
+        const count = await model.count();
+        tables.push({
+          name,
+          displayName: TABLE_NAMES[name] || name,
+          exists: true,
+          count
+        });
+      } catch (error) {
+        // 表不存在或读取失败
+        tables.push({
+          name,
+          displayName: TABLE_NAMES[name] || name,
+          exists: false,
+          count: 0,
+          error: error.message
+        });
+      }
+    }
+    
+    res.json({ code: 0, data: tables });
+  } catch (error) {
+    console.error("获取表状态失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "获取表状态失败" });
+  }
+});
+
+// 获取指定表的数据（分页）
+app.get("/api/admin/table/:name", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { name } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 20;
+    
+    const model = TABLE_MODELS[name];
+    if (!model) {
+      return res.status(404).json({ code: 1, message: "表不存在" });
+    }
+    
+    // 获取总数
+    const totalCount = await model.count();
+    const totalPages = Math.ceil(totalCount / pageSize);
+    
+    // 获取分页数据
+    const data = await model.findAll({
+      order: [['createdAt', 'DESC']],
+      limit: pageSize,
+      offset: (page - 1) * pageSize
+    });
+    
+    res.json({
+      code: 0,
+      data: {
+        rows: data,
+        pagination: {
+          page,
+          pageSize,
+          totalCount,
+          totalPages
+        }
+      }
+    });
+  } catch (error) {
+    console.error("获取表数据失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "获取表数据失败" });
+  }
+});
+
+// 清空指定表
+app.delete("/api/admin/table/:name", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { name } = req.params;
+    const confirm = req.query.confirm === 'true';
+    
+    if (!confirm) {
+      return res.status(400).json({ code: 1, message: "请确认清空操作（添加 ?confirm=true）" });
+    }
+    
+    const model = TABLE_MODELS[name];
+    if (!model) {
+      return res.status(404).json({ code: 1, message: "表不存在" });
+    }
+    
+    // 不允许清空 users 表（会导致无法登录）
+    if (name === 'users') {
+      return res.status(403).json({ code: 1, message: "不允许清空用户表" });
+    }
+    
+    const deletedCount = await model.destroy({ truncate: true });
+    
+    res.json({
+      code: 0,
+      message: `已清空表 ${TABLE_NAMES[name] || name}，删除了 ${deletedCount} 条记录`
+    });
+  } catch (error) {
+    console.error("清空表失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "清空表失败" });
+  }
+});
+
+// 初始化指定表（如果不存在）
+app.post("/api/admin/table/:name/init", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { name } = req.params;
+    
+    const model = TABLE_MODELS[name];
+    if (!model) {
+      return res.status(404).json({ code: 1, message: "表不存在" });
+    }
+    
+    // 尝试创建一条空记录来初始化表
+    await model.count();
+    
+    res.json({ code: 0, message: `表 ${TABLE_NAMES[name] || name} 已就绪` });
+  } catch (error) {
+    console.error("初始化表失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "初始化表失败" });
   }
 });
 

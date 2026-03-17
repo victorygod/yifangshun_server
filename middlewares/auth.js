@@ -11,8 +11,9 @@ const ROLE_LEVEL = {
 function requireRole(allowedRoles) {
   return async (req, res, next) => {
     try {
-      // 从请求中获取openid
-      const openid = req.body.openid || req.query.openid || req.headers['x-openid'];
+      // 从请求中获取openid（优先检查header，因为body可能是业务数据）
+      // 优先级：header > query > body
+      const openid = req.headers['x-openid'] || req.query.openid || req.body.openid;
       const isHomePage = req.headers['x-home-page'] === 'true'; // 标识是否为主页请求
       
       console.log('========================================');
@@ -83,7 +84,8 @@ function requireRole(allowedRoles) {
 function requireRoleLevel(minLevel) {
   return async (req, res, next) => {
     try {
-      const openid = req.body.openid || req.query.openid || req.headers['x-openid'];
+      // 优先级：header > query > body
+      const openid = req.headers['x-openid'] || req.query.openid || req.body.openid;
       
       if (!openid) {
         return res.status(401).json({ code: 1, message: '未授权' });
