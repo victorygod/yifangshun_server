@@ -1,5 +1,11 @@
 const { Sequelize, DataTypes, Op } = require("sequelize");
 
+// ==================== 数据库配置 ====================
+// FORCE_SYNC_TABLES: 强制重建表（会丢失数据）
+// 设置环境变量 FORCE_SYNC_TABLES=true 开启
+// 用法：部署时如果表结构不匹配，设置此选项后会强制重建表
+const FORCE_SYNC_TABLES = process.env.FORCE_SYNC_TABLES === 'true';
+
 // 从环境变量中读取数据库配置
 const { MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_ADDRESS = "" } = process.env;
 
@@ -170,18 +176,18 @@ const Prescription = sequelize.define("Prescription", {
 
 // 数据库初始化方法
 async function init() {
-  await User.sync({ alter: true });
-  await Booking.sync({ alter: true });
-  await ChatMessage.sync({ alter: true });
+  const syncOption = FORCE_SYNC_TABLES ? { force: true } : { alter: true };
   
-  // Prescription 表如果结构不匹配，尝试强制重建
-  try {
-    await Prescription.sync({ alter: true });
-  } catch (error) {
-    console.warn('Prescription表同步失败，尝试强制重建:', error.message);
-    await Prescription.sync({ force: true });
-    console.log('Prescription表已重建');
+  if (FORCE_SYNC_TABLES) {
+    console.log('⚠️ FORCE_SYNC_TABLES 已启用，将强制重建所有表（数据将丢失）');
   }
+  
+  await User.sync(syncOption);
+  await Booking.sync(syncOption);
+  await ChatMessage.sync(syncOption);
+  await Prescription.sync(syncOption);
+  
+  console.log('数据库表同步完成');
 }
 
 // 导出初始化方法和模型
