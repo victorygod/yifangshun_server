@@ -42,29 +42,6 @@
     "createdAt": "2026-03-15T19:14:05.072Z"
   },
   {
-    "id": "EXPIRED_1773756959345_待审核",
-    "prescriptionId": "EXPIRED_1773756959345",
-    "openid": "user_q100ctp1rff",
-    "status": "待审核",
-    "thumbnail": "expired_thumb.jpg",
-    "data": "{\"name\":\"过期处方\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp过期内容\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
-    "createdAt": "2026-03-17T22:15:59.346Z",
-    "updatedAt": "2026-03-17T22:15:59.346Z"
-  },
-  {
-    "id": "EXPIRED_已审核",
-    "prescriptionId": "EXPIRED",
-    "openid": "user_e4yhsz27u5k",
-    "status": "已审核",
-    "data": "{\"name\":\"过期处方\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp过期内容\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
-    "thumbnail": "expired_thumb.jpg",
-    "reviewer": "管理员",
-    "reviewDate": "2026-03-17T14:16:25.146Z",
-    "modifyDate": "2026-03-17T14:16:25.146Z",
-    "updatedAt": "2026-03-17T22:16:25.146Z",
-    "createdAt": "2026-03-17T22:16:25.146Z"
-  },
-  {
     "id": "EXPIRED_1773756993854_待审核",
     "prescriptionId": "EXPIRED_1773756993854",
     "openid": "user_kub5xmb4zz",
@@ -210,29 +187,6 @@
     "prescriptionDate": "2026-03-15",
     "updatedAt": "2026-03-17T23:35:50.999Z",
     "createdAt": "2026-03-17T23:35:50.999Z"
-  },
-  {
-    "prescriptionId": "EXISTING_1773761750997",
-    "openid": "user_l8160uf1clc",
-    "status": "已审核",
-    "data": "{\"prescriptionId\":\"EXISTING_1773761750997\",\"name\":\"已存在处方\",\"age\":\"45\",\"date\":\"2026-03-15\",\"rp\":\"Rp已存在测试\",\"dosage\":\"10\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"黄芪\",\"quantity\":\"20g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
-    "thumbnail": "existing_thumb.jpg",
-    "prescriptionDate": "2026-03-15",
-    "reviewer": "管理员",
-    "reviewDate": "2026-03-17T15:35:51.001Z",
-    "id": "EXISTING_1773761750997_已审核",
-    "createdAt": "2026-03-17T23:35:51.001Z",
-    "updatedAt": "2026-03-17T23:35:51.001Z"
-  },
-  {
-    "id": "EXPIRED_1773762122657_待审核",
-    "prescriptionId": "EXPIRED_1773762122657",
-    "openid": "user_oa2j8gv2fd",
-    "status": "待审核",
-    "thumbnail": "expired_thumb.jpg",
-    "data": "{\"name\":\"过期处方\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp过期内容\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
-    "createdAt": "2026-03-17T23:42:02.658Z",
-    "updatedAt": "2026-03-17T23:42:02.658Z"
   },
   {
     "id": "EXPIRED_1773762324990_待审核",
@@ -565,44 +519,5 @@
     "id": "REVIEW_DUAL_1773845241847_待审核",
     "createdAt": "2026-03-18T22:47:21.850Z",
     "updatedAt": "2026-03-18T22:47:21.850Z"
-  },
-  {
-    "prescriptionId": "DELETE_DUAL_1773845241851",
-    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "status": "待审核",
-    "data": "{\"prescriptionId\":\"DELETE_DUAL_1773845241851\",\"name\":\"待删除\",\"age\":\"30\",\"date\":\"2026-03-18\",\"rp\":\"当归10\",\"dosage\":\"3\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"10\",\"note\":\"\"}],\"doctor\":\"测试医师\"}",
-    "thumbnail": "",
-    "prescriptionDate": "2026-03-18",
-    "reviewer": null,
-    "reviewDate": null,
-    "id": "DELETE_DUAL_1773845241851_待审核",
-    "createdAt": "2026-03-18T22:47:21.855Z",
-    "updatedAt": "2026-03-18T22:47:21.855Z"
-  },
-  {
-    "prescriptionId": "CONFIRM_DUAL_1773845241856",
-    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "status": "待审核",
-    "data": "{\"prescriptionId\":\"CONFIRM_DUAL_1773845241856\",\"name\":\"待确认\",\"age\":\"30\",\"date\":\"2026-03-18\",\"rp\":\"当归10\",\"dosage\":\"3\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"10\",\"note\":\"\"}],\"doctor\":\"测试医师\"}",
-    "thumbnail": "",
-    "prescriptionDate": "2026-03-18",
-    "reviewer": null,
-    "reviewDate": null,
-    "id": "CONFIRM_DUAL_1773845241856_待审核",
-    "createdAt": "2026-03-18T22:47:21.859Z",
-    "updatedAt": "2026-03-18T22:47:21.859Z"
-  },
-  {
-    "prescriptionId": "UNIQUE_TEST_1773845241860",
-    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "status": "待审核",
-    "data": "{\"prescriptionId\":\"UNIQUE_TEST_1773845241860\",\"name\":\"第一次\"}",
-    "thumbnail": "",
-    "prescriptionDate": "2026-03-18",
-    "reviewer": null,
-    "reviewDate": null,
-    "id": "UNIQUE_TEST_1773845241860_待审核",
-    "createdAt": "2026-03-18T22:47:21.864Z",
-    "updatedAt": "2026-03-18T22:47:21.864Z"
   }
 ]
