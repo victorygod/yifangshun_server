@@ -727,22 +727,14 @@ async function reviewPrescription(prescriptionId, status, action, reviewerOpenid
     throw new Error('处方数据格式错误，无法解析');
   }
   
-  // 优先使用 data 中的 prescriptionId，如果没有则从主键中提取
-  let targetPrescriptionId = prescriptionData.prescriptionId;
-  
-  if (!targetPrescriptionId && prescription.id.includes('_')) {
-    // 从主键 "prescriptionId_status" 中提取 prescriptionId
-    const parts = prescription.id.split('_');
-    if (parts.length > 0) {
-      targetPrescriptionId = parts[0];
-    }
-  }
+  // 优先使用 data 中的 prescriptionId，如果没有则使用数据库记录中的 prescriptionId
+  let targetPrescriptionId = prescriptionData.prescriptionId || prescription.prescriptionId;
   
   console.log('========================================');
   console.log('审核通过 - 检查重复处方ID');
   console.log('  当前处方ID:', targetPrescriptionId);
   console.log('  data中的prescriptionId:', prescriptionData.prescriptionId);
-  console.log('  主键:', prescription.id);
+  console.log('  记录中的prescriptionId:', prescription.prescriptionId);
   console.log('  当前处方状态:', prescription.status);
   console.log('========================================');
 
@@ -901,16 +893,8 @@ async function confirmPrescriptionApprove(prescriptionId, status, reviewerOpenid
     }
   }
   
-  // 优先使用 data 中的 prescriptionId，如果没有则从主键中提取
-  let targetPrescriptionId = prescriptionData.prescriptionId;
-  
-  if (!targetPrescriptionId && prescription.id.includes('_')) {
-    // 从主键 "prescriptionId_status" 中提取 prescriptionId
-    const parts = prescription.id.split('_');
-    if (parts.length > 0) {
-      targetPrescriptionId = parts[0];
-    }
-  }
+  // 优先使用 data 中的 prescriptionId，如果没有则使用数据库记录中的 prescriptionId
+  let targetPrescriptionId = prescriptionData.prescriptionId || prescription.prescriptionId;
 
   // 检查"已审核"状态下是否已存在相同prescriptionId
   const existingPrescription = await Prescription.findOne({
