@@ -32,6 +32,8 @@ const testPrescription = require('./tests/test_prescription');
 const testChat = require('./tests/test_chat');
 const testSystem = require('./tests/test_system');
 const testPermission = require('./tests/test_permission');
+// 库存管理测试（API 尚未实现，跳过）
+// const testStock = require('./tests/test_stock');
 
 // 全局测试统计
 const globalStats = {

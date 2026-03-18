@@ -6,20 +6,15 @@
 test/
 ├── run_test.js              # 测试管理脚本（一键运行测试）
 ├── comprehensive_api_test.js # 主测试脚本
-├── tests/                   # 测试模块目录
-│   ├── test_login.js        # 登录相关测试
-│   ├── test_booking.js      # 预约管理测试
-│   ├── test_prescription.js # 处方识别测试
-│   ├── test_chat.js         # AI咨询测试
-│   ├── test_system.js       # 系统接口测试
-│   └── test_permission.js   # 权限控制测试
-├── api_full_test.js         # 已废弃
-├── api_permission_test.js   # 已废弃
-├── comprehensive_test.js     # 已废弃
-├── test.js                  # 已废弃
-├── test_cleanup.js          # 已废弃
-├── test_helper.js           # 已废弃
-└── test_pending_api.js      # 已废弃
+├── README.md                # 本文档
+└── tests/                   # 测试模块目录
+    ├── test_login.js        # 登录相关测试
+    ├── test_booking.js      # 预约管理测试
+    ├── test_prescription.js # 处方识别测试
+    ├── test_chat.js         # AI咨询测试
+    ├── test_system.js       # 系统接口测试
+    ├── test_permission.js   # 权限控制测试
+    └── test_stock.js        # 库存管理系统测试（待开发）
 ```
 
 ## 使用方法
