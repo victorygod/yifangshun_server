@@ -479,5 +479,130 @@
     "data": "{\"name\":\"过期处方\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp过期内容\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
     "createdAt": "2026-03-18T21:17:43.466Z",
     "updatedAt": "2026-03-18T21:17:43.466Z"
+  },
+  {
+    "id": "EXPIRED_1773839999713_待审核",
+    "prescriptionId": "EXPIRED_1773839999713",
+    "openid": "user_rvn9tte5doi",
+    "status": "待审核",
+    "thumbnail": "expired_thumb.jpg",
+    "data": "{\"name\":\"过期处方\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp过期内容\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
+    "createdAt": "2026-03-18T21:19:59.713Z",
+    "updatedAt": "2026-03-18T21:19:59.713Z"
+  },
+  {
+    "id": "EXPIRED_1773840315131_待审核",
+    "prescriptionId": "EXPIRED_1773840315131",
+    "openid": "user_4bdfoizhy4",
+    "status": "待审核",
+    "thumbnail": "expired_thumb.jpg",
+    "data": "{\"name\":\"过期处方\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp过期内容\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
+    "createdAt": "2026-03-18T21:25:15.131Z",
+    "updatedAt": "2026-03-18T21:25:15.131Z"
+  },
+  {
+    "id": "EXPIRED_1773840328587_待审核",
+    "prescriptionId": "EXPIRED_1773840328587",
+    "openid": "user_dw0t6e7lqf",
+    "status": "待审核",
+    "thumbnail": "expired_thumb.jpg",
+    "data": "{\"name\":\"过期处方\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp过期内容\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
+    "createdAt": "2026-03-18T21:25:28.588Z",
+    "updatedAt": "2026-03-18T21:25:28.588Z"
+  },
+  {
+    "id": "EXPIRED_1773840512434_待审核",
+    "prescriptionId": "EXPIRED_1773840512434",
+    "openid": "test_normal_1773840512182",
+    "status": "待审核",
+    "thumbnail": "expired_thumb.jpg",
+    "data": "{\"name\":\"过期处方\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp过期内容\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
+    "createdAt": "2026-03-18T21:28:32.434Z",
+    "updatedAt": "2026-03-18T21:28:32.434Z"
+  },
+  {
+    "id": "EXPIRED_1773841121022_待审核",
+    "prescriptionId": "EXPIRED_1773841121022",
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "status": "待审核",
+    "thumbnail": "expired_thumb.jpg",
+    "data": "{\"name\":\"过期处方\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp过期内容\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
+    "createdAt": "2026-03-18T21:38:41.023Z",
+    "updatedAt": "2026-03-18T21:38:41.023Z"
+  },
+  {
+    "id": "EXPIRED_1773841232339_待审核",
+    "prescriptionId": "EXPIRED_1773841232339",
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "status": "待审核",
+    "thumbnail": "expired_thumb.jpg",
+    "data": "{\"name\":\"过期处方\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp过期内容\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
+    "createdAt": "2026-03-18T21:40:32.339Z",
+    "updatedAt": "2026-03-18T21:40:32.339Z"
+  },
+  {
+    "prescriptionId": "DUAL_TEST_1773845241825",
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "status": "待审核",
+    "data": "{\"prescriptionId\":\"DUAL_TEST_1773845241825\",\"name\":\"测试用户\",\"age\":\"30\",\"date\":\"2026-03-18\",\"rp\":\"当归10\",\"dosage\":\"3\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"10\",\"note\":\"\"}],\"doctor\":\"测试医师\"}",
+    "thumbnail": "test.jpg",
+    "prescriptionDate": "2026-03-18",
+    "reviewer": null,
+    "reviewDate": null,
+    "id": "DUAL_TEST_1773845241825_待审核",
+    "createdAt": "2026-03-18T22:47:21.843Z",
+    "updatedAt": "2026-03-18T22:47:21.843Z"
+  },
+  {
+    "prescriptionId": "REVIEW_DUAL_1773845241847",
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "status": "待审核",
+    "data": "{\"prescriptionId\":\"REVIEW_DUAL_1773845241847\",\"name\":\"待审核\",\"age\":\"30\",\"date\":\"2026-03-18\",\"rp\":\"当归10\",\"dosage\":\"3\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"10\",\"note\":\"\"}],\"doctor\":\"测试医师\"}",
+    "thumbnail": "",
+    "prescriptionDate": "2026-03-18",
+    "reviewer": null,
+    "reviewDate": null,
+    "id": "REVIEW_DUAL_1773845241847_待审核",
+    "createdAt": "2026-03-18T22:47:21.850Z",
+    "updatedAt": "2026-03-18T22:47:21.850Z"
+  },
+  {
+    "prescriptionId": "DELETE_DUAL_1773845241851",
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "status": "待审核",
+    "data": "{\"prescriptionId\":\"DELETE_DUAL_1773845241851\",\"name\":\"待删除\",\"age\":\"30\",\"date\":\"2026-03-18\",\"rp\":\"当归10\",\"dosage\":\"3\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"10\",\"note\":\"\"}],\"doctor\":\"测试医师\"}",
+    "thumbnail": "",
+    "prescriptionDate": "2026-03-18",
+    "reviewer": null,
+    "reviewDate": null,
+    "id": "DELETE_DUAL_1773845241851_待审核",
+    "createdAt": "2026-03-18T22:47:21.855Z",
+    "updatedAt": "2026-03-18T22:47:21.855Z"
+  },
+  {
+    "prescriptionId": "CONFIRM_DUAL_1773845241856",
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "status": "待审核",
+    "data": "{\"prescriptionId\":\"CONFIRM_DUAL_1773845241856\",\"name\":\"待确认\",\"age\":\"30\",\"date\":\"2026-03-18\",\"rp\":\"当归10\",\"dosage\":\"3\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"10\",\"note\":\"\"}],\"doctor\":\"测试医师\"}",
+    "thumbnail": "",
+    "prescriptionDate": "2026-03-18",
+    "reviewer": null,
+    "reviewDate": null,
+    "id": "CONFIRM_DUAL_1773845241856_待审核",
+    "createdAt": "2026-03-18T22:47:21.859Z",
+    "updatedAt": "2026-03-18T22:47:21.859Z"
+  },
+  {
+    "prescriptionId": "UNIQUE_TEST_1773845241860",
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "status": "待审核",
+    "data": "{\"prescriptionId\":\"UNIQUE_TEST_1773845241860\",\"name\":\"第一次\"}",
+    "thumbnail": "",
+    "prescriptionDate": "2026-03-18",
+    "reviewer": null,
+    "reviewDate": null,
+    "id": "UNIQUE_TEST_1773845241860_待审核",
+    "createdAt": "2026-03-18T22:47:21.864Z",
+    "updatedAt": "2026-03-18T22:47:21.864Z"
   }
 ]

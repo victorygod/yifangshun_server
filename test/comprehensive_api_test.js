@@ -2,10 +2,28 @@
  * 主测试脚本 - 运行所有测试
  * 
  * 使用方法：
- * node test/comprehensive_api_test.js
+ * node test/comprehensive_api_test.js           # 本地测试
+ * node test/comprehensive_api_test.js --cloud   # 云端测试
  */
 
-const BASE_URL = 'http://localhost:80';
+// 根据参数选择测试目标
+const isCloudTest = process.argv.includes('--cloud');
+const BASE_URL = isCloudTest 
+  ? 'https://express-9kv9-232788-7-1410937198.sh.run.tcloudbase.com'
+  : 'http://localhost:80';
+
+// 设置环境变量供子测试模块使用
+if (isCloudTest) {
+  process.env.CLOUD_TEST_URL = BASE_URL;
+}
+
+console.log(`\n🌐 测试目标: ${BASE_URL}`);
+if (isCloudTest) {
+  console.log('📡 云端测试模式');
+} else {
+  console.log('💻 本地测试模式');
+}
+console.log('');
 
 // 导入测试模块
 const testLogin = require('./tests/test_login');

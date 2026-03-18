@@ -2,7 +2,7 @@
  * AI咨询API测试
  */
 
-const BASE_URL = 'http://localhost:80';
+const BASE_URL = process.env.CLOUD_TEST_URL || 'http://localhost:80';
 
 // 测试统计
 const testStats = {
@@ -18,12 +18,13 @@ const testStats = {
  */
 function request(method, url, body = null, headers = {}) {
   return new Promise((resolve, reject) => {
-    const http = require('http');
+    const isHttps = BASE_URL.startsWith('https');
+    const http = isHttps ? require('https') : require('http');
     const urlObj = new URL(url, BASE_URL);
     
     const options = {
       hostname: urlObj.hostname,
-      port: urlObj.port,
+      port: urlObj.port || (isHttps ? 443 : 80),
       path: urlObj.pathname + urlObj.search,
       method: method,
       headers: {
