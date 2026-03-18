@@ -4,7 +4,7 @@ const { Sequelize, DataTypes, Op } = require("sequelize");
 // FORCE_SYNC_TABLES: 强制重建表（会丢失数据）
 // 设置为 true 后部署时会强制重建所有表
 // 用法：部署时如果表结构不匹配，临时改为 true，部署成功后改回 false
-const FORCE_SYNC_TABLES = false;
+const FORCE_SYNC_TABLES = true;
 
 // 从环境变量中读取数据库配置
 const { MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_ADDRESS = "" } = process.env;
