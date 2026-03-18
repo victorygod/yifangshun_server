@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "messageId": "v0tnq1cfw",
+    "openid": "user_27ppebqleho",
+    "content": "你好",
+    "type": "user",
+    "id": "jrvc0j7if",
+    "createdAt": "2026-03-18T21:17:47.706Z",
+    "updatedAt": "2026-03-18T21:17:47.706Z"
+  },
+  {
+    "messageId": "txkltl9g1",
+    "openid": "user_27ppebqleho",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": "uho3smo85",
+    "createdAt": "2026-03-18T21:17:47.708Z",
+    "updatedAt": "2026-03-18T21:17:47.708Z"
+  }
+]
