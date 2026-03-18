@@ -406,6 +406,8 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
   }
 
   // 创建新记录
+  // 云端：id 自动生成（整数自增）
+  // 本地：id 由 local-db.js 生成（prescriptionId_status 格式）
   const newPrescription = await Prescription.create({
     prescriptionId: prescriptionId,
     openid,
@@ -801,30 +803,32 @@ async function reviewPrescription(prescriptionId, status, action, reviewerOpenid
   }
 
   // 没有重复，直接通过审核
-  // 由于本地数据库的主键是 prescriptionId_status，需要删除旧记录并创建新记录
-  const newId = `${targetPrescriptionId}_已审核`;
-  
+  // 删除旧记录，创建新记录（已审核状态）
   console.log('审核通过 - 准备创建新记录');
   console.log('  旧 id:', prescription.id);
-  console.log('  新 id:', newId);
+  
+  // 保存旧记录信息
+  const oldOpenid = prescription.openid;
+  const oldThumbnail = prescription.thumbnail;
+  const oldPrescriptionDate = prescription.prescriptionDate;
+  const oldCreateTime = prescription.createTime;
   
   // 删除旧记录
   await prescription.destroy();
   console.log('旧记录已删除');
   
-  // 创建新记录（已审核状态）
+  // 创建新记录（已审核状态，id 自动生成）
   const newPrescription = await Prescription.create({
-    id: newId,
     prescriptionId: targetPrescriptionId,
-    openid: prescription.openid,
+    openid: oldOpenid,
     status: '已审核',
     data: JSON.stringify(prescriptionData),
-    thumbnail: prescription.thumbnail,
+    thumbnail: oldThumbnail,
     reviewer: reviewerName,
     reviewDate: new Date(),
     modifyDate: new Date(),
-    prescriptionDate: prescription.prescriptionDate,
-    createTime: prescription.createTime,
+    prescriptionDate: oldPrescriptionDate,
+    createTime: oldCreateTime,
     updatedAt: new Date().toISOString()
   });
   
@@ -937,30 +941,32 @@ async function confirmPrescriptionApprove(prescriptionId, status, reviewerOpenid
   }
 
   // 更新当前处方为已审核
-  // 由于本地数据库的主键是 prescriptionId_status，需要删除旧记录并创建新记录
-  const newId = `${targetPrescriptionId}_已审核`;
-  
+  // 删除旧记录，创建新记录（已审核状态）
   console.log('确认审核通过 - 准备创建新记录');
   console.log('  旧 id:', prescription.id);
-  console.log('  新 id:', newId);
+  
+  // 保存旧记录信息
+  const oldOpenid = prescription.openid;
+  const oldThumbnail = prescription.thumbnail;
+  const oldPrescriptionDate = prescription.prescriptionDate;
+  const oldCreateTime = prescription.createTime;
   
   // 删除当前处方记录
   await prescription.destroy();
   console.log('旧记录已删除');
   
-  // 创建新记录（已审核状态）
+  // 创建新记录（已审核状态，id 自动生成）
   const newPrescription = await Prescription.create({
-    id: newId,
     prescriptionId: targetPrescriptionId,
-    openid: prescription.openid,
+    openid: oldOpenid,
     status: '已审核',
     data: JSON.stringify(prescriptionData),
-    thumbnail: prescription.thumbnail,
+    thumbnail: oldThumbnail,
     reviewer: reviewerName,
     reviewDate: new Date(),
     modifyDate: new Date(),
-    prescriptionDate: prescription.prescriptionDate,
-    createTime: prescription.createTime,
+    prescriptionDate: oldPrescriptionDate,
+    createTime: oldCreateTime,
     updatedAt: new Date().toISOString()
   });
 
@@ -1021,9 +1027,11 @@ async function updatePrescriptionIdByPrescriptionId(oldPrescriptionId, newPrescr
   const prescriptionData = JSON.parse(prescription.data);
   prescriptionData.prescriptionId = newPrescriptionId;
 
-  // 由于主键包含prescriptionId，需要删除旧记录并创建新记录
-  const oldId = prescription.id;
-  const newId = `${newPrescriptionId}_${prescription.status}`;
+  // 保存旧记录信息
+  const oldOpenid = prescription.openid;
+  const oldStatus = prescription.status;
+  const oldThumbnail = prescription.thumbnail;
+  const oldPrescriptionDate = prescription.prescriptionDate;
   
   console.log('准备删除处方记录');
   console.log('prescription对象:', prescription);
@@ -1033,14 +1041,14 @@ async function updatePrescriptionIdByPrescriptionId(oldPrescriptionId, newPrescr
   
   console.log('处方记录删除成功');
   
+  // 创建新记录（id 自动生成）
   const newPrescription = await Prescription.create({
-    id: newId,
     prescriptionId: newPrescriptionId,
-    openid: prescription.openid,
-    status: prescription.status,
+    openid: oldOpenid,
+    status: oldStatus,
     data: JSON.stringify(prescriptionData),
-    thumbnail: prescription.thumbnail,
-    prescriptionDate: prescription.prescriptionDate,
+    thumbnail: oldThumbnail,
+    prescriptionDate: oldPrescriptionDate,
     modifyDate: new Date()
   });
 

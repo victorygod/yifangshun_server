@@ -111,9 +111,10 @@ const ChatMessage = sequelize.define("ChatMessage", {
 // 处方记录模型
 const Prescription = sequelize.define("Prescription", {
   id: {
-    type: DataTypes.STRING(100),
+    type: DataTypes.INTEGER,
     primaryKey: true,
-    comment: '复合主键（格式：prescriptionId_status）'
+    autoIncrement: true,
+    comment: '自增主键'
   },
   prescriptionId: {
     type: DataTypes.STRING(50),

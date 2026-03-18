@@ -161,19 +161,27 @@ class Model {
   // 创建记录
   async create(data) {
     const list = readJsonFile(`${this.tableName}.json`);
+    
+    // 生成自增整数 id（与云端保持一致）
+    let newId;
+    if (data.id !== undefined && data.id !== null) {
+      // 如果调用方指定了 id，使用指定的
+      newId = data.id;
+    } else {
+      // 自动生成递增 id
+      const maxId = list.reduce((max, item) => {
+        const itemId = parseInt(item.id, 10);
+        return !isNaN(itemId) && itemId > max ? itemId : max;
+      }, 0);
+      newId = maxId + 1;
+    }
+    
     const newRecord = {
       ...data,
-      id: data.id || generateId(),
+      id: newId,
       createdAt: getNowCST(),
       updatedAt: getNowCST()
     };
-    
-    // 为prescriptions表添加复合主键：prescriptionId + status
-    if (this.tableName === 'prescriptions') {
-      if (newRecord.prescriptionId && newRecord.status) {
-        newRecord.id = `${newRecord.prescriptionId}_${newRecord.status}`;
-      }
-    }
     
     list.push(newRecord);
     writeJsonFile(`${this.tableName}.json`, list);
