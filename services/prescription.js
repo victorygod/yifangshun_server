@@ -1132,8 +1132,8 @@ async function confirmOverwritePrescription(prescriptionId, prescriptionData, th
   }
 
   // 复用 updatePrescription 更新处方数据
-  // 传入复合主键（id）
-  await updatePrescription(existingPrescription.id, prescriptionId, prescriptionData, thumbnail);
+  // 参数顺序：prescriptionId, status, prescriptionData, thumbnail
+  await updatePrescription(existingPrescription.prescriptionId, '已审核', prescriptionData, thumbnail);
 
   // 单独更新 reviewer 和 reviewDate（updatePrescription 不会更新这些字段）
   await existingPrescription.update({
