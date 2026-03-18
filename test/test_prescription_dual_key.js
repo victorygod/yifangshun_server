@@ -10,11 +10,15 @@
 const BASE_URL_LOCAL = 'http://localhost:80';
 const CLOUD_URL = 'https://express-9kv9-232788-7-1410937198.sh.run.tcloudbase.com';
 
-const BASE_URL = process.argv.includes('--cloud') ? CLOUD_URL : BASE_URL_LOCAL;
+const isCloud = process.argv.includes('--cloud');
+const BASE_URL = isCloud ? CLOUD_URL : BASE_URL_LOCAL;
+
+// 本地和云端都使用真实 openid（需确保有 admin 权限）
+const TEST_OPENID = 'o-eQz3TYzw7PJFltoyjntVijNt88';
 
 const testStats = { total: 0, passed: 0, failed: 0, errors: [] };
 const testData = {
-  testOpenid: 'o-eQz3TYzw7PJFltoyjntVijNt88',
+  testOpenid: TEST_OPENID,
   createdPrescriptions: []
 };
 

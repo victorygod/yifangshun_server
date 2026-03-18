@@ -423,32 +423,29 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
 }
 
 // 更新处方
-async function updatePrescription(id, prescriptionId, prescriptionData, thumbnail = null) {
-  if (!id) {
-    throw new Error("缺少处方ID");
-  }
-
-  // 验证 id 必须是复合主键格式（prescriptionId_status）
-  if (!id.includes('_')) {
-    throw new Error("请使用复合主键（格式：prescriptionId_status）作为id参数");
+async function updatePrescription(prescriptionId, status, prescriptionData, thumbnail = null) {
+  if (!prescriptionId || !status) {
+    throw new Error("缺少处方ID或状态");
   }
 
   console.log('========================================');
   console.log('更新处方 - 输入参数:');
-  console.log('  id:', id);
-  console.log('  是否包含下划线:', id.includes('_'));
+  console.log('  prescriptionId:', prescriptionId);
+  console.log('  status:', status);
   console.log('========================================');
 
-  // 只使用复合主键查找
-  let prescription = await Prescription.findByPk(id);
+  // 使用双键查找
+  const prescription = await Prescription.findOne({
+    where: { prescriptionId, status }
+  });
   
-  console.log('更新处方 - findByPk 查找结果:', prescription ? '找到' : '未找到');
+  console.log('更新处方 - 双键查找结果:', prescription ? '找到' : '未找到');
   
   if (!prescription) {
     throw new Error("处方不存在");
   }
 
-  console.log('更新处方 - 最终选择的处方:');
+  console.log('更新处方 - 找到处方:');
   console.log('  id:', prescription.id);
   console.log('  prescriptionId:', prescription.prescriptionId);
   console.log('  status:', prescription.status);
@@ -490,12 +487,6 @@ async function updatePrescription(id, prescriptionId, prescriptionData, thumbnai
     modifyDate: new Date()
   };
 
-  // 如果提供了新的处方ID，则更新处方ID
-  if (prescriptionId && prescriptionId !== prescription.prescriptionId) {
-    updateData.prescriptionId = prescriptionId;
-    console.log('更新处方 - 准备更新处方ID:', prescriptionId);
-  }
-
   // 如果提供了新的缩略图，则更新缩略图
   if (thumbnail !== null && thumbnail !== undefined) {
     updateData.thumbnail = thumbnail;
@@ -511,28 +502,25 @@ async function updatePrescription(id, prescriptionId, prescriptionData, thumbnai
 }
 
 // 删除处方
-async function deletePrescription(prescriptionId, openid) {
-  if (!prescriptionId) {
-    throw new Error("缺少处方ID");
+async function deletePrescription(prescriptionId, status, openid) {
+  if (!prescriptionId || !status) {
+    throw new Error("缺少处方ID或状态");
   }
 
   if (!openid) {
     throw new Error("缺少用户标识");
   }
 
-  // 尝试使用复合主键查找（prescriptionId_status格式）
-  let prescription = await Prescription.findByPk(prescriptionId);
+  console.log('删除处方 - 双键查找:');
+  console.log('  prescriptionId:', prescriptionId);
+  console.log('  status:', status);
+
+  // 使用双键查找
+  const prescription = await Prescription.findOne({
+    where: { prescriptionId, status }
+  });
   
-  console.log('删除处方 - 复合主键查找结果:', prescription ? '找到' : '未找到');
-  
-  // 如果找不到，尝试使用prescriptionId字段查找
-  if (!prescription) {
-    console.log('删除处方 - 尝试使用prescriptionId字段查找:', prescriptionId);
-    prescription = await Prescription.findOne({
-      where: { prescriptionId, status: '待审核' }
-    });
-    console.log('删除处方 - 字段查找结果:', prescription ? '找到' : '未找到');
-  }
+  console.log('删除处方 - 查找结果:', prescription ? '找到' : '未找到');
   
   if (!prescription) {
     throw new Error("处方不存在");
@@ -670,9 +658,9 @@ async function getPendingPrescriptions({ page = 1, pageSize = 20 } = {}) {
 }
 
 // 审核处方
-async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
-  if (!id) {
-    throw new Error("缺少处方ID");
+async function reviewPrescription(prescriptionId, status, action, reviewerOpenid, reviewerName) {
+  if (!prescriptionId || !status) {
+    throw new Error("缺少处方ID或状态");
   }
 
   if (!action || !['approve', 'reject'].includes(action)) {
@@ -681,46 +669,23 @@ async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
 
   console.log('========================================');
   console.log('审核处方 - 输入参数:');
-  console.log('  id:', id);
-  console.log('  是否包含下划线:', id.includes('_'));
+  console.log('  prescriptionId:', prescriptionId);
+  console.log('  status:', status);
   console.log('  action:', action);
   console.log('========================================');
 
-  let prescription = await Prescription.findByPk(id);
+  // 使用双键查找
+  const prescription = await Prescription.findOne({
+    where: { prescriptionId, status }
+  });
   
-  console.log('审核处方 - findByPk 查找结果:', prescription ? '找到' : '未找到');
-  
-  // 如果找不到，尝试使用 prescriptionId 字段查找（优先找待审核的）
-  if (!prescription) {
-    console.log('审核处方 - 尝试使用 prescriptionId 字段查找:', id);
-    prescription = await Prescription.findOne({
-      where: { 
-        prescriptionId: id,
-        status: '待审核'
-      }
-    });
-    console.log('审核处方 - 字段查找结果（待审核）:', prescription ? '找到' : '未找到');
-    
-    // 如果找不到待审核的，查找已审核的（用于错误提示）
-    if (!prescription) {
-      const approvedPrescription = await Prescription.findOne({
-        where: { 
-          prescriptionId: id,
-          status: '已审核'
-        }
-      });
-      if (approvedPrescription) {
-        throw new Error(`处方ID "${id}" 已是已审核状态，无需重复审核`);
-      }
-      throw new Error("处方不存在");
-    }
-  }
+  console.log('审核处方 - 双键查找结果:', prescription ? '找到' : '未找到');
   
   if (!prescription) {
     throw new Error("处方不存在");
   }
 
-  console.log('审核处方 - 最终选择的处方:');
+  console.log('审核处方 - 找到处方:');
   console.log('  id:', prescription.id);
   console.log('  prescriptionId:', prescription.prescriptionId);
   console.log('  status:', prescription.status);
@@ -872,12 +837,21 @@ async function reviewPrescription(id, action, reviewerOpenid, reviewerName) {
 }
 
 // 确认审核通过（覆盖旧记录）
-async function confirmPrescriptionApprove(id, reviewerOpenid, reviewerName) {
-  if (!id) {
-    throw new Error("缺少处方ID");
+async function confirmPrescriptionApprove(prescriptionId, status, reviewerOpenid, reviewerName) {
+  if (!prescriptionId || !status) {
+    throw new Error("缺少处方ID或状态");
   }
 
-  const prescription = await Prescription.findByPk(id);
+  console.log('确认审核通过 - 双键查找:');
+  console.log('  prescriptionId:', prescriptionId);
+  console.log('  status:', status);
+
+  const prescription = await Prescription.findOne({
+    where: { prescriptionId, status }
+  });
+  
+  console.log('确认审核通过 - 查找结果:', prescription ? '找到' : '未找到');
+  
   if (!prescription) {
     throw new Error("处方不存在");
   }
@@ -939,7 +913,7 @@ async function confirmPrescriptionApprove(id, reviewerOpenid, reviewerName) {
     where: {
       prescriptionId: targetPrescriptionId,
       status: '已审核',
-      id: { [Op.ne]: id }
+      id: { [Op.ne]: prescription.id }
     }
   });
 

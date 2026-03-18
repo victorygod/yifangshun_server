@@ -220,15 +220,13 @@ app.post("/api/prescription/save", async (req, res) => {
 // 更新处方
 app.post("/api/prescription/update", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
-    const { id, prescriptionId, thumbnail, ...prescriptionData } = req.body;
-    // 优先使用 id（数据库主键），如果没有则使用 prescriptionId
-    const targetId = id || prescriptionId;
+    const { prescriptionId, status, thumbnail, ...prescriptionData } = req.body;
     
-    if (!targetId) {
-      return res.status(400).json({ code: 1, message: "缺少处方ID" });
+    if (!prescriptionId || !status) {
+      return res.status(400).json({ code: 1, message: "缺少处方ID或状态" });
     }
     
-    const result = await prescription.updatePrescription(targetId, prescriptionId, prescriptionData, thumbnail);
+    const result = await prescription.updatePrescription(prescriptionId, status, prescriptionData, thumbnail);
     res.json(result);
   } catch (error) {
     console.error("更新处方失败:", error);
@@ -236,17 +234,17 @@ app.post("/api/prescription/update", requireRole(['admin', 'super_admin']), asyn
   }
 });
 
-// 删除处方
-app.delete("/api/prescription/:id", async (req, res) => {
+// 删除处方 - 双键 URL
+app.delete("/api/prescription/:prescriptionId/:status", async (req, res) => {
   try {
-    const { id } = req.params;
+    const { prescriptionId, status } = req.params;
     const { openid } = req.query;
     
-    if (!id) {
-      return res.status(400).json({ code: 1, message: "缺少处方ID" });
+    if (!prescriptionId || !status) {
+      return res.status(400).json({ code: 1, message: "缺少处方ID或状态" });
     }
     
-    const result = await prescription.deletePrescription(id, openid);
+    const result = await prescription.deletePrescription(prescriptionId, status, openid);
     res.json(result);
   } catch (error) {
     console.error("删除处方失败:", error);
@@ -257,14 +255,14 @@ app.delete("/api/prescription/:id", async (req, res) => {
 // 审核处方
 app.post("/api/prescription/review", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
-    const { id, action } = req.body;
+    const { prescriptionId, status, action } = req.body;
     
-    if (!id || !action) {
+    if (!prescriptionId || !status || !action) {
       return res.status(400).json({ code: 1, message: "缺少必要参数" });
     }
 
     const reviewerName = req.user.name || req.user.openid;
-    const result = await prescription.reviewPrescription(id, action, req.user.openid, reviewerName);
+    const result = await prescription.reviewPrescription(prescriptionId, status, action, req.user.openid, reviewerName);
     res.json(result);
   } catch (error) {
     console.error("审核处方失败:", error);
@@ -275,14 +273,14 @@ app.post("/api/prescription/review", requireRole(['admin', 'super_admin']), asyn
 // 确认审核通过（覆盖旧记录）
 app.post("/api/prescription/confirm-approve", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
-    const { id } = req.body;
+    const { prescriptionId, status } = req.body;
     
-    if (!id) {
-      return res.status(400).json({ code: 1, message: "缺少必要参数" });
+    if (!prescriptionId || !status) {
+      return res.status(400).json({ code: 1, message: "缺少处方ID或状态" });
     }
 
     const reviewerName = req.user.name || req.user.openid;
-    const result = await prescription.confirmPrescriptionApprove(id, req.user.openid, reviewerName);
+    const result = await prescription.confirmPrescriptionApprove(prescriptionId, status, req.user.openid, reviewerName);
     res.json(result);
   } catch (error) {
     console.error("确认审核失败:", error);
