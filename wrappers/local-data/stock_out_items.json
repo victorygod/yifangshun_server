@@ -3,9 +3,11 @@
     "orderId": "1",
     "herbName": "当归",
     "quantity": 14,
-    "totalPrice": 3,
+    "totalPrice": 70,
     "id": 1,
     "createdAt": "2026-03-20T01:00:06.241Z",
-    "updatedAt": "2026-03-20T01:05:04.044Z"
+    "updatedAt": "2026-03-20T01:49:42.906Z",
+    "cabinetNo": "A-01",
+    "unitPrice": 5
   }
 ]

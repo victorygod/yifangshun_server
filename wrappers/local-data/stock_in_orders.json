@@ -4,9 +4,9 @@
     "supplier": "同仁堂1",
     "phone": "13800138000",
     "totalAmount": 31880,
-    "status": "stocked",
+    "status": "draft",
     "id": 1,
     "createdAt": "2026-03-19T21:45:05.006Z",
-    "updatedAt": "2026-03-20T01:42:20.685Z"
+    "updatedAt": "2026-03-20T01:49:36.991Z"
   }
 ]

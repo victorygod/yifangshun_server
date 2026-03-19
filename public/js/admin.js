@@ -538,7 +538,7 @@ async function loadTableData() {
         
         // 已有明细
         items.forEach(item => {
-          html += `<tr data-detail-id="${item.id}">`;
+          html += `<tr data-detail-id="${item.id}" data-order-id="${row.id}">`;
           detailColumns.forEach(col => {
             const value = item[col.key] ?? '';
             const isReadonly = col.readonly;
