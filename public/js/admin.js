@@ -17,7 +17,6 @@ const menuConfig = [
       { id: 'herbs', icon: '🌿', label: '药材信息', type: 'table', tableName: 'herbs' },
       { id: 'stock_in_orders', icon: '📥', label: '入库管理', type: 'table', tableName: 'stock_in_orders' },
       { id: 'stock_out_orders', icon: '📤', label: '执药管理', type: 'table', tableName: 'stock_out_orders' },
-      { id: 'stock_inventory', icon: '📋', label: '库存统计', type: 'table', tableName: 'stock_inventory' },
       { id: 'stock_check_orders', icon: '🔢', label: '盘点管理', type: 'table', tableName: 'stock_check_orders' }
     ]
   },

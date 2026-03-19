@@ -34,8 +34,8 @@ const testSystem = require('./tests/test_system');
 const testPermission = require('./tests/test_permission');
 const testUserManager = require('./tests/test_user_manager');
 const testDbManager = require('./tests/test_db_manager');
-// 库存管理测试（API 尚未实现，实现后取消注释）
-// const testStock = require('./tests/test_stock');
+// 库存管理测试
+const testStock = require('./tests/test_stock');
 
 // 全局测试统计
 const globalStats = {
@@ -96,10 +96,10 @@ async function runAllTests() {
     const dbManagerStats = testDbManager.getTestStats();
     updateGlobalStats(dbManagerStats);
     
-    // 9. 库存管理测试（API 尚未实现，实现后取消注释）
-    // await testStock.runStockTests(testUsers);
-    // const stockStats = testStock.getTestStats();
-    // updateGlobalStats(stockStats);
+    // 9. 库存管理测试
+    await testStock.runStockTests(testUsers);
+    const stockStats = testStock.getTestStats();
+    updateGlobalStats(stockStats);
     
     // 清理所有测试数据
     console.log('\n========================================');
@@ -114,7 +114,7 @@ async function runAllTests() {
     await testPermission.cleanupTestData();
     await testUserManager.cleanupTestData();
     await testDbManager.cleanupTestData();
-    // await testStock.cleanupTestData();
+    await testStock.cleanupTestData();
     
     // 输出测试结果
     printTestResults();

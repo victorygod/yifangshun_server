@@ -690,8 +690,8 @@ async function getOutOrders(options = {}) {
 async function createOutOrder(data, operator = 'system') {
   const { prescriptionId, prescriptionTime, pharmacist, reviewer, remark, items = [] } = data;
   
-  if (!orderDate || items.length === 0) {
-    throw new Error('出库日期和明细不能为空');
+  if (items.length === 0) {
+    throw new Error('明细不能为空');
   }
   
   if (!prescriptionId) {

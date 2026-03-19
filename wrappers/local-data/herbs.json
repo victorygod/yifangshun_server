@@ -34,5 +34,86 @@
     "createdAt": "2026-03-20T01:42:20.683Z",
     "updatedAt": "2026-03-20T01:49:36.996Z",
     "id": 3
+  },
+  {
+    "name": "测试药材_1773945606476",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "isActive": true,
+    "createdAt": "2026-03-20T02:40:07.732Z",
+    "updatedAt": "2026-03-20T02:40:07.742Z",
+    "id": 4
+  },
+  {
+    "name": "测试药材_1773945625435",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "isActive": true,
+    "createdAt": "2026-03-20T02:40:27.104Z",
+    "updatedAt": "2026-03-20T02:40:27.113Z",
+    "id": 5
+  },
+  {
+    "name": "测试药材_1773945767722",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "isActive": true,
+    "createdAt": "2026-03-20T02:42:47.742Z",
+    "updatedAt": "2026-03-20T02:42:47.753Z",
+    "id": 6
+  },
+  {
+    "name": "debug_herb_1773945818680",
+    "unit": "克",
+    "minValue": 0,
+    "isActive": true,
+    "createdAt": "2026-03-20T02:43:38.696Z",
+    "updatedAt": "2026-03-20T02:43:38.696Z",
+    "id": 7
+  },
+  {
+    "name": "测试药材_1773945894423",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "isActive": true,
+    "createdAt": "2026-03-20T02:44:54.443Z",
+    "updatedAt": "2026-03-20T02:44:54.481Z",
+    "id": 8,
+    "stock": 600
+  },
+  {
+    "name": "测试药材_1773946017030",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "isActive": true,
+    "createdAt": "2026-03-20T02:46:57.050Z",
+    "updatedAt": "2026-03-20T02:46:57.091Z",
+    "id": 9,
+    "stock": 600
+  },
+  {
+    "name": "test_herb_for_out_1773946028531",
+    "unit": "克",
+    "minValue": 0,
+    "isActive": true,
+    "createdAt": "2026-03-20T02:47:08.539Z",
+    "updatedAt": "2026-03-20T02:47:08.539Z",
+    "id": 10
+  },
+  {
+    "name": "测试药材_1773946189723",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "isActive": true,
+    "createdAt": "2026-03-20T02:49:51.848Z",
+    "updatedAt": "2026-03-20T02:49:51.904Z",
+    "id": 11,
+    "stock": 600
   }
 ]

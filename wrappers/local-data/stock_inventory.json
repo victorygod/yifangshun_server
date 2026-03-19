@@ -31,5 +31,86 @@
     "updatedAt": "2026-03-20T01:49:36.997Z",
     "id": 3,
     "createdAt": "2026-03-20T01:35:48.830Z"
+  },
+  {
+    "herbName": "测试药材_1773945606476",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T02:40:07.750Z",
+    "id": 4,
+    "createdAt": "2026-03-20T02:40:07.733Z"
+  },
+  {
+    "herbName": "测试药材_1773945625435",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T02:40:27.121Z",
+    "id": 5,
+    "createdAt": "2026-03-20T02:40:27.105Z"
+  },
+  {
+    "herbName": "测试药材_1773945767722",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T02:42:47.762Z",
+    "id": 6,
+    "createdAt": "2026-03-20T02:42:47.742Z"
+  },
+  {
+    "herbName": "debug_herb_1773945818680",
+    "quantity": 0,
+    "avgPrice": 0,
+    "minValue": 0,
+    "updatedAt": "2026-03-20T02:43:38.697Z",
+    "id": 7,
+    "createdAt": "2026-03-20T02:43:38.697Z"
+  },
+  {
+    "herbName": "测试药材_1773945894423",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T02:44:54.482Z",
+    "id": 8,
+    "createdAt": "2026-03-20T02:44:54.443Z",
+    "lastStockInDate": "2026-03-19"
+  },
+  {
+    "herbName": "测试药材_1773946017030",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T02:46:57.091Z",
+    "id": 9,
+    "createdAt": "2026-03-20T02:46:57.050Z",
+    "lastStockInDate": "2026-03-19"
+  },
+  {
+    "herbName": "test_herb_for_out_1773946028531",
+    "quantity": 0,
+    "avgPrice": 0,
+    "minValue": 0,
+    "updatedAt": "2026-03-20T02:47:08.540Z",
+    "id": 10,
+    "createdAt": "2026-03-20T02:47:08.540Z"
+  },
+  {
+    "herbName": "测试药材_1773946189723",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T02:49:51.905Z",
+    "id": 11,
+    "createdAt": "2026-03-20T02:49:51.849Z",
+    "lastStockInDate": "2026-03-19"
   }
 ]

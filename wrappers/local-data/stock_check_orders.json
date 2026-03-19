@@ -1,1 +1,56 @@
-[]
+[
+  {
+    "checkNo": "PD-20260319-059",
+    "checkDate": "2026-03-19",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-20T02:40:07.748Z",
+    "id": 1,
+    "updatedAt": "2026-03-20T02:40:07.750Z"
+  },
+  {
+    "checkNo": "PD-20260319-044",
+    "checkDate": "2026-03-19",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-20T02:40:27.119Z",
+    "id": 2,
+    "updatedAt": "2026-03-20T02:40:27.123Z"
+  },
+  {
+    "checkNo": "PD-20260319-362",
+    "checkDate": "2026-03-19",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-20T02:42:47.760Z",
+    "id": 3,
+    "updatedAt": "2026-03-20T02:42:47.763Z"
+  },
+  {
+    "checkNo": "PD-20260319-926",
+    "checkDate": "2026-03-19",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-20T02:44:54.468Z",
+    "id": 4,
+    "updatedAt": "2026-03-20T02:44:54.471Z"
+  },
+  {
+    "checkNo": "PD-20260319-707",
+    "checkDate": "2026-03-19",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-20T02:46:57.079Z",
+    "id": 5,
+    "updatedAt": "2026-03-20T02:46:57.081Z"
+  },
+  {
+    "checkNo": "PD-20260319-595",
+    "checkDate": "2026-03-19",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-20T02:49:51.878Z",
+    "id": 6,
+    "updatedAt": "2026-03-20T02:49:51.881Z"
+  }
+]

@@ -504,12 +504,13 @@ app.get("/api/admin/tables", requireRole(['super_admin']), async (req, res) => {
   }
 });
 
-// 获取指定表的数据（分页）
+// 获取指定表的数据（分页 + 多维度搜索）
 app.get("/api/admin/table/:name", requireRole(['super_admin']), async (req, res) => {
   try {
     const { name } = req.params;
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 20;
+    const keyword = (req.query.keyword || '').trim();
     
     const model = TABLE_MODELS[name];
     if (!model) {
@@ -518,19 +519,39 @@ app.get("/api/admin/table/:name", requireRole(['super_admin']), async (req, res)
     
     const pk = model.primaryKey || 'id';
     
-    // 获取总数
-    const totalCount = await model.count();
-    const totalPages = Math.ceil(totalCount / pageSize);
-    
-    // 获取分页数据
-    const data = await model.findAll({
+    // 获取所有数据
+    let allData = await model.findAll({
       order: [['createdAt', 'DESC']],
-      limit: pageSize,
-      offset: (page - 1) * pageSize
+      raw: true  // 返回纯JSON数据，而不是Sequelize模型实例
     });
     
+    // 多维度搜索
+    if (keyword) {
+      const keywordLower = keyword.toLowerCase();
+      allData = allData.filter(row => {
+        // 遍历所有字段进行匹配
+        for (const key in row) {
+          const value = row[key];
+          if (value !== null && value !== undefined) {
+            const strValue = String(value).toLowerCase();
+            if (strValue.includes(keywordLower)) {
+              return true;
+            }
+          }
+        }
+        return false;
+      });
+    }
+    
+    const totalCount = allData.length;
+    const totalPages = Math.ceil(totalCount / pageSize);
+    
+    // 分页
+    const start = (page - 1) * pageSize;
+    const pagedData = allData.slice(start, start + pageSize);
+    
     // 为每行添加统一的 id 字段（用于前端操作）
-    const rows = data.map(row => ({
+    const rows = pagedData.map(row => ({
       ...row,
       id: row[pk]  // 统一使用 id 字段，值为实际主键
     }));
