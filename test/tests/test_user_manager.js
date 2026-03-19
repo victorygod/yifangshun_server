@@ -169,7 +169,7 @@ async function runUserManagerTests(users) {
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
     
-    const user = data.data.find(u => u.openid === testUsers.normalUser.openid);
+    const user = data.data.list.find(u => u.openid === testUsers.normalUser.openid);
     assert(user, '找到测试用户');
     assertEquals(user.name, '测试用户_最终姓名', '姓名已更新');
     assertEquals(user.phone, '13900000002', '手机号已更新');

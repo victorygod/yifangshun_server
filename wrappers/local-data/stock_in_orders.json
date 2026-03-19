@@ -1,12 +1,12 @@
 [
   {
     "orderDate": "2026-03-19",
-    "supplier": "同仁堂",
+    "supplier": "同仁堂1",
     "phone": "13800138000",
     "totalAmount": 0,
     "status": "draft",
     "id": 1,
     "createdAt": "2026-03-19T21:45:05.006Z",
-    "updatedAt": "2026-03-19T21:45:05.006Z"
+    "updatedAt": "2026-03-19T23:22:04.437Z"
   }
 ]

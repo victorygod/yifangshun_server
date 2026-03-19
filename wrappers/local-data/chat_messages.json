@@ -322,5 +322,95 @@
     "id": 36,
     "createdAt": "2026-03-19T23:16:36.422Z",
     "updatedAt": "2026-03-19T23:16:36.422Z"
+  },
+  {
+    "messageId": "j0btasysc",
+    "openid": "user_4vgsm1arz1n",
+    "content": "你好",
+    "type": "user",
+    "id": 37,
+    "createdAt": "2026-03-19T23:19:34.133Z",
+    "updatedAt": "2026-03-19T23:19:34.133Z"
+  },
+  {
+    "messageId": "nsp2sg9vo",
+    "openid": "user_4vgsm1arz1n",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 38,
+    "createdAt": "2026-03-19T23:19:34.135Z",
+    "updatedAt": "2026-03-19T23:19:34.135Z"
+  },
+  {
+    "messageId": "whx29n1zn",
+    "openid": "user_nnn0xbk4zf",
+    "content": "你好",
+    "type": "user",
+    "id": 39,
+    "createdAt": "2026-03-19T23:19:47.293Z",
+    "updatedAt": "2026-03-19T23:19:47.293Z"
+  },
+  {
+    "messageId": "8txep63yz",
+    "openid": "user_nnn0xbk4zf",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 40,
+    "createdAt": "2026-03-19T23:19:47.294Z",
+    "updatedAt": "2026-03-19T23:19:47.294Z"
+  },
+  {
+    "messageId": "6gjp5pvoz",
+    "openid": "user_4fymgonf065",
+    "content": "你好",
+    "type": "user",
+    "id": 41,
+    "createdAt": "2026-03-19T23:19:58.542Z",
+    "updatedAt": "2026-03-19T23:19:58.542Z"
+  },
+  {
+    "messageId": "sokl16jd6",
+    "openid": "user_4fymgonf065",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 42,
+    "createdAt": "2026-03-19T23:19:58.544Z",
+    "updatedAt": "2026-03-19T23:19:58.544Z"
+  },
+  {
+    "messageId": "9a32om9lm",
+    "openid": "user_3q4rkhgjbx4",
+    "content": "你好",
+    "type": "user",
+    "id": 43,
+    "createdAt": "2026-03-19T23:20:07.206Z",
+    "updatedAt": "2026-03-19T23:20:07.206Z"
+  },
+  {
+    "messageId": "wwpnwgkew",
+    "openid": "user_3q4rkhgjbx4",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 44,
+    "createdAt": "2026-03-19T23:20:07.207Z",
+    "updatedAt": "2026-03-19T23:20:07.207Z"
+  },
+  {
+    "messageId": "ms4z5smwx",
+    "openid": "user_n6sen0qp1dk",
+    "content": "你好",
+    "type": "user",
+    "id": 45,
+    "createdAt": "2026-03-19T23:21:12.576Z",
+    "updatedAt": "2026-03-19T23:21:12.576Z"
+  },
+  {
+    "messageId": "0m3cp6hbu",
+    "openid": "user_n6sen0qp1dk",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 46,
+    "createdAt": "2026-03-19T23:21:12.576Z",
+    "updatedAt": "2026-03-19T23:21:12.576Z"
   }
 ]
