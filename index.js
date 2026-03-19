@@ -829,6 +829,27 @@ app.delete("/api/stock/out/orders/:id", requireRole(['admin', 'super_admin']), a
   }
 });
 
+// 撤销执药单（回滚库存）
+app.post("/api/stock/out/orders/:id/revert", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const operator = req.user?.name || req.user?.openid || 'system';
+    const result = await stock.revertOutOrder(req.params.id, operator);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+// 结算执药单
+app.post("/api/stock/out/orders/:id/settle", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.settleOutOrder(req.params.id);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
 // 库存统计
 app.get("/api/stock/inventory", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {

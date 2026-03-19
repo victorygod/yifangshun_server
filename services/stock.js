@@ -478,21 +478,21 @@ async function executeStockIn(id, operator = 'system') {
 }
 
 // ========================================
-// 出库管理
+// 出库管理（执药单）
 // ========================================
 
-// 获取出库单列表
+// 获取执药单列表
 async function getOutOrders(options = {}) {
-  const { orderType = 'all', page = 1, pageSize = 20 } = options;
+  const { status = 'all', page = 1, pageSize = 20 } = options;
   
   let where = {};
-  if (orderType !== 'all') {
-    where.orderType = orderType;
+  if (status !== 'all') {
+    where.status = status;
   }
   
   const orders = await StockOutOrder.findAll({
     where,
-    order: [['createdAt', 'DESC']]
+    order: [['prescriptionTime', 'DESC'], ['createdAt', 'DESC']]
   });
   
   // 分页
@@ -522,48 +522,49 @@ async function getOutOrders(options = {}) {
   };
 }
 
-// 创建出库单（手动出库）
+// 创建执药单（从处方导入）
 async function createOutOrder(data, operator = 'system') {
-  const { orderDate, orderType = 'manual', settlementOrderNo, remark, items = [] } = data;
+  const { prescriptionId, prescriptionTime, pharmacist, reviewer, remark, items = [] } = data;
   
   if (!orderDate || items.length === 0) {
     throw new Error('出库日期和明细不能为空');
   }
   
-  // 检查库存是否足够
-  for (const item of items) {
-    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
-    if (!inventory || inventory.quantity < item.quantity) {
-      throw new Error(`药材 ${item.herbName} 库存不足`);
-    }
+  if (!prescriptionId) {
+    throw new Error('处方ID不能为空');
   }
   
-  const orderNo = generateOrderNo('CK');
+  // 检查处方是否已创建执药单
+  const existing = await StockOutOrder.findOne({ where: { prescriptionId } });
+  if (existing) {
+    throw new Error('该处方已创建执药单');
+  }
   
   // 计算总金额
   let totalAmount = 0;
   for (const item of items) {
-    // 获取当前库存均价作为出库单价
-    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
-    const unitPrice = inventory ? inventory.avgPrice : 0;
+    // 获取药材售价
+    const herb = await Herb.findOne({ where: { name: item.herbName } });
+    const unitPrice = herb ? (herb.salePrice || 0) : 0;
     totalAmount += item.quantity * unitPrice;
   }
   
   const order = await StockOutOrder.create({
-    orderNo,
-    orderDate,
-    orderType,
-    settlementOrderNo,
-    operator,
+    prescriptionId,
+    prescriptionTime: prescriptionTime || getNow(),
+    pharmacist,
+    reviewer,
+    status: 'pending',
     remark,
     totalAmount,
-    createdAt: getNow()
+    createdAt: getNow(),
+    updatedAt: getNow()
   });
   
-  // 创建明细并扣减库存
+  // 创建明细
   for (const item of items) {
-    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
-    const unitPrice = inventory ? inventory.avgPrice : 0;
+    const herb = await Herb.findOne({ where: { name: item.herbName } });
+    const unitPrice = herb ? (herb.salePrice || 0) : 0;
     
     await StockOutItem.create({
       orderId: order.id,
@@ -571,25 +572,17 @@ async function createOutOrder(data, operator = 'system') {
       quantity: item.quantity,
       unitPrice,
       totalPrice: item.quantity * unitPrice,
-      remark: item.remark
+      createdAt: getNow()
     });
     
-    // 扣减库存
-    const newQuantity = inventory.quantity - item.quantity;
-    await StockInventory.update({
-      quantity: newQuantity,
-      lastStockOutDate: orderDate,
-      updatedAt: getNow()
-    }, { where: { id: inventory.id } });
-    
     // 添加日志
-    await addStockLog('stock_out', orderNo, item.herbName, -item.quantity, operator);
+    await addStockLog('stock_out', `ZD-${prescriptionId}`, item.herbName, item.quantity, operator);
   }
   
   const created = await getOutOrderById(order.id);
   return {
     code: 0,
-    message: '出库成功',
+    message: '创建成功',
     data: created
   };
 }
@@ -613,21 +606,7 @@ async function getOutOrderById(id) {
 async function deleteOutOrder(id) {
   const order = await StockOutOrder.findByPk(id);
   if (!order) {
-    throw new Error('出库单不存在');
-  }
-  
-  if (order.orderType !== 'manual') {
-    throw new Error('只有手动出库单可以删除');
-  }
-  
-  // 获取明细，恢复库存
-  const items = await StockOutItem.findAll({ where: { orderId: id } });
-  for (const item of items) {
-    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
-    if (inventory) {
-      const newQuantity = inventory.quantity + item.quantity;
-      await StockInventory.update({ quantity: newQuantity, updatedAt: getNow() }, { where: { id: inventory.id } });
-    }
+    throw new Error('执药单不存在');
   }
   
   // 删除明细
@@ -639,6 +618,80 @@ async function deleteOutOrder(id) {
   return {
     code: 0,
     message: '删除成功'
+  };
+}
+
+// 撤销执药（回滚库存）
+async function revertOutOrder(id, operator = 'system') {
+  const order = await StockOutOrder.findByPk(id);
+  if (!order) {
+    throw new Error('执药单不存在');
+  }
+  
+  if (order.status !== 'pending') {
+    throw new Error('只有待执药状态可以撤销');
+  }
+  
+  // 获取明细，恢复库存
+  const items = await StockOutItem.findAll({ where: { orderId: id } });
+  for (const item of items) {
+    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
+    if (inventory) {
+      const newQuantity = (inventory.quantity || 0) + item.quantity;
+      await StockInventory.update({ quantity: newQuantity, updatedAt: getNow() }, { where: { id: inventory.id } });
+    }
+    
+    // 添加日志
+    await addStockLog('revert', `ZD-${order.prescriptionId}`, item.herbName, item.quantity, operator);
+  }
+  
+  // 删除明细
+  await StockOutItem.destroy({ where: { orderId: id } });
+  
+  // 删除主表
+  await StockOutOrder.destroy({ where: { id } });
+  
+  return {
+    code: 0,
+    message: '撤销成功'
+  };
+}
+
+// 结算执药单
+async function settleOutOrder(id) {
+  const order = await StockOutOrder.findByPk(id);
+  if (!order) {
+    throw new Error('执药单不存在');
+  }
+  
+  if (order.status !== 'pending') {
+    throw new Error('只有待执药状态可以结算');
+  }
+  
+  // 检查库存并扣减
+  const items = await StockOutItem.findAll({ where: { orderId: id } });
+  for (const item of items) {
+    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
+    if (!inventory || inventory.quantity < item.quantity) {
+      throw new Error(`药材 ${item.herbName} 库存不足`);
+    }
+    
+    // 扣减库存
+    const newQuantity = inventory.quantity - item.quantity;
+    await StockInventory.update({ 
+      quantity: newQuantity, 
+      updatedAt: getNow() 
+    }, { where: { id: inventory.id } });
+  }
+  
+  // 更新状态
+  await StockOutOrder.update({ status: 'settled', updatedAt: getNow() }, { where: { id } });
+  
+  const updated = await getOutOrderById(id);
+  return {
+    code: 0,
+    message: '结算成功',
+    data: updated
   };
 }
 
@@ -898,11 +951,13 @@ module.exports = {
   confirmInOrder,
   executeStockIn,
   
-  // 出库管理
+  // 执药管理
   getOutOrders,
   getOutOrderById,
   createOutOrder,
   deleteOutOrder,
+  revertOutOrder,
+  settleOutOrder,
   
   // 库存统计
   getInventory,

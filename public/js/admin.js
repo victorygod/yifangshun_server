@@ -131,7 +131,8 @@ const tableConfigs = {
       { key: 'remark', label: '备注', editable: true }
     ],
     searchFields: ['prescriptionId', 'pharmacist'],
-    defaultSort: { field: 'prescriptionTime', order: 'desc' }
+    hasDetail: true,
+    detailTable: 'stock_out_items'
   },
   stock_inventory: {
     displayName: '库存统计',
@@ -219,6 +220,7 @@ let pageSize = 20;
 let selectedIds = [];
 let editingRowId = null;
 let searchKeyword = '';
+let expandedRows = new Set(); // 展开的行ID集合
 
 // ==================== 初始化 ====================
 
@@ -387,12 +389,27 @@ async function loadTableData() {
   const tableBody = document.getElementById('tableBody');
   
   try {
-    const url = `/api/admin/table/${currentTable}?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`;
-    const res = await homeFetch(url);
+    let rows, pagination;
     
-    if (res.code !== 0) throw new Error(res.message);
+    // 入库单和执药单使用专用API（包含明细）
+    if (currentTable === 'stock_in_orders') {
+      const res = await homeFetch(`/api/stock/in/orders?page=${currentPage}&pageSize=${pageSize}`);
+      if (res.code !== 0) throw new Error(res.message);
+      rows = res.data || [];
+      pagination = res.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 };
+    } else if (currentTable === 'stock_out_orders') {
+      const res = await homeFetch(`/api/stock/out/orders?page=${currentPage}&pageSize=${pageSize}`);
+      if (res.code !== 0) throw new Error(res.message);
+      rows = res.data || [];
+      pagination = res.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 };
+    } else {
+      const url = `/api/admin/table/${currentTable}?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`;
+      const res = await homeFetch(url);
+      if (res.code !== 0) throw new Error(res.message);
+      rows = res.data.rows;
+      pagination = res.data.pagination;
+    }
     
-    const { rows, pagination } = res.data;
     const columns = config.columns;
     
     if (rows.length === 0 && editingRowId !== 'new') {
@@ -405,6 +422,9 @@ async function loadTableData() {
       return;
     }
     
+    const hasDetail = config.hasDetail;
+    const detailTable = config.detailTable;
+    
     let html = `
       <div class="table-wrapper">
         <table class="data-table">
@@ -413,6 +433,7 @@ async function loadTableData() {
               <th class="col-checkbox">
                 <input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
               </th>
+              ${hasDetail ? '<th class="col-expand"></th>' : ''}
               ${columns.map(col => `<th>${col.label}</th>`).join('')}
               <th class="col-action">操作</th>
             </tr>
@@ -420,15 +441,26 @@ async function loadTableData() {
           <tbody>
     `;
     
-    rows.forEach(row => {
+    rows.forEach((row, rowIndex) => {
       const isEditing = String(editingRowId) === String(row.id);
+      const isExpanded = expandedRows.has(String(row.id));
       
+      // 主行
       html += `<tr data-id="${row.id}" class="${isEditing ? 'editing' : ''}">`;
       html += `<td class="col-checkbox">
         <input type="checkbox" class="checkbox row-checkbox" data-id="${row.id}" 
           ${selectedIds.includes(row.id) ? 'checked' : ''} 
           onchange="toggleSelect('${row.id}')">
       </td>`;
+      
+      // 展开按钮
+      if (hasDetail) {
+        html += `<td class="col-expand">
+          <button class="expand-btn ${isExpanded ? 'expanded' : ''}" data-action="toggleDetail" data-id="${row.id}">
+            ${isExpanded ? '▼' : '▶'}
+          </button>
+        </td>`;
+      }
       
       columns.forEach(col => {
         const value = row[col.key] ?? '';
@@ -476,12 +508,50 @@ async function loadTableData() {
         `;
       }
       html += `</td></tr>`;
+      
+      // 详情行
+      if (hasDetail && isExpanded && row.items && row.items.length > 0) {
+        const detailConfig = tableConfigs[detailTable];
+        const detailColumns = detailConfig ? detailConfig.columns : [];
+        
+        html += `<tr class="detail-row" data-parent-id="${row.id}">`;
+        html += `<td colspan="${columns.length + 3}" class="detail-cell">`;
+        html += `<div class="detail-content">`;
+        html += `<div class="detail-header">明细信息</div>`;
+        html += `<table class="detail-table">`;
+        html += `<thead><tr>${detailColumns.map(col => `<th>${col.label}</th>`).join('')}<th class="col-action">操作</th></tr></thead>`;
+        html += `<tbody>`;
+        
+        row.items.forEach(item => {
+          html += `<tr data-detail-id="${item.id}">`;
+          detailColumns.forEach(col => {
+            const value = item[col.key] ?? '';
+            const isReadonly = col.readonly;
+            if (isReadonly) {
+              html += `<td><span class="cell-readonly">${value || '-'}</span></td>`;
+            } else {
+              html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"></td>`;
+            }
+          });
+          html += `<td class="col-action">
+            <button class="action-btn action-btn-delete" data-action="deleteDetail" data-id="${item.id}" data-order-id="${row.id}">删除</button>
+          </td>`;
+          html += `</tr>`;
+        });
+        
+        html += `</tbody></table>`;
+        html += `<button class="btn btn-sm" data-action="addDetailItem" data-order-id="${row.id}">+ 添加明细</button>`;
+        html += `</div></td></tr>`;
+      }
     });
     
     // 新增行
     if (editingRowId === 'new') {
       html += `<tr class="editing" data-id="new">`;
       html += `<td class="col-checkbox"><input type="checkbox" class="checkbox" disabled></td>`;
+      if (hasDetail) {
+        html += `<td class="col-expand"></td>`;
+      }
       columns.forEach(col => {
         const isReadonly = config.readonly || col.readonly;
         if (isReadonly) {
@@ -523,6 +593,7 @@ async function loadTableData() {
       if (btn) {
         const action = btn.dataset.action;
         const id = btn.dataset.id;
+        const orderId = btn.dataset.orderId;
         
         switch(action) {
           case 'save':
@@ -541,6 +612,15 @@ async function loadTableData() {
           case 'nextPage':
             goToPage(parseInt(btn.dataset.page));
             return;
+          case 'toggleDetail':
+            toggleDetail(id);
+            return;
+          case 'addDetailItem':
+            addDetailItem(orderId);
+            return;
+          case 'deleteDetail':
+            deleteDetailItem(id, orderId);
+            return;
         }
       }
       
@@ -558,6 +638,36 @@ async function loadTableData() {
     
   } catch (err) {
     tableBody.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><p>${err.message}</p></div>`;
+  }
+}
+
+// ==================== 展开详情操作 ====================
+
+function toggleDetail(rowId) {
+  const idStr = String(rowId);
+  if (expandedRows.has(idStr)) {
+    expandedRows.delete(idStr);
+  } else {
+    expandedRows.add(idStr);
+  }
+  loadTableData();
+}
+
+async function addDetailItem(orderId) {
+  // 添加空的明细项到列表中，等待保存
+  showToast('请先保存主表，再添加明细', 'warning');
+}
+
+async function deleteDetailItem(itemId, orderId) {
+  try {
+    const res = await homeFetch(`/api/admin/table/${tableConfigs[currentTable].detailTable}/${itemId}`, {
+      method: 'DELETE'
+    });
+    if (res.code !== 0) throw new Error(res.message);
+    showToast('删除成功');
+    loadTableData();
+  } catch (err) {
+    showToast('删除失败: ' + err.message, 'error');
   }
 }
 

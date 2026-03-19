@@ -412,5 +412,23 @@
     "id": 46,
     "createdAt": "2026-03-19T23:21:12.576Z",
     "updatedAt": "2026-03-19T23:21:12.576Z"
+  },
+  {
+    "messageId": "1syuuf9bw",
+    "openid": "user_yrx6xlm45u",
+    "content": "你好",
+    "type": "user",
+    "id": 47,
+    "createdAt": "2026-03-19T23:55:26.782Z",
+    "updatedAt": "2026-03-19T23:55:26.782Z"
+  },
+  {
+    "messageId": "vzmqtdiwl",
+    "openid": "user_yrx6xlm45u",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 48,
+    "createdAt": "2026-03-19T23:55:26.783Z",
+    "updatedAt": "2026-03-19T23:55:26.783Z"
   }
 ]

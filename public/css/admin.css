@@ -602,3 +602,112 @@ body {
     gap: 12px;
   }
 }
+
+/* 展开按钮 */
+.col-expand {
+  width: 40px;
+  text-align: center;
+}
+
+.expand-btn {
+  background: #f0f0f0;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.expand-btn:hover {
+  background: #e0e0e0;
+}
+
+.expand-btn.expanded {
+  background: #409eff;
+  color: white;
+}
+
+/* 详情行 */
+.detail-row {
+  background: #fafbfc !important;
+}
+
+.detail-row:hover td {
+  background: #fafbfc !important;
+}
+
+.detail-cell {
+  padding: 0 !important;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.detail-content {
+  padding: 16px 20px 16px 60px;
+}
+
+.detail-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 12px;
+}
+
+.detail-table th {
+  background: #fff;
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.detail-table td {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-table tr:hover td {
+  background: #fff;
+}
+
+.detail-input {
+  width: 100%;
+  min-width: 60px;
+  padding: 4px 8px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+}
+
+.detail-input:focus {
+  border-color: #409eff;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  color: #666;
+}
+
+.btn-sm:hover {
+  border-color: #409eff;
+  color: #409eff;
+}
