@@ -162,10 +162,11 @@ async function runStockTests(users) {
   await test('POST /api/stock/herbs - 创建药材', async () => {
     const { response, data } = await adminRequest('POST', '/api/stock/herbs', {
       name: testData.herbName,
-      alias: '测试别名,测试药',
-      unit: '克',
+      alias: '测试别名|测试药',
+      cabinetNo: 'A-01',
+      salePrice: 0.05,
       minValue: 100,
-      category: '测试分类'
+      remark: '测试备注'
     });
     
     assertEquals(response.statusCode, 200, '请求成功');
@@ -177,7 +178,8 @@ async function runStockTests(users) {
   await test('POST /api/stock/herbs - 重复创建应失败', async () => {
     const { response, data } = await adminRequest('POST', '/api/stock/herbs', {
       name: testData.herbName,
-      unit: '克'
+      cabinetNo: 'A-02',
+      salePrice: 0.05
     });
     
     assertEquals(response.statusCode, 400, '请求失败');
@@ -189,7 +191,9 @@ async function runStockTests(users) {
     
     const { response, data } = await adminRequest('PUT', `/api/stock/herbs/${testData.herbId}`, {
       minValue: 200,
-      alias: '更新后的别名'
+      alias: '更新后的别名',
+      cabinetNo: 'B-01',
+      salePrice: 0.06
     });
     
     assertEquals(response.statusCode, 200, '请求成功');
@@ -210,8 +214,8 @@ async function runStockTests(users) {
   await test('POST /api/stock/in/orders - 创建入库单（草稿）', async () => {
     const { response, data } = await adminRequest('POST', '/api/stock/in/orders', {
       orderDate: new Date().toISOString().split('T')[0],
-      supplierName: '测试供应商',
-      supplierPhone: '13800138000',
+      supplier: '测试供应商',
+      phone: '13800138000',
       items: [
         {
           herbName: testData.herbName,
@@ -245,7 +249,7 @@ async function runStockTests(users) {
     if (!testData.inOrderId) return 'skipped';
     
     const { response, data } = await adminRequest('PUT', `/api/stock/in/orders/${testData.inOrderId}`, {
-      supplierName: '更新后的供应商',
+      supplier: '更新后的供应商',
       items: [
         {
           herbName: testData.herbName,
@@ -450,7 +454,7 @@ async function runStockTests(users) {
   await test('POST /api/stock/in/orders - 普通用户无权创建入库单', async () => {
     const { response, data } = await request('POST', '/api/stock/in/orders', {
       orderDate: new Date().toISOString().split('T')[0],
-      supplierName: '测试'
+      supplier: '测试'
     }, {
       'x-openid': testUsers.normalUser.openid
     });

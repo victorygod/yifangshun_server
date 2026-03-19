@@ -16,7 +16,7 @@ const menuConfig = [
     children: [
       { id: 'herbs', icon: '🌿', label: '药材信息', type: 'table', tableName: 'herbs' },
       { id: 'stock_in_orders', icon: '📥', label: '入库管理', type: 'table', tableName: 'stock_in_orders' },
-      { id: 'stock_out_orders', icon: '📤', label: '出库管理', type: 'table', tableName: 'stock_out_orders' },
+      { id: 'stock_out_orders', icon: '📤', label: '执药管理', type: 'table', tableName: 'stock_out_orders' },
       { id: 'stock_inventory', icon: '📋', label: '库存统计', type: 'table', tableName: 'stock_inventory' },
       { id: 'stock_check_orders', icon: '🔢', label: '盘点管理', type: 'table', tableName: 'stock_check_orders' }
     ]
@@ -30,7 +30,7 @@ const menuConfig = [
       { id: 'bookings', icon: '📅', label: '预约记录', type: 'table', tableName: 'bookings' },
       { id: 'prescriptions', icon: '💊', label: '处方记录', type: 'table', tableName: 'prescriptions' },
       { id: 'stock_in_items', icon: '📝', label: '入库明细', type: 'table', tableName: 'stock_in_items' },
-      { id: 'stock_out_items', icon: '📝', label: '出库明细', type: 'table', tableName: 'stock_out_items' },
+      { id: 'stock_out_items', icon: '📝', label: '执药明细', type: 'table', tableName: 'stock_out_items' },
       { id: 'stock_check_items', icon: '📝', label: '盘点明细', type: 'table', tableName: 'stock_check_items' },
       { id: 'stock_logs', icon: '📜', label: '操作日志', type: 'table', tableName: 'stock_logs' }
     ]
@@ -90,44 +90,48 @@ const tableConfigs = {
       { key: 'id', label: 'ID', readonly: true },
       { key: 'name', label: '药材名称', editable: true, required: true },
       { key: 'alias', label: '别名', editable: true },
-      { key: 'unit', label: '单位', editable: true },
-      { key: 'unitPrice', label: '参考单价', editable: true, type: 'number' },
+      { key: 'cabinetNo', label: '柜号', editable: true },
+      { key: 'salePrice', label: '售卖单价', editable: true, type: 'number' },
+      { key: 'stock', label: '现有库存', readonly: true, type: 'number' },
       { key: 'minValue', label: '最低库存', editable: true, type: 'number' },
-      { key: 'description', label: '描述', editable: true }
+      { key: 'remark', label: '备注', editable: true }
     ],
-    searchFields: ['name', 'alias']
+    searchFields: ['name', 'alias', 'cabinetNo']
   },
   stock_in_orders: {
     displayName: '入库管理',
     columns: [
       { key: 'id', label: 'ID', readonly: true },
-      { key: 'orderNo', label: '入库单号', readonly: true },
       { key: 'orderDate', label: '入库日期', editable: true, type: 'date' },
-      { key: 'supplierName', label: '供应商', editable: true },
-      { key: 'supplierPhone', label: '供应商电话', editable: true },
+      { key: 'supplier', label: '供应商', editable: true },
+      { key: 'phone', label: '电话', editable: true },
+      { key: 'totalAmount', label: '总价', readonly: true, type: 'number' },
       { key: 'status', label: '状态', type: 'select', options: [
         { value: 'draft', label: '草稿', badge: 'badge-draft' },
-        { value: 'confirmed', label: '已确认', badge: 'badge-confirmed' },
         { value: 'stocked', label: '已入库', badge: 'badge-stocked' }
-      ]},
-      { key: 'totalAmount', label: '总金额', readonly: true, type: 'number' }
+      ]}
     ],
-    searchFields: ['orderNo', 'supplierName']
+    searchFields: ['supplier'],
+    hasDetail: true,
+    detailTable: 'stock_in_items'
   },
   stock_out_orders: {
-    displayName: '出库管理',
+    displayName: '执药单管理',
     columns: [
       { key: 'id', label: 'ID', readonly: true },
-      { key: 'orderNo', label: '出库单号', readonly: true },
-      { key: 'orderDate', label: '出库日期', editable: true, type: 'date' },
-      { key: 'orderType', label: '类型', type: 'select', options: [
-        { value: 'manual', label: '手动出库' },
-        { value: 'settlement', label: '结算出库' }
+      { key: 'prescriptionTime', label: '处方更新时间', readonly: true, type: 'datetime' },
+      { key: 'prescriptionId', label: '处方ID', readonly: true },
+      { key: 'pharmacist', label: '药师', editable: true },
+      { key: 'reviewer', label: '审核人', editable: true },
+      { key: 'status', label: '状态', type: 'select', options: [
+        { value: 'pending', label: '待执药', badge: 'badge-pending' },
+        { value: 'settled', label: '已结算', badge: 'badge-stocked' }
       ]},
-      { key: 'operator', label: '经手人', editable: true },
-      { key: 'totalAmount', label: '总金额', readonly: true, type: 'number' }
+      { key: 'totalAmount', label: '总价', readonly: true, type: 'number' },
+      { key: 'remark', label: '备注', editable: true }
     ],
-    searchFields: ['orderNo', 'operator']
+    searchFields: ['prescriptionId', 'pharmacist'],
+    defaultSort: { field: 'prescriptionTime', order: 'desc' }
   },
   stock_inventory: {
     displayName: '库存统计',
@@ -162,21 +166,22 @@ const tableConfigs = {
       { key: 'id', label: 'ID', readonly: true },
       { key: 'orderId', label: '入库单ID', readonly: true },
       { key: 'herbName', label: '药材名称', editable: true },
-      { key: 'quantity', label: '数量(克)', editable: true, type: 'number' },
-      { key: 'unitPrice', label: '单价', editable: true, type: 'number' },
-      { key: 'totalPrice', label: '总价', readonly: true, type: 'number' }
+      { key: 'supplierName', label: '供方品名', editable: true },
+      { key: 'quantity', label: '克数', editable: true, type: 'number' },
+      { key: 'unitPrice', label: '进货单价', editable: true, type: 'number' },
+      { key: 'totalPrice', label: '总价', editable: true, type: 'number' }
     ],
-    searchFields: ['herbName']
+    searchFields: ['herbName', 'supplierName']
   },
   stock_out_items: {
-    displayName: '出库明细',
+    displayName: '执药明细',
     columns: [
       { key: 'id', label: 'ID', readonly: true },
-      { key: 'orderId', label: '出库单ID', readonly: true },
+      { key: 'orderId', label: '执药单ID', readonly: true },
       { key: 'herbName', label: '药材名称', editable: true },
-      { key: 'quantity', label: '数量(克)', editable: true, type: 'number' },
-      { key: 'unitPrice', label: '单价', editable: true, type: 'number' },
-      { key: 'totalPrice', label: '总价', readonly: true, type: 'number' }
+      { key: 'quantity', label: '克数', editable: true, type: 'number' },
+      { key: 'unitPrice', label: '单价', readonly: true, type: 'number' },
+      { key: 'totalPrice', label: '本药总价', editable: true, type: 'number' }
     ],
     searchFields: ['herbName']
   },

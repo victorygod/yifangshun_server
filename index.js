@@ -437,13 +437,13 @@ const TABLE_NAMES = {
   'prescriptions': '处方表',
   // 库存管理相关表
   'herbs': '药材表',
-  'stock_in_orders': '入库单主表',
-  'stock_in_items': '入库单明细表',
-  'stock_out_orders': '出库单主表',
-  'stock_out_items': '出库单明细表',
+  'stock_in_orders': '入库单表',
+  'stock_in_items': '入库明细表',
+  'stock_out_orders': '执药单表',
+  'stock_out_items': '执药明细表',
   'stock_inventory': '库存表',
-  'stock_check_orders': '盘点单主表',
-  'stock_check_items': '盘点单明细表',
+  'stock_check_orders': '盘点单表',
+  'stock_check_items': '盘点明细表',
   'stock_logs': '操作日志表'
 };
 
