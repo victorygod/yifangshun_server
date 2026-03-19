@@ -684,6 +684,26 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
       }
     }
     
+    // 如果是执药单，检查状态变化
+    if (name === 'stock_out_orders') {
+      // 如果状态变为"已结算"，扣减库存
+      if (record.status !== 'settled' && updates.status === 'settled') {
+        try {
+          await stock.executeStockOut(id);
+        } catch (stockErr) {
+          console.error('结算扣库存失败:', stockErr);
+        }
+      }
+      // 如果状态从"已结算"变为其他状态，回滚库存
+      if (record.status === 'settled' && updates.status && updates.status !== 'settled') {
+        try {
+          await stock.revertStockOut(id);
+        } catch (stockErr) {
+          console.error('回滚库存失败:', stockErr);
+        }
+      }
+    }
+    
     // 如果是入库明细，检查入库单状态
     if (name === 'stock_in_items' && record.orderId) {
       // 检查入库单是否已入库

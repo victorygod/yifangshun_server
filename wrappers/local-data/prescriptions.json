@@ -2177,5 +2177,73 @@
     "id": 160,
     "createdAt": "2026-03-20T01:48:38.151Z",
     "updatedAt": "2026-03-20T01:48:38.151Z"
+  },
+  {
+    "prescriptionId": "NORMAL_1773945006799",
+    "openid": "user_gfs91gjzdyi",
+    "status": "待审核",
+    "data": "{\"openid\":\"user_k9r102fz3i\",\"name\":\"修改后的姓名\",\"age\":\"36\",\"date\":\"2026-03-16\",\"rp\":\"修改后的Rp\",\"dosage\":\"7\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"黄芪\",\"quantity\":\"20g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
+    "thumbnail": "updated_thumb.jpg",
+    "prescriptionDate": "2026-03-15",
+    "reviewer": null,
+    "reviewDate": null,
+    "id": 161,
+    "createdAt": "2026-03-20T02:30:06.808Z",
+    "updatedAt": "2026-03-20T02:30:06.824Z",
+    "modifyDate": "2026-03-19T18:30:06.824Z"
+  },
+  {
+    "prescriptionId": "ADMIN_1773945006804",
+    "openid": "user_k9r102fz3i",
+    "status": "已审核",
+    "data": "{\"prescriptionId\":\"ADMIN_1773945006804\",\"name\":\"管理员\",\"age\":\"45\",\"date\":\"2026-03-15\",\"rp\":\"管理员Rp内容\",\"dosage\":\"5\",\"administrationMethod\":\"外用\",\"medicines\":[{\"name\":\"薄荷\",\"quantity\":\"10g\",\"note\":\"后下\"}],\"doctor\":\"肖笃凯\"}",
+    "thumbnail": "admin_thumb.jpg",
+    "prescriptionDate": "2026-03-15",
+    "reviewer": "管理员",
+    "reviewDate": "2026-03-19T18:30:06.810Z",
+    "id": 162,
+    "createdAt": "2026-03-20T02:30:06.812Z",
+    "updatedAt": "2026-03-20T02:30:06.812Z"
+  },
+  {
+    "prescriptionId": "APPROVE_TEST_1773945006834",
+    "openid": "user_gfs91gjzdyi",
+    "status": "已审核",
+    "data": "{\"prescriptionId\":\"APPROVE_TEST_1773945006834\",\"name\":\"待审核通过\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp审核通过测试\",\"dosage\":\"3\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
+    "thumbnail": "approve_thumb.jpg",
+    "reviewer": "管理员",
+    "reviewDate": "2026-03-19T18:30:06.846Z",
+    "modifyDate": "2026-03-19T18:30:06.846Z",
+    "prescriptionDate": "2026-03-15",
+    "updatedAt": "2026-03-20T02:30:06.847Z",
+    "id": 163,
+    "createdAt": "2026-03-20T02:30:06.847Z"
+  },
+  {
+    "prescriptionId": "CONFIRM_APPROVE_1773945006842",
+    "openid": "user_gfs91gjzdyi",
+    "status": "已审核",
+    "data": "{\"prescriptionId\":\"CONFIRM_APPROVE_1773945006842\",\"name\":\"待确认审核\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp确认审核测试\",\"dosage\":\"3\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
+    "thumbnail": "confirm_thumb.jpg",
+    "reviewer": "管理员",
+    "reviewDate": "2026-03-19T18:30:06.856Z",
+    "modifyDate": "2026-03-19T18:30:06.856Z",
+    "prescriptionDate": "2026-03-15",
+    "updatedAt": "2026-03-20T02:30:06.856Z",
+    "id": 164,
+    "createdAt": "2026-03-20T02:30:06.856Z"
+  },
+  {
+    "prescriptionId": "UNIQUE_TEST_1773945006852",
+    "openid": "user_gfs91gjzdyi",
+    "status": "待审核",
+    "data": "{\"prescriptionId\":\"UNIQUE_TEST_1773945006852\",\"name\":\"唯一性测试\",\"age\":\"30\",\"date\":\"2026-03-15\",\"rp\":\"Rp唯一性测试\",\"dosage\":\"3\",\"administrationMethod\":\"内服\",\"medicines\":[{\"name\":\"当归\",\"quantity\":\"15g\",\"note\":\"\"}],\"doctor\":\"肖笃凯\"}",
+    "thumbnail": "unique_thumb.jpg",
+    "prescriptionDate": "2026-03-15",
+    "reviewer": null,
+    "reviewDate": null,
+    "id": 165,
+    "createdAt": "2026-03-20T02:30:06.860Z",
+    "updatedAt": "2026-03-20T02:30:06.860Z"
   }
 ]

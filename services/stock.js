@@ -549,6 +549,98 @@ async function revertStockIn(id, operator = 'system') {
   };
 }
 
+// 执行执药（扣减库存）
+async function executeStockOut(id, operator = 'system') {
+  const order = await StockOutOrder.findByPk(id);
+  if (!order) {
+    throw new Error('执药单不存在');
+  }
+  
+  // 获取明细 - 使用宽松比较匹配orderId
+  const allItems = await StockOutItem.findAll();
+  const items = allItems.filter(item => item.orderId == id);
+  
+  console.log(`[executeStockOut] 执药单ID: ${id}, 找到明细: ${items.length} 条`);
+  
+  // 扣减库存
+  for (const item of items) {
+    // 更新药材表的库存
+    let herb = await Herb.findOne({ where: { name: item.herbName } });
+    if (herb) {
+      const oldStock = herb.stock || 0;
+      const newStock = Math.max(0, oldStock - item.quantity);
+      await Herb.update({ stock: newStock, updatedAt: getNow() }, { where: { id: herb.id } });
+      console.log(`[executeStockOut] 扣减药材库存: ${item.herbName}, 旧库存: ${oldStock}, 新库存: ${newStock}`);
+    }
+    
+    // 更新库存统计表
+    let inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
+    if (inventory) {
+      const oldQuantity = inventory.quantity || 0;
+      const newQuantity = Math.max(0, oldQuantity - item.quantity);
+      await StockInventory.update({
+        quantity: newQuantity,
+        updatedAt: getNow()
+      }, { where: { id: inventory.id } });
+      console.log(`[executeStockOut] 扣减库存统计: ${item.herbName}, 旧数量: ${oldQuantity}, 新数量: ${newQuantity}`);
+    }
+    
+    // 添加日志
+    await addStockLog('stock_out', `ZD-${id}`, item.herbName, -item.quantity, operator);
+  }
+  
+  return {
+    code: 0,
+    message: '执药成功'
+  };
+}
+
+// 回滚执药（恢复库存）
+async function revertStockOut(id, operator = 'system') {
+  const order = await StockOutOrder.findByPk(id);
+  if (!order) {
+    throw new Error('执药单不存在');
+  }
+  
+  // 获取明细 - 使用宽松比较匹配orderId
+  const allItems = await StockOutItem.findAll();
+  const items = allItems.filter(item => item.orderId == id);
+  
+  console.log(`[revertStockOut] 执药单ID: ${id}, 找到明细: ${items.length} 条`);
+  
+  // 恢复库存
+  for (const item of items) {
+    // 更新药材表的库存
+    let herb = await Herb.findOne({ where: { name: item.herbName } });
+    if (herb) {
+      const oldStock = herb.stock || 0;
+      const newStock = oldStock + item.quantity;
+      await Herb.update({ stock: newStock, updatedAt: getNow() }, { where: { id: herb.id } });
+      console.log(`[revertStockOut] 恢复药材库存: ${item.herbName}, 旧库存: ${oldStock}, 新库存: ${newStock}`);
+    }
+    
+    // 更新库存统计表
+    let inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
+    if (inventory) {
+      const oldQuantity = inventory.quantity || 0;
+      const newQuantity = oldQuantity + item.quantity;
+      await StockInventory.update({
+        quantity: newQuantity,
+        updatedAt: getNow()
+      }, { where: { id: inventory.id } });
+      console.log(`[revertStockOut] 恢复库存统计: ${item.herbName}, 旧数量: ${oldQuantity}, 新数量: ${newQuantity}`);
+    }
+    
+    // 添加日志
+    await addStockLog('revert_out', `ZD-${id}`, item.herbName, item.quantity, operator);
+  }
+  
+  return {
+    code: 0,
+    message: '回滚成功'
+  };
+}
+
 // ========================================
 // 出库管理（执药单）
 // ========================================
@@ -1031,6 +1123,8 @@ module.exports = {
   deleteOutOrder,
   revertOutOrder,
   settleOutOrder,
+  executeStockOut,
+  revertStockOut,
   
   // 库存统计
   getInventory,
