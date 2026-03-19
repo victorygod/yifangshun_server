@@ -663,6 +663,28 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
     // 返回更新后的记录
     const updatedRecord = await model.findByPk(id);
     
+    // 如果是入库单，检查状态变化
+    if (name === 'stock_in_orders') {
+      // 如果状态变为"已入库"，自动更新库存
+      if (record.status !== 'stocked' && updates.status === 'stocked') {
+        try {
+          await stock.executeStockIn(id);
+        } catch (stockErr) {
+          console.error('自动入库失败:', stockErr);
+          // 不阻断响应，但记录错误
+        }
+      }
+    }
+    
+    // 如果是入库明细，更新入库单总价
+    if (name === 'stock_in_items' && record.orderId) {
+      await updateOrderTotalAmount('stock_in_orders', 'stock_in_items', record.orderId);
+    }
+    // 如果是执药明细，更新执药单总价
+    if (name === 'stock_out_items' && record.orderId) {
+      await updateOrderTotalAmount('stock_out_orders', 'stock_out_items', record.orderId);
+    }
+    
     res.json({ code: 0, message: "更新成功", data: updatedRecord });
   } catch (error) {
     console.error("更新记录失败:", error);

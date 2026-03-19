@@ -420,8 +420,9 @@ async function executeStockIn(id, operator = 'system') {
     throw new Error('入库单不存在');
   }
   
-  if (order.status !== 'confirmed') {
-    throw new Error('只有已确认状态可以入库');
+  // 允许从draft或confirmed状态入库
+  if (order.status !== 'draft' && order.status !== 'confirmed') {
+    throw new Error('只有草稿或已确认状态可以入库');
   }
   
   // 获取明细
@@ -457,9 +458,6 @@ async function executeStockIn(id, operator = 'system') {
         lastStockInDate: order.orderDate,
         updatedAt: getNow()
       }, { where: { id: inventory.id } });
-      
-      // 添加日志
-      await addStockLog('stock_in', order.orderNo, item.herbName, item.quantity, operator);
     }
     
     // 添加日志

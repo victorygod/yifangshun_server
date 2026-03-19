@@ -4,10 +4,32 @@
     "herbName": "21321",
     "supplierName": "12123",
     "quantity": 12,
-    "unitPrice": 213,
-    "totalPrice": 123,
+    "unitPrice": 2130,
+    "totalPrice": 25560,
     "id": 1,
     "createdAt": "2026-03-20T00:19:35.356Z",
-    "updatedAt": "2026-03-20T00:19:35.356Z"
+    "updatedAt": "2026-03-20T01:04:51.244Z"
+  },
+  {
+    "orderId": "1",
+    "herbName": "当归",
+    "supplierName": "21",
+    "quantity": 21,
+    "unitPrice": 200,
+    "totalPrice": 4200,
+    "id": 2,
+    "createdAt": "2026-03-20T00:31:49.597Z",
+    "updatedAt": "2026-03-20T01:04:46.831Z"
+  },
+  {
+    "orderId": "1",
+    "herbName": "大幅度",
+    "supplierName": "3",
+    "quantity": 4,
+    "unitPrice": 530,
+    "totalPrice": 2120,
+    "id": 3,
+    "createdAt": "2026-03-20T00:35:23.738Z",
+    "updatedAt": "2026-03-20T01:04:48.683Z"
   }
 ]
