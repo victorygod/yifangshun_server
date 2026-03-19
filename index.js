@@ -7,13 +7,17 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const fs = require("fs");
 const path = require("path");
-const { init: initDB, User, Booking, ChatMessage, Prescription, sequelize, Op } = require("./wrappers/db-wrapper");
+const { init: initDB, User, Booking, ChatMessage, Prescription, sequelize, Op,
+  Herb, StockInOrder, StockInItem, StockOutOrder, StockOutItem,
+  StockInventory, StockCheckOrder, StockCheckItem, StockLog
+} = require("./wrappers/db-wrapper");
 
 // 导入 service 模块
 const auth = require("./services/auth");
 const booking = require("./services/booking");
 const prescription = require("./services/prescription");
 const chat = require("./services/chat");
+const stock = require("./services/stock");
 
 // 导入权限中间件
 const { requireRole } = require("./middlewares/auth");
@@ -27,26 +31,54 @@ app.use(cors());
 app.use(logger);
 
 // 首页 - 返回用户列表数据（前端通过AJAX获取）
-app.get("/api/home/users", async (req, res) => {
+app.get("/api/home/users", requireRole(['super_admin']), async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 10;
+    const keyword = req.query.keyword || '';
+    
+    // 构建查询条件
+    const whereClause = {
+      phone: { [Op.ne]: null }
+    };
+    
+    // 添加搜索条件
+    if (keyword) {
+      whereClause[Op.or] = [
+        { name: { [Op.like]: `%${keyword}%` } },
+        { phone: { [Op.like]: `%${keyword}%` } }
+      ];
+    }
+    
+    // 获取总数
+    const totalCount = await User.count({ where: whereClause });
+    const totalPages = Math.ceil(totalCount / pageSize);
+    
+    // 获取分页数据
     const users = await User.findAll({
-      where: {
-        phone: {
-          [Op.ne]: null
-        }
-      },
-      order: [['createdAt', 'DESC']]
+      where: whereClause,
+      order: [['createdAt', 'DESC']],
+      limit: pageSize,
+      offset: (page - 1) * pageSize
     });
 
     res.json({
       code: 0,
-      data: users.map(user => ({
-        openid: user.openid,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-        createdAt: user.createdAt
-      }))
+      data: {
+        list: users.map(user => ({
+          openid: user.openid,
+          name: user.name,
+          phone: user.phone,
+          role: user.role,
+          createdAt: user.createdAt
+        })),
+        pagination: {
+          page,
+          pageSize,
+          totalCount,
+          totalPages
+        }
+      }
     });
   } catch (error) {
     console.error("获取用户列表失败:", error);
@@ -66,6 +98,20 @@ app.post("/api/user/set-role", requireRole(['super_admin']), async (req, res) =>
   } catch (error) {
     console.error("设置用户角色失败:", error);
     return res.status(400).json({ code: 1, message: error.message || "设置用户角色失败" });
+  }
+});
+
+// 更新用户信息（姓名、手机号）- 仅超级管理员
+app.put("/api/user/:openid", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { openid } = req.params;
+    const { name, phone } = req.body;
+    
+    const result = await auth.updateUserInfo(openid, name, phone);
+    res.json(result);
+  } catch (error) {
+    console.error("更新用户信息失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "更新用户信息失败" });
   }
 });
 
@@ -367,7 +413,17 @@ const TABLE_MODELS = {
   'users': User,
   'bookings': Booking,
   'chat_messages': ChatMessage,
-  'prescriptions': Prescription
+  'prescriptions': Prescription,
+  // 库存管理相关表
+  'herbs': Herb,
+  'stock_in_orders': StockInOrder,
+  'stock_in_items': StockInItem,
+  'stock_out_orders': StockOutOrder,
+  'stock_out_items': StockOutItem,
+  'stock_inventory': StockInventory,
+  'stock_check_orders': StockCheckOrder,
+  'stock_check_items': StockCheckItem,
+  'stock_logs': StockLog
 };
 
 // 表的中文名称
@@ -375,7 +431,17 @@ const TABLE_NAMES = {
   'users': '用户表',
   'bookings': '预约表',
   'chat_messages': '聊天消息表',
-  'prescriptions': '处方表'
+  'prescriptions': '处方表',
+  // 库存管理相关表
+  'herbs': '药材表',
+  'stock_in_orders': '入库单主表',
+  'stock_in_items': '入库单明细表',
+  'stock_out_orders': '出库单主表',
+  'stock_out_items': '出库单明细表',
+  'stock_inventory': '库存表',
+  'stock_check_orders': '盘点单主表',
+  'stock_check_items': '盘点单明细表',
+  'stock_logs': '操作日志表'
 };
 
 // 获取所有表的状态
@@ -496,6 +562,321 @@ app.post("/api/admin/table/:name/init", requireRole(['super_admin']), async (req
   } catch (error) {
     console.error("初始化表失败:", error);
     res.status(500).json({ code: 1, message: error.message || "初始化表失败" });
+  }
+});
+
+// 新增记录
+app.post("/api/admin/table/:name", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { name } = req.params;
+    const recordData = req.body;
+    
+    const model = TABLE_MODELS[name];
+    if (!model) {
+      return res.status(404).json({ code: 1, message: "表不存在" });
+    }
+    
+    // 移除不允许直接设置的字段
+    delete recordData.id;
+    delete recordData.createdAt;
+    delete recordData.updatedAt;
+    
+    const newRecord = await model.create(recordData);
+    
+    res.json({ code: 0, message: "新增成功", data: newRecord });
+  } catch (error) {
+    console.error("新增记录失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "新增记录失败" });
+  }
+});
+
+// 更新记录
+app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { name, id } = req.params;
+    const updates = req.body;
+    
+    const model = TABLE_MODELS[name];
+    if (!model) {
+      return res.status(404).json({ code: 1, message: "表不存在" });
+    }
+    
+    // 检查记录是否存在
+    const record = await model.findByPk(id);
+    if (!record) {
+      return res.status(404).json({ code: 1, message: "记录不存在" });
+    }
+    
+    // 受保护字段：不允许修改
+    const protectedFields = ['id', 'openid', 'createdAt'];
+    protectedFields.forEach(field => delete updates[field]);
+    
+    // 执行更新
+    await model.update(updates, { where: { id } });
+    
+    // 返回更新后的记录
+    const updatedRecord = await model.findByPk(id);
+    
+    res.json({ code: 0, message: "更新成功", data: updatedRecord });
+  } catch (error) {
+    console.error("更新记录失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "更新记录失败" });
+  }
+});
+
+// 删除记录
+app.delete("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { name, id } = req.params;
+    
+    const model = TABLE_MODELS[name];
+    if (!model) {
+      return res.status(404).json({ code: 1, message: "表不存在" });
+    }
+    
+    // 检查记录是否存在
+    const record = await model.findByPk(id);
+    if (!record) {
+      return res.status(404).json({ code: 1, message: "记录不存在" });
+    }
+    
+    // 执行删除
+    const deletedCount = await model.destroy({ where: { id } });
+    
+    res.json({ code: 0, message: "删除成功", data: { deletedCount } });
+  } catch (error) {
+    console.error("删除记录失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "删除记录失败" });
+  }
+});
+
+// 批量删除记录
+app.post("/api/admin/table/:name/batch-delete", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { name } = req.params;
+    const { ids } = req.body;
+    
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ code: 1, message: "请选择要删除的记录" });
+    }
+    
+    const model = TABLE_MODELS[name];
+    if (!model) {
+      return res.status(404).json({ code: 1, message: "表不存在" });
+    }
+    
+    // 执行批量删除
+    let deletedCount = 0;
+    for (const id of ids) {
+      const count = await model.destroy({ where: { id } });
+      deletedCount += count;
+    }
+    
+    res.json({ code: 0, message: `成功删除 ${deletedCount} 条记录`, data: { deletedCount } });
+  } catch (error) {
+    console.error("批量删除失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "批量删除失败" });
+  }
+});
+
+// ==================== 库存管理接口 ====================
+
+// 药材管理
+app.get("/api/stock/herbs", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.getHerbs(req.query);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.post("/api/stock/herbs", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.createHerb(req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.put("/api/stock/herbs/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.updateHerb(req.params.id, req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.delete("/api/stock/herbs/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.deleteHerb(req.params.id);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+// 入库管理
+app.get("/api/stock/in/orders", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.getInOrders(req.query);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.get("/api/stock/in/orders/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.getInOrderById(req.params.id);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.post("/api/stock/in/orders", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.createInOrder(req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.put("/api/stock/in/orders/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.updateInOrder(req.params.id, req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.delete("/api/stock/in/orders/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.deleteInOrder(req.params.id);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.post("/api/stock/in/orders/:id/confirm", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.confirmInOrder(req.params.id);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.post("/api/stock/in/orders/:id/stock", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const operator = req.user?.openid || 'system';
+    const result = await stock.executeStockIn(req.params.id, operator);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+// 出库管理
+app.get("/api/stock/out/orders", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.getOutOrders(req.query);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.post("/api/stock/out/orders", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const operator = req.user?.name || req.user?.openid || 'system';
+    const result = await stock.createOutOrder(req.body, operator);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.delete("/api/stock/out/orders/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.deleteOutOrder(req.params.id);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+// 库存统计
+app.get("/api/stock/inventory", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.getInventory(req.query);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.get("/api/stock/inventory/alert", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.getInventoryAlert();
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.put("/api/stock/inventory/:herbName/min-value", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const herbName = decodeURIComponent(req.params.herbName);
+    const result = await stock.setHerbMinValue(herbName, req.body.minValue);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.get("/api/stock/inventory/:herbName/history", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const herbName = decodeURIComponent(req.params.herbName);
+    const result = await stock.getHerbHistory(herbName, req.query);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+// 盘点管理
+app.get("/api/stock/check/orders", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.getCheckOrders(req.query);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.post("/api/stock/check/orders", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.createCheckOrder(req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+app.post("/api/stock/check/orders/:id/confirm", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const operator = req.user?.openid || 'system';
+    const result = await stock.confirmCheckOrder(req.params.id, operator);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
   }
 });
 

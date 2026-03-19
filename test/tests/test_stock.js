@@ -8,7 +8,7 @@
  * - 库存统计与预警
  * - 盘点管理
  * 
- * 注意：此测试文件为模板，对应 API 尚未实现
+ * 注意：此测试文件需在 API 实现后运行
  */
 
 const BASE_URL = process.env.CLOUD_TEST_URL || 'http://localhost:80';
@@ -25,13 +25,16 @@ const testStats = {
 // 测试数据
 const testData = {
   herbId: null,
+  herbName: '测试药材_' + Date.now(),
   inOrderId: null,
+  inOrderNo: null,
   outOrderId: null,
+  outOrderNo: null,
   checkOrderId: null,
-  testHerbName: '测试药材_' + Date.now()
+  checkOrderNo: null
 };
 
-// 测试用户（由 comprehensive_api_test.js 注入）
+// 测试用户
 let testUsers = {
   normalUser: { openid: 'test_normal_user' },
   adminUser: { openid: 'test_admin_user' },
@@ -135,39 +138,6 @@ function assertEquals(actual, expected, message) {
 }
 
 /**
- * 清理测试数据
- */
-async function cleanupTestData() {
-  console.log('\n🧹 清理库存测试数据...');
-  
-  try {
-    // 删除测试药材
-    if (testData.herbId) {
-      await adminRequest('DELETE', `/api/stock/herbs/${testData.herbId}`);
-    }
-    
-    // 删除测试入库单
-    if (testData.inOrderId) {
-      await adminRequest('DELETE', `/api/stock/in/orders/${testData.inOrderId}`);
-    }
-    
-    // 删除测试出库单
-    if (testData.outOrderId) {
-      await adminRequest('DELETE', `/api/stock/out/orders/${testData.outOrderId}`);
-    }
-    
-    // 删除测试盘点单
-    if (testData.checkOrderId) {
-      await adminRequest('DELETE', `/api/stock/check/orders/${testData.checkOrderId}`);
-    }
-    
-    console.log('✅ 库存测试数据清理完成');
-  } catch (error) {
-    console.log('⚠️  清理库存测试数据失败:', error.message);
-  }
-}
-
-/**
  * 主测试函数
  */
 async function runStockTests(users) {
@@ -191,7 +161,7 @@ async function runStockTests(users) {
   
   await test('POST /api/stock/herbs - 创建药材', async () => {
     const { response, data } = await adminRequest('POST', '/api/stock/herbs', {
-      name: testData.testHerbName,
+      name: testData.herbName,
       alias: '测试别名,测试药',
       unit: '克',
       minValue: 100,
@@ -206,7 +176,7 @@ async function runStockTests(users) {
   
   await test('POST /api/stock/herbs - 重复创建应失败', async () => {
     const { response, data } = await adminRequest('POST', '/api/stock/herbs', {
-      name: testData.testHerbName,
+      name: testData.herbName,
       unit: '克'
     });
     
@@ -218,7 +188,8 @@ async function runStockTests(users) {
     if (!testData.herbId) return 'skipped';
     
     const { response, data } = await adminRequest('PUT', `/api/stock/herbs/${testData.herbId}`, {
-      minValue: 200
+      minValue: 200,
+      alias: '更新后的别名'
     });
     
     assertEquals(response.statusCode, 200, '请求成功');
@@ -243,7 +214,7 @@ async function runStockTests(users) {
       supplierPhone: '13800138000',
       items: [
         {
-          herbName: testData.testHerbName,
+          herbName: testData.herbName,
           quantity: 500,
           unitPrice: 0.05,
           remark: '测试入库'
@@ -257,6 +228,7 @@ async function runStockTests(users) {
     assert(data.data.orderNo, '返回入库单号');
     assertEquals(data.data.status, 'draft', '状态为草稿');
     testData.inOrderId = data.data.id;
+    testData.inOrderNo = data.data.orderNo;
   });
   
   await test('GET /api/stock/in/orders/:id - 获取入库单详情', async () => {
@@ -273,7 +245,14 @@ async function runStockTests(users) {
     if (!testData.inOrderId) return 'skipped';
     
     const { response, data } = await adminRequest('PUT', `/api/stock/in/orders/${testData.inOrderId}`, {
-      supplierName: '更新后的供应商'
+      supplierName: '更新后的供应商',
+      items: [
+        {
+          herbName: testData.herbName,
+          quantity: 600,
+          unitPrice: 0.06
+        }
+      ]
     });
     
     assertEquals(response.statusCode, 200, '请求成功');
@@ -300,6 +279,15 @@ async function runStockTests(users) {
     assertEquals(data.data.status, 'stocked', '状态变为已入库');
   });
   
+  await test('DELETE /api/stock/in/orders/:id - 已入库单不可删除', async () => {
+    if (!testData.inOrderId) return 'skipped';
+    
+    const { response, data } = await adminRequest('DELETE', `/api/stock/in/orders/${testData.inOrderId}`);
+    
+    assertEquals(response.statusCode, 400, '请求失败');
+    assertEquals(data.code, 1, '返回错误');
+  });
+  
   // ========== 库存统计 ==========
   console.log('\n--- 库存统计 ---');
   
@@ -314,10 +302,21 @@ async function runStockTests(users) {
   await test('GET /api/stock/inventory - 验证入库后库存增加', async () => {
     const { response, data } = await adminRequest('GET', '/api/stock/inventory');
     
-    const herb = data.data.find(h => h.herbName === testData.testHerbName);
+    const herb = data.data.find(h => h.herbName === testData.herbName);
     assert(herb, '找到测试药材');
-    assertEquals(herb.quantity, 500, '库存数量为500');
-    assertEquals(parseFloat(herb.avgPrice).toFixed(2), '0.05', '均价为0.05');
+    assertEquals(herb.quantity, 600, '库存数量为600');
+    // 验证均价（加权平均：600克 * 0.06元/克 = 36元，均价 = 0.06）
+    const avgPrice = parseFloat(herb.avgPrice);
+    assert(Math.abs(avgPrice - 0.06) < 0.01, '均价约为0.06');
+  });
+  
+  await test('PUT /api/stock/inventory/:herbName/min-value - 设置最低库存阈值', async () => {
+    const { response, data } = await adminRequest('PUT', `/api/stock/inventory/${encodeURIComponent(testData.herbName)}/min-value`, {
+      minValue: 500
+    });
+    
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '返回成功');
   });
   
   await test('GET /api/stock/inventory/alert - 获取库存预警', async () => {
@@ -326,6 +325,9 @@ async function runStockTests(users) {
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
     assert(Array.isArray(data.data), '返回数组');
+    // 测试药材库存600，阈值500，不应在预警列表
+    const herb = data.data.find(h => h.herbName === testData.herbName);
+    assert(!herb, '测试药材不应在预警列表（库存充足）');
   });
   
   // ========== 出库管理 ==========
@@ -346,7 +348,7 @@ async function runStockTests(users) {
       operator: '测试管理员',
       items: [
         {
-          herbName: testData.testHerbName,
+          herbName: testData.herbName,
           quantity: 100,
           remark: '测试出库'
         }
@@ -356,7 +358,9 @@ async function runStockTests(users) {
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
     assert(data.data.id, '返回出库单ID');
+    assert(data.data.orderNo, '返回出库单号');
     testData.outOrderId = data.data.id;
+    testData.outOrderNo = data.data.orderNo;
   });
   
   await test('POST /api/stock/out/orders - 出库数量超出库存应失败', async () => {
@@ -366,7 +370,7 @@ async function runStockTests(users) {
       operator: '测试管理员',
       items: [
         {
-          herbName: testData.testHerbName,
+          herbName: testData.herbName,
           quantity: 99999
         }
       ]
@@ -379,9 +383,9 @@ async function runStockTests(users) {
   await test('GET /api/stock/inventory - 验证出库后库存减少', async () => {
     const { response, data } = await adminRequest('GET', '/api/stock/inventory');
     
-    const herb = data.data.find(h => h.herbName === testData.testHerbName);
+    const herb = data.data.find(h => h.herbName === testData.herbName);
     assert(herb, '找到测试药材');
-    assertEquals(herb.quantity, 400, '库存数量减少到400');
+    assertEquals(herb.quantity, 500, '库存数量减少到500');
   });
   
   // ========== 盘点管理 ==========
@@ -401,8 +405,8 @@ async function runStockTests(users) {
       checker: '测试盘点人',
       items: [
         {
-          herbName: testData.testHerbName,
-          actualQuantity: 380 // 假设实际盘点比系统少20
+          herbName: testData.herbName,
+          actualQuantity: 480 // 假设实际盘点比系统少20
         }
       ]
     });
@@ -410,7 +414,9 @@ async function runStockTests(users) {
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
     assert(data.data.id, '返回盘点单ID');
+    assert(data.data.checkNo, '返回盘点单号');
     testData.checkOrderId = data.data.id;
+    testData.checkOrderNo = data.data.checkNo;
   });
   
   await test('POST /api/stock/check/orders/:id/confirm - 确认盘点', async () => {
@@ -425,9 +431,9 @@ async function runStockTests(users) {
   await test('GET /api/stock/inventory - 验证盘点后库存调整', async () => {
     const { response, data } = await adminRequest('GET', '/api/stock/inventory');
     
-    const herb = data.data.find(h => h.herbName === testData.testHerbName);
+    const herb = data.data.find(h => h.herbName === testData.herbName);
     assert(herb, '找到测试药材');
-    assertEquals(herb.quantity, 380, '库存调整为盘点数量380');
+    assertEquals(herb.quantity, 480, '库存调整为盘点数量480');
   });
   
   // ========== 权限控制 ==========
@@ -468,6 +474,39 @@ async function runStockTests(users) {
   }
   
   return testStats;
+}
+
+/**
+ * 清理测试数据
+ */
+async function cleanupTestData() {
+  console.log('\n🧹 清理库存测试数据...');
+  
+  try {
+    // 删除测试药材（会级联删除相关数据）
+    if (testData.herbId) {
+      await adminRequest('DELETE', `/api/stock/herbs/${testData.herbId}`);
+    }
+    
+    // 删除测试入库单
+    if (testData.inOrderId) {
+      await adminRequest('DELETE', `/api/stock/in/orders/${testData.inOrderId}`);
+    }
+    
+    // 删除测试出库单
+    if (testData.outOrderId) {
+      await adminRequest('DELETE', `/api/stock/out/orders/${testData.outOrderId}`);
+    }
+    
+    // 删除测试盘点单
+    if (testData.checkOrderId) {
+      await adminRequest('DELETE', `/api/stock/check/orders/${testData.checkOrderId}`);
+    }
+    
+    console.log('✅ 库存测试数据清理完成');
+  } catch (error) {
+    console.log('⚠️  清理库存测试数据失败:', error.message);
+  }
 }
 
 // 导出模块

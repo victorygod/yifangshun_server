@@ -121,6 +121,14 @@ class Model {
       });
     }
     
+    // 处理分页
+    if (options.offset !== undefined) {
+      data = data.slice(options.offset);
+    }
+    if (options.limit !== undefined) {
+      data = data.slice(0, options.limit);
+    }
+    
     return data.map(item => {
       const itemWithMethods = { ...item };
       itemWithMethods.update = async (updates) => {
@@ -136,7 +144,8 @@ class Model {
   // 根据主键查找
   async findByPk(id) {
     const data = readJsonFile(`${this.tableName}.json`);
-    const item = data.find(item => item[this.primaryKey] === id);
+    // 使用宽松比较，支持字符串和数字类型的ID
+    const item = data.find(item => item[this.primaryKey] == id);
     
     if (!item) return null;
     
@@ -217,7 +226,8 @@ class Model {
             }
           }
           
-          return itemValue === whereValue;
+          // 使用宽松比较，支持字符串和数字类型的ID匹配
+          return itemValue == whereValue;
         });
         
         if (matches) {
@@ -268,7 +278,8 @@ class Model {
           }
         }
         
-        return itemValue === whereValue;
+        // 使用宽松比较，支持字符串和数字类型的ID匹配
+        return itemValue == whereValue;
       });
     });
     
@@ -290,10 +301,27 @@ const Booking = new Model('bookings', 'bookingId');
 const ChatMessage = new Model('chat_messages', 'messageId');
 const Prescription = new Model('prescriptions', 'id');
 
+// 库存管理相关模型
+const Herb = new Model('herbs', 'id');
+const StockInOrder = new Model('stock_in_orders', 'id');
+const StockInItem = new Model('stock_in_items', 'id');
+const StockOutOrder = new Model('stock_out_orders', 'id');
+const StockOutItem = new Model('stock_out_items', 'id');
+const StockInventory = new Model('stock_inventory', 'id');
+const StockCheckOrder = new Model('stock_check_orders', 'id');
+const StockCheckItem = new Model('stock_check_items', 'id');
+const StockLog = new Model('stock_logs', 'id');
+
 // 数据库初始化方法
 async function init() {
   // 确保所有表文件存在
-  const tables = ['users', 'bookings', 'chat_messages', 'prescriptions'];
+  const tables = [
+    'users', 'bookings', 'chat_messages', 'prescriptions',
+    'herbs', 'stock_in_orders', 'stock_in_items', 
+    'stock_out_orders', 'stock_out_items', 
+    'stock_inventory', 'stock_check_orders', 
+    'stock_check_items', 'stock_logs'
+  ];
   tables.forEach(table => {
     const filePath = path.join(dataDir, `${table}.json`);
     if (!fs.existsSync(filePath)) {
@@ -328,6 +356,16 @@ module.exports = {
   Booking,
   ChatMessage,
   Prescription,
+  // 库存管理相关模型
+  Herb,
+  StockInOrder,
+  StockInItem,
+  StockOutOrder,
+  StockOutItem,
+  StockInventory,
+  StockCheckOrder,
+  StockCheckItem,
+  StockLog,
   sequelize,
   Op
 };

@@ -1,12 +1,13 @@
 [
   {
     "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "code": "0a12XGkl2fVrnh4PZqol2m4vZi42XGkg",
+    "code": "0e1XOLFa1CNHnL0Vb6Ja1LZOwb0XOLFE",
     "role": "admin",
     "isNewUser": false,
-    "id": "v14lp6ndb",
-    "createdAt": "2026-03-18T02:18:21.750Z",
-    "updatedAt": "2026-03-19T00:22:27.957Z",
-    "phone": "15201927053"
+    "id": 1,
+    "createdAt": "2026-03-19T02:19:13.971Z",
+    "updatedAt": "2026-03-19T02:21:22.273Z",
+    "phone": "15201927053",
+    "name": "wolf"
   }
 ]

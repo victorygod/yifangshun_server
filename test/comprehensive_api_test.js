@@ -32,7 +32,9 @@ const testPrescription = require('./tests/test_prescription');
 const testChat = require('./tests/test_chat');
 const testSystem = require('./tests/test_system');
 const testPermission = require('./tests/test_permission');
-// 库存管理测试（API 尚未实现，跳过）
+const testUserManager = require('./tests/test_user_manager');
+const testDbManager = require('./tests/test_db_manager');
+// 库存管理测试（API 尚未实现，实现后取消注释）
 // const testStock = require('./tests/test_stock');
 
 // 全局测试统计
@@ -84,6 +86,21 @@ async function runAllTests() {
     const permissionStats = testPermission.getTestStats();
     updateGlobalStats(permissionStats);
     
+    // 7. 测试用户管理扩展（P0）
+    await testUserManager.runUserManagerTests(testUsers);
+    const userManagerStats = testUserManager.getTestStats();
+    updateGlobalStats(userManagerStats);
+    
+    // 8. 测试数据库管理扩展（P0）
+    await testDbManager.runDbManagerTests(testUsers);
+    const dbManagerStats = testDbManager.getTestStats();
+    updateGlobalStats(dbManagerStats);
+    
+    // 9. 库存管理测试（API 尚未实现，实现后取消注释）
+    // await testStock.runStockTests(testUsers);
+    // const stockStats = testStock.getTestStats();
+    // updateGlobalStats(stockStats);
+    
     // 清理所有测试数据
     console.log('\n========================================');
     console.log('清理测试数据');
@@ -95,6 +112,9 @@ async function runAllTests() {
     await testChat.cleanupTestData();
     await testSystem.cleanupTestData();
     await testPermission.cleanupTestData();
+    await testUserManager.cleanupTestData();
+    await testDbManager.cleanupTestData();
+    // await testStock.cleanupTestData();
     
     // 输出测试结果
     printTestResults();
@@ -110,6 +130,8 @@ async function runAllTests() {
       await testChat.cleanupTestData();
       await testSystem.cleanupTestData();
       await testPermission.cleanupTestData();
+      await testUserManager.cleanupTestData();
+      await testDbManager.cleanupTestData();
     } catch (e) {
       console.error('清理测试数据失败:', e.message);
     }

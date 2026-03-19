@@ -401,6 +401,52 @@ async function getUserList({ role = 'all', page = 1, pageSize = 20 } = {}) {
   };
 }
 
+// 更新用户信息（姓名、手机号）
+async function updateUserInfo(openid, name, phone) {
+  if (!openid) {
+    throw new Error("缺少用户标识");
+  }
+
+  // 验证用户存在
+  const user = await User.findByPk(openid);
+  if (!user) {
+    throw new Error("用户不存在");
+  }
+
+  // 构建更新数据
+  const updates = {};
+  if (name !== undefined && name !== null) {
+    if (typeof name !== 'string' || name.trim().length === 0) {
+      throw new Error("姓名不能为空");
+    }
+    updates.name = name.trim();
+  }
+  if (phone !== undefined && phone !== null) {
+    if (typeof phone !== 'string' || phone.length !== 11) {
+      throw new Error("手机号格式不正确");
+    }
+    updates.phone = phone;
+  }
+
+  // 执行更新
+  if (Object.keys(updates).length > 0) {
+    await User.update(updates, { where: { openid } });
+  }
+
+  // 返回更新后的用户信息
+  const updatedUser = await User.findByPk(openid);
+  return {
+    code: 0,
+    message: "更新成功",
+    data: {
+      openid: updatedUser.openid,
+      name: updatedUser.name,
+      phone: updatedUser.phone,
+      role: updatedUser.role || 'user'
+    }
+  };
+}
+
 module.exports = {
   handleLogin,
   handleBindUserInfo,
@@ -409,6 +455,7 @@ module.exports = {
   getUserInfo,
   setUserRole,
   getUserList,
+  updateUserInfo,
   setSession,
   getSession,
 };
