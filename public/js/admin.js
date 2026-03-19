@@ -817,8 +817,17 @@ async function handleDetailBlur(e) {
   
   console.log('[handleDetailBlur] 触发失焦, 列:', input.dataset.col, 'isNew:', isNew, 'orderId:', orderId, 'detailId:', detailId, 'currentTable:', currentTable);
   
-  // 生成唯一标识符用于防重复保存
-  const saveKey = isNew ? `new-${orderId}` : `edit-${detailId}`;
+  // 自动计算总价（新增行和已有行都需要）
+  await calculateDetailTotalPrice(row);
+  
+  if (isNew) {
+    // 新增行：不自动保存，需要点击"添加"按钮
+    console.log('[handleDetailBlur] 新增行不自动保存，请点击添加按钮');
+    return;
+  }
+  
+  // 已有行：自动更新
+  const saveKey = `edit-${detailId}`;
   
   // 检查是否正在保存中
   if (savingDetailRows.has(saveKey)) {
@@ -826,35 +835,15 @@ async function handleDetailBlur(e) {
     return;
   }
   
-  // 自动计算总价
-  await calculateDetailTotalPrice(row);
+  savingDetailRows.add(saveKey);
   
-  // 自动保存
-  if (isNew) {
-    // 新增行：检查是否有有效数据
-    const herbNameInput = row.querySelector('.detail-input[data-col="herbName"]');
-    console.log('[handleDetailBlur] 新增行, 药材名称:', herbNameInput ? herbNameInput.value : '未找到');
-    
-    if (herbNameInput && herbNameInput.value.trim()) {
-      savingDetailRows.add(saveKey);
-      try {
-        console.log('[handleDetailBlur] 开始保存新增明细');
-        await saveDetailNewAuto(row);
-      } finally {
-        savingDetailRows.delete(saveKey);
-      }
-    }
-  } else {
-    // 已有行：自动更新
+  try {
     console.log('[handleDetailBlur] 已有行更新, detailId:', detailId);
     if (detailId && orderId) {
-      savingDetailRows.add(saveKey);
-      try {
-        await updateDetailItemAuto(detailId, orderId, row);
-      } finally {
-        savingDetailRows.delete(saveKey);
-      }
+      await updateDetailItemAuto(detailId, orderId, row);
     }
+  } finally {
+    savingDetailRows.delete(saveKey);
   }
 }
 
@@ -1005,6 +994,8 @@ async function updateDetailItemAuto(detailId, orderId, row) {
     });
     if (res.code !== 0) throw new Error(res.message);
     showToast('已保存');
+    // 刷新数据以更新主表总价
+    loadTableData();
   } catch (err) {
     showToast('保存失败: ' + err.message, 'error');
   }
