@@ -517,8 +517,6 @@ app.get("/api/admin/table/:name", requireRole(['super_admin']), async (req, res)
       return res.status(404).json({ code: 1, message: "表不存在" });
     }
     
-    const pk = model.primaryKey || 'id';
-    
     // 获取所有数据
     let allData = await model.findAll({
       order: [['createdAt', 'DESC']],
@@ -548,13 +546,7 @@ app.get("/api/admin/table/:name", requireRole(['super_admin']), async (req, res)
     
     // 分页
     const start = (page - 1) * pageSize;
-    const pagedData = allData.slice(start, start + pageSize);
-    
-    // 为每行添加统一的 id 字段（用于前端操作）
-    const rows = pagedData.map(row => ({
-      ...row,
-      id: row[pk]  // 统一使用 id 字段，值为实际主键
-    }));
+    const rows = allData.slice(start, start + pageSize);
     
     res.json({
       code: 0,
@@ -666,8 +658,6 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
       return res.status(404).json({ code: 1, message: "表不存在" });
     }
     
-    const pk = model.primaryKey || 'id';
-    
     // 检查记录是否存在
     const record = await model.findByPk(id);
     if (!record) {
@@ -675,11 +665,11 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
     }
     
     // 受保护字段：不允许修改
-    const protectedFields = ['id', 'openid', 'createdAt', pk];
+    const protectedFields = ['id', 'openid', 'createdAt'];
     protectedFields.forEach(field => delete updates[field]);
     
     // 执行更新
-    await model.update(updates, { where: { [pk]: id } });
+    await model.update(updates, { where: { id } });
     
     // 返回更新后的记录
     const updatedRecord = await model.findByPk(id);
@@ -756,8 +746,6 @@ app.delete("/api/admin/table/:name/:id", requireRole(['super_admin'], true), asy
       return res.status(404).json({ code: 1, message: "表不存在" });
     }
     
-    const pk = model.primaryKey || 'id';
-    
     // 检查记录是否存在
     const record = await model.findByPk(id);
     if (!record) {
@@ -768,7 +756,7 @@ app.delete("/api/admin/table/:name/:id", requireRole(['super_admin'], true), asy
     const orderId = record.orderId;
     
     // 执行删除
-    const deletedCount = await model.destroy({ where: { [pk]: id } });
+    const deletedCount = await model.destroy({ where: { id } });
     
     // 如果是入库明细，更新入库单总价
     if (name === 'stock_in_items' && orderId) {
@@ -801,12 +789,10 @@ app.post("/api/admin/table/:name/batch-delete", requireRole(['super_admin']), as
       return res.status(404).json({ code: 1, message: "表不存在" });
     }
     
-    const pk = model.primaryKey || 'id';
-    
     // 执行批量删除
     let deletedCount = 0;
     for (const id of ids) {
-      const count = await model.destroy({ where: { [pk]: id } });
+      const count = await model.destroy({ where: { id } });
       deletedCount += count;
     }
     
