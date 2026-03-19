@@ -261,7 +261,7 @@ async function checkIsAdmin(openid) {
   }
 
   // 查找用户信息
-  const user = await User.findByPk(openid);
+  const user = await User.findOne({ where: { openid } });
 
   if (!user) {
     console.error('找不到用户，openid:', openid);
@@ -289,7 +289,7 @@ async function getUserInfo(openid) {
     throw new Error("缺少用户标识");
   }
 
-  const user = await User.findByPk(openid);
+  const user = await User.findOne({ where: { openid } });
 
   if (!user) {
     throw new Error("用户不存在");
@@ -408,7 +408,7 @@ async function updateUserInfo(openid, name, phone) {
   }
 
   // 验证用户存在
-  const user = await User.findByPk(openid);
+  const user = await User.findOne({ where: { openid } });
   if (!user) {
     throw new Error("用户不存在");
   }

@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "openid": "test_openid_1773948665998",
+    "code": "test_code",
+    "name": "测试用户",
+    "phone": "13800138000",
+    "isNewUser": false,
+    "role": "user",
+    "id": 1,
+    "createdAt": "2026-03-20T03:31:05.998Z",
+    "updatedAt": "2026-03-20T03:31:05.999Z"
+  }
+]

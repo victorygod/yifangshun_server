@@ -101,5 +101,25 @@
     "createdAt": "2026-03-20T03:05:03.407Z",
     "id": 17,
     "updatedAt": "2026-03-20T03:05:03.407Z"
+  },
+  {
+    "orderId": 17,
+    "herbName": "测试药材_1773948644506",
+    "quantity": 100,
+    "unitPrice": 0.06,
+    "totalPrice": 6,
+    "createdAt": "2026-03-20T03:30:45.718Z",
+    "id": 19,
+    "updatedAt": "2026-03-20T03:30:45.718Z"
+  },
+  {
+    "orderId": 19,
+    "herbName": "测试药材_1773948681781",
+    "quantity": 100,
+    "unitPrice": 0.06,
+    "totalPrice": 6,
+    "createdAt": "2026-03-20T03:31:23.397Z",
+    "id": 21,
+    "updatedAt": "2026-03-20T03:31:23.397Z"
   }
 ]
