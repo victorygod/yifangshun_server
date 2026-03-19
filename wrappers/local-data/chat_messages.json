@@ -520,5 +520,23 @@
     "id": 58,
     "createdAt": "2026-03-20T00:56:31.498Z",
     "updatedAt": "2026-03-20T00:56:31.498Z"
+  },
+  {
+    "messageId": "8y3iil1sk",
+    "openid": "user_v8pu94gqtop",
+    "content": "你好",
+    "type": "user",
+    "id": 59,
+    "createdAt": "2026-03-20T01:25:54.029Z",
+    "updatedAt": "2026-03-20T01:25:54.029Z"
+  },
+  {
+    "messageId": "xsm6z6rfl",
+    "openid": "user_v8pu94gqtop",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 60,
+    "createdAt": "2026-03-20T01:25:54.031Z",
+    "updatedAt": "2026-03-20T01:25:54.031Z"
   }
 ]

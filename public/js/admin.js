@@ -180,9 +180,9 @@ const tableConfigs = {
       { key: 'id', label: 'ID', readonly: true },
       { key: 'orderId', label: '执药单ID', readonly: true },
       { key: 'herbName', label: '药材名称', editable: true },
-      { key: 'cabinetNo', label: '柜号', readonly: true },
+      { key: 'cabinetNo', label: '柜号', editable: true, disabled: true },
       { key: 'quantity', label: '克数', editable: true, type: 'number' },
-      { key: 'unitPrice', label: '单价', readonly: true, type: 'number' },
+      { key: 'unitPrice', label: '单价', editable: true, disabled: true, type: 'number' },
       { key: 'totalPrice', label: '本药总价', editable: true, type: 'number' }
     ],
     searchFields: ['herbName']
@@ -223,6 +223,7 @@ let editingRowId = null;
 let searchKeyword = '';
 let expandedRows = new Set(); // 展开的行ID集合
 let pendingFocusCol = null; // 待对焦的列
+let savingDetailRows = new Set(); // 正在保存中的明细行（防止重复保存）
 
 // ==================== 初始化 ====================
 
@@ -541,6 +542,7 @@ async function loadTableData() {
           detailColumns.forEach(col => {
             const value = item[col.key] ?? '';
             const isReadonly = col.readonly;
+            const isDisabled = col.disabled;
             if (isReadonly) {
               html += `<td><span class="cell-readonly">${value || '-'}</span></td>`;
             } else {
@@ -552,7 +554,11 @@ async function loadTableData() {
               if (col.key === 'totalPrice') {
                 dataAttrs += ' data-calc-target="true"';
               }
-              html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}></td>`;
+              if (col.key === 'cabinetNo') {
+                dataAttrs += ' data-cabinet-no="true"';
+              }
+              const disabledAttr = isDisabled ? ' disabled' : '';
+              html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}${disabledAttr}></td>`;
             }
           });
           html += `<td class="col-action">
@@ -565,6 +571,7 @@ async function loadTableData() {
         html += `<tr class="detail-new-row" data-order-id="${row.id}">`;
         detailColumns.forEach(col => {
           const isReadonly = col.readonly;
+          const isDisabled = col.disabled;
           if (isReadonly) {
             html += `<td><span class="cell-readonly">自动</span></td>`;
           } else {
@@ -576,7 +583,11 @@ async function loadTableData() {
             if (col.key === 'totalPrice') {
               dataAttrs += ' data-calc-target="true"';
             }
-            html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}></td>`;
+            if (col.key === 'cabinetNo') {
+              dataAttrs += ' data-cabinet-no="true"';
+            }
+            const disabledAttr = isDisabled ? ' disabled' : '';
+            html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}></td>`;
           }
         });
         html += `<td class="col-action">
@@ -790,6 +801,16 @@ async function handleDetailBlur(e) {
   if (!row) return;
   
   const isNew = input.dataset.isNew === 'true';
+  const orderId = row.dataset.orderId;
+  const detailId = input.dataset.detailId;
+  
+  // 生成唯一标识符用于防重复保存
+  const saveKey = isNew ? `new-${orderId}` : `edit-${detailId}`;
+  
+  // 检查是否正在保存中
+  if (savingDetailRows.has(saveKey)) {
+    return;
+  }
   
   // 自动计算总价
   await calculateDetailTotalPrice(row);
@@ -799,14 +820,22 @@ async function handleDetailBlur(e) {
     // 新增行：检查是否有有效数据
     const herbNameInput = row.querySelector('.detail-input[data-col="herbName"]');
     if (herbNameInput && herbNameInput.value.trim()) {
-      await saveDetailNewAuto(row);
+      savingDetailRows.add(saveKey);
+      try {
+        await saveDetailNewAuto(row);
+      } finally {
+        savingDetailRows.delete(saveKey);
+      }
     }
   } else {
     // 已有行：自动更新
-    const detailId = input.dataset.detailId;
-    const orderId = input.dataset.orderId;
     if (detailId && orderId) {
-      await updateDetailItemAuto(detailId, orderId, row);
+      savingDetailRows.add(saveKey);
+      try {
+        await updateDetailItemAuto(detailId, orderId, row);
+      } finally {
+        savingDetailRows.delete(saveKey);
+      }
     }
   }
 }
@@ -819,30 +848,55 @@ async function calculateDetailTotalPrice(row) {
   const herbNameInput = row.querySelector('.detail-input[data-col="herbName"]');
   const cabinetNoInput = row.querySelector('.detail-input[data-col="cabinetNo"]');
   
+  console.log('[calculateDetailTotalPrice] 当前表:', currentTable);
+  console.log('[calculateDetailTotalPrice] 药材名称输入框:', herbNameInput ? '找到' : '未找到');
+  console.log('[calculateDetailTotalPrice] 柜号输入框:', cabinetNoInput ? '找到' : '未找到');
+  
   // 执药单：根据药材名称自动获取单价和柜号
   if (currentTable === 'stock_out_orders' && herbNameInput) {
     const herbName = herbNameInput.value.trim();
+    console.log('[calculateDetailTotalPrice] 药材名称:', herbName);
+    
     if (herbName) {
       const infoMap = await getHerbInfoMap();
+      console.log('[calculateDetailTotalPrice] 药材信息缓存:', infoMap);
+      
       if (infoMap[herbName]) {
+        const herbInfo = infoMap[herbName];
+        console.log('[calculateDetailTotalPrice] 找到药材信息:', herbName, herbInfo);
+        
         // 自动填充单价
         if (unitPriceInput) {
-          unitPriceInput.value = infoMap[herbName].salePrice;
+          unitPriceInput.value = herbInfo.salePrice;
           unitPriceInput.dataset.autoFilled = 'true';
+          console.log('[calculateDetailTotalPrice] 已设置单价:', herbInfo.salePrice);
         }
-        // 自动填充柜号
+        
+        // 自动填充柜号（即使是disabled的input也可以通过JS更新value）
         if (cabinetNoInput) {
-          cabinetNoInput.value = infoMap[herbName].cabinetNo;
+          cabinetNoInput.value = herbInfo.cabinetNo || '';
+          console.log('[calculateDetailTotalPrice] 已设置柜号:', herbInfo.cabinetNo);
         }
+      } else {
+        console.log('[calculateDetailTotalPrice] 未找到药材信息:', herbName);
       }
     }
   }
   
-  if (!quantityInput || !unitPriceInput || !totalPriceInput) return;
+  if (!quantityInput || !unitPriceInput || !totalPriceInput) {
+    console.log('[calculateDetailTotalPrice] 缺少必要的输入框:', {
+      quantity: !!quantityInput,
+      unitPrice: !!unitPriceInput,
+      totalPrice: !!totalPriceInput
+    });
+    return;
+  }
   
   const quantity = parseFloat(quantityInput.value) || 0;
   const unitPrice = parseFloat(unitPriceInput.value) || 0;
   const calculatedTotal = (quantity * unitPrice).toFixed(2);
+  
+  console.log('[calculateDetailTotalPrice] 计算总价:', quantity, '*', unitPrice, '=', calculatedTotal);
   
   // 只要总价没有被用户手动修改过，就自动计算
   // totalPriceInput.dataset.manuallyModified 会在用户直接修改总价时设置为 'true'

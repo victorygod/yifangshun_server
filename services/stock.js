@@ -420,29 +420,49 @@ async function executeStockIn(id, operator = 'system') {
     throw new Error('入库单不存在');
   }
   
-  // 允许从draft或confirmed状态入库
-  if (order.status !== 'draft' && order.status !== 'confirmed') {
-    throw new Error('只有草稿或已确认状态可以入库');
-  }
+  // 获取明细 - 使用宽松比较匹配orderId（可能是字符串或数字）
+  const allItems = await StockInItem.findAll();
+  const items = allItems.filter(item => item.orderId == id);
   
-  // 获取明细
-  const items = await StockInItem.findAll({ where: { orderId: id } });
+  console.log(`[executeStockIn] 入库单ID: ${id}, 找到明细: ${items.length} 条`);
+  
+  if (items.length === 0) {
+    throw new Error('入库单没有明细');
+  }
   
   // 更新库存
   for (const item of items) {
+    // 先检查药材是否存在，不存在则创建
+    let herb = await Herb.findOne({ where: { name: item.herbName } });
+    if (!herb) {
+      // 自动创建药材信息
+      herb = await Herb.create({
+        name: item.herbName,
+        alias: '',
+        unit: '克',
+        minValue: 0,
+        salePrice: item.unitPrice, // 默认使用进货单价作为售价
+        isActive: true,
+        createdAt: getNow(),
+        updatedAt: getNow()
+      });
+      console.log(`[executeStockIn] 自动创建药材: ${item.herbName}`);
+    }
+    
     let inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
     
     if (!inventory) {
       // 创建库存记录
       inventory = await StockInventory.create({
         herbName: item.herbName,
-        herbAlias: item.herbAlias,
+        herbAlias: item.herbAlias || '',
         quantity: item.quantity,
         avgPrice: item.unitPrice,
         minValue: 0,
         lastStockInDate: order.orderDate,
         updatedAt: getNow()
       });
+      console.log(`[executeStockIn] 创建库存记录: ${item.herbName}, 数量: ${item.quantity}`);
     } else {
       // 更新库存（加权平均价格）
       const oldQuantity = inventory.quantity || 0;
@@ -458,10 +478,11 @@ async function executeStockIn(id, operator = 'system') {
         lastStockInDate: order.orderDate,
         updatedAt: getNow()
       }, { where: { id: inventory.id } });
+      console.log(`[executeStockIn] 更新库存: ${item.herbName}, 旧数量: ${oldQuantity}, 新数量: ${newQuantity}`);
     }
     
     // 添加日志
-    await addStockLog('stock_in', order.orderNo, item.herbName, item.quantity, operator);
+    await addStockLog('stock_in', order.orderNo || `RK-${id}`, item.herbName, item.quantity, operator);
   }
   
   // 更新订单状态
