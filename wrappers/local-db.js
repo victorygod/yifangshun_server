@@ -296,7 +296,7 @@ class Model {
 }
 
 // 定义模型
-const User = new Model('users', 'openid');
+const User = new Model('users', 'id');
 const Booking = new Model('bookings', 'bookingId');
 const ChatMessage = new Model('chat_messages', 'messageId');
 const Prescription = new Model('prescriptions', 'id');

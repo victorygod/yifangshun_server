@@ -46,7 +46,7 @@ function requireRole(allowedRoles) {
       }
       
       // 查询用户信息
-      const user = await User.findByPk(openid);
+      const user = await User.findOne({ where: { openid } });
       
       if (!user) {
         return res.status(404).json({ 
@@ -91,7 +91,7 @@ function requireRoleLevel(minLevel) {
         return res.status(401).json({ code: 1, message: '未授权' });
       }
       
-      const user = await User.findByPk(openid);
+      const user = await User.findOne({ where: { openid } });
       
       if (!user || ROLE_LEVEL[user.role] < minLevel) {
         return res.status(403).json({ code: 1, message: '权限不足' });

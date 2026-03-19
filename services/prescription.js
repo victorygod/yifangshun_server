@@ -267,7 +267,7 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
 
   // 获取用户信息
   const { User } = require('../wrappers/db-wrapper');
-  const user = await User.findByPk(openid);
+  const user = await User.findOne({ where: { openid } });
   
   if (!user) {
     throw new Error("用户不存在");
@@ -530,7 +530,7 @@ async function deletePrescription(prescriptionId, status, openid) {
 
   // 获取用户信息
   const { User } = require('../wrappers/db-wrapper');
-  const user = await User.findByPk(openid);
+  const user = await User.findOne({ where: { openid } });
   if (!user) {
     throw new Error("用户不存在");
   }
@@ -1126,7 +1126,7 @@ async function confirmOverwritePrescription(prescriptionId, prescriptionData, th
 
   // 获取用户信息
   const { User } = require('../wrappers/db-wrapper');
-  const user = await User.findByPk(openid);
+  const user = await User.findOne({ where: { openid } });
   if (!user) {
     throw new Error("用户不存在");
   }

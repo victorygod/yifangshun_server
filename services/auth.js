@@ -144,7 +144,7 @@ async function handleLogin(code) {
   }
 
   // 查找该openid对应的用户
-  let user = await User.findByPk(openid);
+  let user = await User.findOne({ where: { openid } });
 
   const isNewUser = !user;
 
@@ -211,7 +211,7 @@ async function handleBindUserInfo(openid, name, phone) {
     throw new Error("手机号格式不正确");
   }
 
-  const user = await User.findByPk(openid);
+  const user = await User.findOne({ where: { openid } });
 
   if (!user) {
     throw new Error("用户不存在");
@@ -235,7 +235,7 @@ async function handleBindPhone(openid, phone) {
     throw new Error("手机号格式不正确");
   }
 
-  const user = await User.findByPk(openid);
+  const user = await User.findOne({ where: { openid } });
 
   if (!user) {
     throw new Error("用户不存在");
@@ -322,7 +322,7 @@ async function setUserRole(targetOpenid, newRole, operatorOpenid, isHomePage = f
   // 主页请求跳过操作者验证（已通过中间件验证）
   if (!isHomePage) {
     // 查找操作者
-    const operator = await User.findByPk(operatorOpenid);
+    const operator = await User.findOne({ where: { openid: operatorOpenid } });
     if (!operator) {
       throw new Error("操作者不存在");
     }
@@ -334,7 +334,7 @@ async function setUserRole(targetOpenid, newRole, operatorOpenid, isHomePage = f
   }
 
   // 查找目标用户
-  const targetUser = await User.findByPk(targetOpenid);
+  const targetUser = await User.findOne({ where: { openid: targetOpenid } });
   if (!targetUser) {
     throw new Error("目标用户不存在");
   }
@@ -434,7 +434,7 @@ async function updateUserInfo(openid, name, phone) {
   }
 
   // 返回更新后的用户信息
-  const updatedUser = await User.findByPk(openid);
+  const updatedUser = await User.findOne({ where: { openid } });
   return {
     code: 0,
     message: "更新成功",

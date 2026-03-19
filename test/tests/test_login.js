@@ -127,7 +127,7 @@ async function createTestUser(user) {
 }
 
 async function setUserRole(openid, role) {
-  const user = await User.findByPk(openid);
+  const user = await User.findOne({ where: { openid } });
   if (!user) {
     throw new Error('用户不存在');
   }

@@ -4,7 +4,7 @@ const { Sequelize, DataTypes, Op } = require("sequelize");
 // FORCE_SYNC_TABLES: 强制重建表（会丢失数据）
 // 设置为 true 后部署时会强制重建所有表
 // 用法：部署时如果表结构不匹配，临时改为 true，部署成功后改回 false
-const FORCE_SYNC_TABLES = false;
+const FORCE_SYNC_TABLES = true;
 
 // 从环境变量中读取数据库配置
 const { MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_ADDRESS = "" } = process.env;
@@ -20,9 +20,15 @@ const sequelize = new Sequelize("nodejs_demo", MYSQL_USERNAME, MYSQL_PASSWORD, {
 
 // 用户模型
 const User = sequelize.define("User", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   openid: {
     type: DataTypes.STRING,
-    primaryKey: true,
+    allowNull: false,
+    unique: true,  // 唯一约束
   },
   phone: {
     type: DataTypes.STRING(11),
@@ -174,6 +180,386 @@ const Prescription = sequelize.define("Prescription", {
   },
 });
 
+// 药材模型
+const Herb = sequelize.define("Herb", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  name: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    unique: true,
+  },
+  alias: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+  },
+  unit: {
+    type: DataTypes.STRING(10),
+    defaultValue: '克',
+  },
+  cabinetNo: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+  },
+  salePrice: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  stock: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+  },
+  minValue: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+  },
+  category: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  remark: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+  },
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
+// 入库单模型
+const StockInOrder = sequelize.define("StockInOrder", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  orderNo: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  orderDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  supplierName: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  supplierPhone: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+  },
+  status: {
+    type: DataTypes.ENUM('draft', 'confirmed', 'stocked'),
+    defaultValue: 'draft',
+  },
+  remark: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
+// 入库明细模型
+const StockInItem = sequelize.define("StockInItem", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  orderId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  herbName: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  quantity: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  unitPrice: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  totalPrice: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  remark: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
+// 执药单模型
+const StockOutOrder = sequelize.define("StockOutOrder", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  prescriptionId: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    unique: true,
+  },
+  prescriptionTime: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  pharmacist: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  reviewer: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  status: {
+    type: DataTypes.ENUM('pending', 'settled', 'cancelled'),
+    defaultValue: 'pending',
+  },
+  totalPrice: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  remark: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
+// 执药明细模型
+const StockOutItem = sequelize.define("StockOutItem", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  orderId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  herbName: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  quantity: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  totalPrice: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  remark: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
+// 库存表模型
+const StockInventory = sequelize.define("StockInventory", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  herbName: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    unique: true,
+  },
+  herbAlias: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+  },
+  quantity: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+  },
+  avgPrice: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+  },
+  minValue: {
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
+// 盘点单模型
+const StockCheckOrder = sequelize.define("StockCheckOrder", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  orderNo: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  checkDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  operator: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  status: {
+    type: DataTypes.ENUM('draft', 'completed'),
+    defaultValue: 'draft',
+  },
+  remark: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
+// 盘点明细模型
+const StockCheckItem = sequelize.define("StockCheckItem", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  orderId: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  herbName: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  systemQuantity: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  actualQuantity: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  difference: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  remark: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
+// 操作日志模型
+const StockLog = sequelize.define("StockLog", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  type: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+  },
+  herbName: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+  },
+  quantity: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+  },
+  beforeStock: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  afterStock: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  orderNo: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  operator: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  remark: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
 // 数据库初始化方法
 async function init() {
   const syncOption = FORCE_SYNC_TABLES ? { force: true } : { alter: true };
@@ -186,6 +572,15 @@ async function init() {
   await Booking.sync(syncOption);
   await ChatMessage.sync(syncOption);
   await Prescription.sync(syncOption);
+  await Herb.sync(syncOption);
+  await StockInOrder.sync(syncOption);
+  await StockInItem.sync(syncOption);
+  await StockOutOrder.sync(syncOption);
+  await StockOutItem.sync(syncOption);
+  await StockInventory.sync(syncOption);
+  await StockCheckOrder.sync(syncOption);
+  await StockCheckItem.sync(syncOption);
+  await StockLog.sync(syncOption);
   
   console.log('数据库表同步完成');
 }
@@ -197,6 +592,15 @@ module.exports = {
   Booking,
   ChatMessage,
   Prescription,
+  Herb,
+  StockInOrder,
+  StockInItem,
+  StockOutOrder,
+  StockOutItem,
+  StockInventory,
+  StockCheckOrder,
+  StockCheckItem,
+  StockLog,
   sequelize,
   Op,
 };
