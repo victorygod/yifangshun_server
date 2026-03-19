@@ -736,7 +736,13 @@ async function getHerbInfoMap() {
 function bindAutoSaveEvents() {
   // 绑定明细输入框的失焦事件
   const detailInputs = document.querySelectorAll('.detail-input');
+  console.log('[bindAutoSaveEvents] 找到明细输入框数量:', detailInputs.length);
+  
   detailInputs.forEach(input => {
+    const col = input.dataset.col;
+    const isDisabled = input.disabled;
+    console.log('[bindAutoSaveEvents] 绑定失焦事件 - 列:', col, 'disabled:', isDisabled);
+    
     input.removeEventListener('blur', handleDetailBlur);  // 避免重复绑定
     input.addEventListener('blur', handleDetailBlur);
     
@@ -796,19 +802,27 @@ function handleHerbNameInput(e) {
 
 // 处理明细输入框失焦（自动计算 + 自动保存）
 async function handleDetailBlur(e) {
+  console.log('[handleDetailBlur] ====== 触发失焦事件 ======');
+  
   const input = e.target;
   const row = input.closest('tr');
-  if (!row) return;
+  if (!row) {
+    console.log('[handleDetailBlur] 未找到行元素');
+    return;
+  }
   
   const isNew = input.dataset.isNew === 'true';
   const orderId = row.dataset.orderId;
   const detailId = input.dataset.detailId;
+  
+  console.log('[handleDetailBlur] 触发失焦, 列:', input.dataset.col, 'isNew:', isNew, 'orderId:', orderId, 'detailId:', detailId, 'currentTable:', currentTable);
   
   // 生成唯一标识符用于防重复保存
   const saveKey = isNew ? `new-${orderId}` : `edit-${detailId}`;
   
   // 检查是否正在保存中
   if (savingDetailRows.has(saveKey)) {
+    console.log('[handleDetailBlur] 正在保存中，跳过');
     return;
   }
   
@@ -819,9 +833,12 @@ async function handleDetailBlur(e) {
   if (isNew) {
     // 新增行：检查是否有有效数据
     const herbNameInput = row.querySelector('.detail-input[data-col="herbName"]');
+    console.log('[handleDetailBlur] 新增行, 药材名称:', herbNameInput ? herbNameInput.value : '未找到');
+    
     if (herbNameInput && herbNameInput.value.trim()) {
       savingDetailRows.add(saveKey);
       try {
+        console.log('[handleDetailBlur] 开始保存新增明细');
         await saveDetailNewAuto(row);
       } finally {
         savingDetailRows.delete(saveKey);
@@ -829,6 +846,7 @@ async function handleDetailBlur(e) {
     }
   } else {
     // 已有行：自动更新
+    console.log('[handleDetailBlur] 已有行更新, detailId:', detailId);
     if (detailId && orderId) {
       savingDetailRows.add(saveKey);
       try {
@@ -939,21 +957,31 @@ async function saveDetailNewAuto(row) {
     data[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
   });
   
+  console.log('[saveDetailNewAuto] 收集的数据:', data);
+  
   // 验证药材名称
-  if (!data.herbName && !data.name) return;
+  if (!data.herbName && !data.name) {
+    console.log('[saveDetailNewAuto] 药材名称为空，跳过保存');
+    return;
+  }
   
   try {
     const detailTable = tableConfigs[currentTable].detailTable;
+    console.log('[saveDetailNewAuto] 保存到表:', detailTable, '数据:', data);
+    
     const res = await homeFetch(`/api/admin/table/${detailTable}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
+    console.log('[saveDetailNewAuto] 保存结果:', res);
+    
     if (res.code !== 0) throw new Error(res.message);
     showToast('已保存');
     // 刷新数据但保持展开状态
     loadTableData();
   } catch (err) {
+    console.error('[saveDetailNewAuto] 保存失败:', err);
     showToast('保存失败: ' + err.message, 'error');
   }
 }

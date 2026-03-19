@@ -1,1 +1,92 @@
-[]
+[
+  {
+    "action": "stock_in",
+    "orderNo": "RK-1",
+    "herbName": "21321",
+    "quantity": 12,
+    "operator": "system",
+    "createdAt": "2026-03-20T01:35:48.827Z",
+    "id": 1,
+    "updatedAt": "2026-03-20T01:35:48.827Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-1",
+    "herbName": "当归",
+    "quantity": 21,
+    "operator": "system",
+    "createdAt": "2026-03-20T01:35:48.828Z",
+    "id": 2,
+    "updatedAt": "2026-03-20T01:35:48.828Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-1",
+    "herbName": "大幅度",
+    "quantity": 4,
+    "operator": "system",
+    "createdAt": "2026-03-20T01:35:48.830Z",
+    "id": 3,
+    "updatedAt": "2026-03-20T01:35:48.830Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-1",
+    "herbName": "21321",
+    "quantity": 12,
+    "operator": "system",
+    "createdAt": "2026-03-20T01:36:22.330Z",
+    "id": 4,
+    "updatedAt": "2026-03-20T01:36:22.330Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-1",
+    "herbName": "当归",
+    "quantity": 21,
+    "operator": "system",
+    "createdAt": "2026-03-20T01:36:22.332Z",
+    "id": 5,
+    "updatedAt": "2026-03-20T01:36:22.332Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-1",
+    "herbName": "大幅度",
+    "quantity": 4,
+    "operator": "system",
+    "createdAt": "2026-03-20T01:36:22.333Z",
+    "id": 6,
+    "updatedAt": "2026-03-20T01:36:22.333Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-1",
+    "herbName": "21321",
+    "quantity": 12,
+    "operator": "system",
+    "createdAt": "2026-03-20T01:42:20.680Z",
+    "id": 7,
+    "updatedAt": "2026-03-20T01:42:20.680Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-1",
+    "herbName": "当归",
+    "quantity": 21,
+    "operator": "system",
+    "createdAt": "2026-03-20T01:42:20.683Z",
+    "id": 8,
+    "updatedAt": "2026-03-20T01:42:20.683Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-1",
+    "herbName": "大幅度",
+    "quantity": 4,
+    "operator": "system",
+    "createdAt": "2026-03-20T01:42:20.684Z",
+    "id": 9,
+    "updatedAt": "2026-03-20T01:42:20.684Z"
+  }
+]

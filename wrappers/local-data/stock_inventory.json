@@ -1,1 +1,35 @@
-[]
+[
+  {
+    "herbName": "21321",
+    "herbAlias": "",
+    "quantity": 36,
+    "avgPrice": 2130,
+    "minValue": 0,
+    "lastStockInDate": "2026-03-19",
+    "updatedAt": "2026-03-20T01:42:20.680Z",
+    "id": 1,
+    "createdAt": "2026-03-20T01:35:48.826Z"
+  },
+  {
+    "herbName": "当归",
+    "herbAlias": "",
+    "quantity": 63,
+    "avgPrice": 200,
+    "minValue": 0,
+    "lastStockInDate": "2026-03-19",
+    "updatedAt": "2026-03-20T01:42:20.682Z",
+    "id": 2,
+    "createdAt": "2026-03-20T01:35:48.828Z"
+  },
+  {
+    "herbName": "大幅度",
+    "herbAlias": "",
+    "quantity": 12,
+    "avgPrice": 530,
+    "minValue": 0,
+    "lastStockInDate": "2026-03-19",
+    "updatedAt": "2026-03-20T01:42:20.684Z",
+    "id": 3,
+    "createdAt": "2026-03-20T01:35:48.830Z"
+  }
+]

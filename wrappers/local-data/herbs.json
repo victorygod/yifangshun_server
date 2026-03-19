@@ -4,10 +4,35 @@
     "alias": "全当归|秦当归|云当归",
     "cabinetNo": "A-01",
     "salePrice": 5,
+    "stock": 21,
     "minValue": 500,
     "remark": "补血活血",
     "id": 1,
     "createdAt": "2026-03-19T21:44:50.964Z",
-    "updatedAt": "2026-03-20T01:13:26.303Z"
+    "updatedAt": "2026-03-20T01:42:20.681Z"
+  },
+  {
+    "name": "21321",
+    "alias": "",
+    "unit": "克",
+    "minValue": 0,
+    "salePrice": 2130,
+    "stock": 12,
+    "isActive": true,
+    "createdAt": "2026-03-20T01:42:20.679Z",
+    "updatedAt": "2026-03-20T01:42:20.679Z",
+    "id": 2
+  },
+  {
+    "name": "大幅度",
+    "alias": "",
+    "unit": "克",
+    "minValue": 0,
+    "salePrice": 530,
+    "stock": 4,
+    "isActive": true,
+    "createdAt": "2026-03-20T01:42:20.683Z",
+    "updatedAt": "2026-03-20T01:42:20.683Z",
+    "id": 3
   }
 ]

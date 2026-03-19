@@ -442,11 +442,18 @@ async function executeStockIn(id, operator = 'system') {
         unit: '克',
         minValue: 0,
         salePrice: item.unitPrice, // 默认使用进货单价作为售价
+        stock: item.quantity, // 初始库存
         isActive: true,
         createdAt: getNow(),
         updatedAt: getNow()
       });
-      console.log(`[executeStockIn] 自动创建药材: ${item.herbName}`);
+      console.log(`[executeStockIn] 自动创建药材: ${item.herbName}, 初始库存: ${item.quantity}`);
+    } else {
+      // 更新药材表的库存
+      const oldStock = herb.stock || 0;
+      const newStock = oldStock + item.quantity;
+      await Herb.update({ stock: newStock, updatedAt: getNow() }, { where: { id: herb.id } });
+      console.log(`[executeStockIn] 更新药材库存: ${item.herbName}, 旧库存: ${oldStock}, 新库存: ${newStock}`);
     }
     
     let inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
@@ -478,7 +485,7 @@ async function executeStockIn(id, operator = 'system') {
         lastStockInDate: order.orderDate,
         updatedAt: getNow()
       }, { where: { id: inventory.id } });
-      console.log(`[executeStockIn] 更新库存: ${item.herbName}, 旧数量: ${oldQuantity}, 新数量: ${newQuantity}`);
+      console.log(`[executeStockIn] 更新库存统计: ${item.herbName}, 旧数量: ${oldQuantity}, 新数量: ${newQuantity}`);
     }
     
     // 添加日志
