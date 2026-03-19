@@ -734,3 +734,19 @@ body {
   border-color: #409eff;
   color: #409eff;
 }
+
+/* 总价手动指定状态 */
+.cell-with-status {
+  position: relative;
+}
+
+.cell-with-status .detail-input {
+  width: calc(100% - 70px);
+}
+
+.manual-status {
+  font-size: 11px;
+  color: #fa8c16;
+  margin-left: 4px;
+  white-space: nowrap;
+}

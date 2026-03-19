@@ -6,7 +6,7 @@
     "totalPrice": 70,
     "id": 1,
     "createdAt": "2026-03-20T01:00:06.241Z",
-    "updatedAt": "2026-03-20T01:59:01.741Z",
+    "updatedAt": "2026-03-20T02:26:06.725Z",
     "cabinetNo": "A-01",
     "unitPrice": 5
   },
@@ -14,11 +14,22 @@
     "orderId": "1",
     "herbName": "当下的",
     "cabinetNo": "",
-    "quantity": 34,
+    "quantity": 9,
     "unitPrice": 0,
-    "totalPrice": 4,
+    "totalPrice": 90,
     "id": 2,
     "createdAt": "2026-03-20T01:59:09.000Z",
-    "updatedAt": "2026-03-20T02:06:28.482Z"
+    "updatedAt": "2026-03-20T02:26:09.295Z"
+  },
+  {
+    "orderId": "1",
+    "herbName": "当归",
+    "cabinetNo": "A-01",
+    "quantity": 23,
+    "unitPrice": 5,
+    "totalPrice": 115,
+    "id": 3,
+    "createdAt": "2026-03-20T02:26:19.181Z",
+    "updatedAt": "2026-03-20T02:26:19.181Z"
   }
 ]

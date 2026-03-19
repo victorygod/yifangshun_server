@@ -2,11 +2,11 @@
   {
     "pharmacist": "的说法人",
     "reviewer": "的萨芬",
-    "status": "pending",
+    "status": "settled",
     "remark": "的说法是大",
     "id": 1,
     "createdAt": "2026-03-19T23:22:13.933Z",
-    "updatedAt": "2026-03-20T02:06:41.922Z",
-    "totalAmount": 74
+    "updatedAt": "2026-03-20T02:26:30.769Z",
+    "totalAmount": 275
   }
 ]

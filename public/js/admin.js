@@ -127,7 +127,7 @@ const tableConfigs = {
         { value: 'pending', label: '待执药', badge: 'badge-pending' },
         { value: 'settled', label: '已结算', badge: 'badge-stocked' }
       ]},
-      { key: 'totalAmount', label: '总价', readonly: true, type: 'number' },
+      { key: 'totalAmount', label: '总价', editable: true, type: 'number' },
       { key: 'remark', label: '备注', editable: true }
     ],
     searchFields: ['prescriptionId', 'pharmacist'],
@@ -224,6 +224,7 @@ let searchKeyword = '';
 let expandedRows = new Set(); // 展开的行ID集合
 let pendingFocusCol = null; // 待对焦的列
 let savingDetailRows = new Set(); // 正在保存中的明细行（防止重复保存）
+let manuallyModifiedTotals = new Set(); // 手动修改过总价的明细ID集合（纯前端状态，刷新即失）
 
 // ==================== 初始化 ====================
 
@@ -558,7 +559,15 @@ async function loadTableData() {
                 dataAttrs += ' data-cabinet-no="true"';
               }
               const disabledAttr = isDisabled ? ' disabled' : '';
-              html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}${disabledAttr}></td>`;
+              // 总价列添加状态显示
+              if (col.key === 'totalPrice') {
+                // 检查是否手动修改过（使用内存Set）
+                const showManualStatus = manuallyModifiedTotals.has(String(item.id));
+                const statusStyle = showManualStatus ? 'display:inline;' : 'display:none;';
+                html += `<td class="cell-with-status"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}${disabledAttr}><span class="manual-status" style="${statusStyle}">已手动指定</span></td>`;
+              } else {
+                html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}${disabledAttr}></td>`;
+              }
             }
           });
           html += `<td class="col-action">
@@ -587,7 +596,12 @@ async function loadTableData() {
               dataAttrs += ' data-cabinet-no="true"';
             }
             const disabledAttr = isDisabled ? ' disabled' : '';
-            html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}></td>`;
+            // 总价列添加状态显示
+            if (col.key === 'totalPrice') {
+              html += `<td class="cell-with-status"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}><span class="manual-status" style="display:none;">已手动指定</span></td>`;
+            } else {
+              html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}></td>`;
+            }
           }
         });
         html += `<td class="col-action">
@@ -776,28 +790,37 @@ function bindAutoSaveEvents() {
 // 用户直接修改总价时标记
 function handleTotalPriceInput(e) {
   const input = e.target;
-  input.dataset.manuallyModified = 'true';
+  const detailId = input.dataset.detailId;
+  const isNew = input.dataset.isNew === 'true';
+  
+  console.log('[handleTotalPriceInput] 用户修改总价, detailId:', detailId, 'isNew:', isNew);
+  
+  // 用内存Set记录，刷新页面后失效
+  if (isNew) {
+    manuallyModifiedTotals.add('new-' + input.closest('tr').dataset.orderId);
+  } else if (detailId) {
+    manuallyModifiedTotals.add(detailId);
+  }
+  
+  // 显示"已手动指定"状态
+  const statusSpan = input.parentElement.querySelector('.manual-status');
+  if (statusSpan) {
+    statusSpan.style.display = 'inline';
+  }
 }
 
-// 用户修改 quantity 或 unitPrice 时，清除总价的手动修改标记
+// 用户修改 quantity 或 unitPrice 时，不自动清除手动修改标记
+// 用户需要刷新页面才能恢复自动计算
 function handleCalcSourceInput(e) {
-  const row = e.target.closest('tr');
-  if (!row) return;
-  const totalPriceInput = row.querySelector('.detail-input[data-col="totalPrice"]');
-  if (totalPriceInput) {
-    totalPriceInput.dataset.manuallyModified = 'false';
-  }
+  // 不再清除 manuallyModified 标记
+  // 用户手动指定的总价不会被自动覆盖
 }
 
-// 用户修改 herbName 时，清除总价的手动修改标记（执药单）
+// 用户修改 herbName 时，不自动清除手动修改标记（执药单）
+// 用户需要刷新页面才能恢复自动计算
 function handleHerbNameInput(e) {
-  if (currentTable !== 'stock_out_orders') return;
-  const row = e.target.closest('tr');
-  if (!row) return;
-  const totalPriceInput = row.querySelector('.detail-input[data-col="totalPrice"]');
-  if (totalPriceInput) {
-    totalPriceInput.dataset.manuallyModified = 'false';
-  }
+  // 不再清除 manuallyModified 标记
+  // 用户手动指定的总价不会被自动覆盖
 }
 
 // 处理明细输入框失焦（自动计算 + 自动保存）
@@ -903,13 +926,24 @@ async function calculateDetailTotalPrice(row) {
   const unitPrice = parseFloat(unitPriceInput.value) || 0;
   const calculatedTotal = (quantity * unitPrice).toFixed(2);
   
+  // 检查是否手动修改过总价（使用内存Set，刷新后失效）
+  const detailId = totalPriceInput.dataset.detailId;
+  const isNew = totalPriceInput.dataset.isNew === 'true';
+  const orderId = totalPriceInput.closest('tr')?.dataset.orderId;
+  
+  const checkKey = isNew ? `new-${orderId}` : detailId;
+  const isManuallyModified = manuallyModifiedTotals.has(checkKey);
+  
   console.log('[calculateDetailTotalPrice] 计算总价:', quantity, '*', unitPrice, '=', calculatedTotal);
+  console.log('[calculateDetailTotalPrice] checkKey:', checkKey, 'isManuallyModified:', isManuallyModified);
   
   // 只要总价没有被用户手动修改过，就自动计算
-  // totalPriceInput.dataset.manuallyModified 会在用户直接修改总价时设置为 'true'
-  if (totalPriceInput.dataset.manuallyModified !== 'true') {
+  if (!isManuallyModified) {
+    console.log('[calculateDetailTotalPrice] 自动更新总价');
     totalPriceInput.value = calculatedTotal;
     totalPriceInput.dataset.autoCalc = 'true';
+  } else {
+    console.log('[calculateDetailTotalPrice] 总价已手动指定，跳过自动计算');
   }
 }
 
