@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "orderId": "1",
+    "herbName": "的手法对付",
+    "quantity": 32,
+    "totalPrice": 324,
+    "id": 1,
+    "createdAt": "2026-03-20T00:27:25.405Z",
+    "updatedAt": "2026-03-20T00:27:25.405Z"
+  }
+]

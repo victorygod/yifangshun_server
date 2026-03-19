@@ -411,6 +411,30 @@ app.post("/api/chat", async (req, res) => {
 
 // ==================== 数据库管理接口（仅超级管理员） ====================
 
+// 更新主表总价（根据明细汇总）
+async function updateOrderTotalAmount(orderTable, itemTable, orderId) {
+  try {
+    const OrderModel = TABLE_MODELS[orderTable];
+    const ItemModel = TABLE_MODELS[itemTable];
+    
+    if (!OrderModel || !ItemModel) return;
+    
+    // 获取所有明细
+    const items = await ItemModel.findAll({ where: { orderId } });
+    
+    // 计算总价
+    let totalAmount = 0;
+    items.forEach(item => {
+      totalAmount += parseFloat(item.totalPrice) || 0;
+    });
+    
+    // 更新主表
+    await OrderModel.update({ totalAmount }, { where: { id: orderId } });
+  } catch (error) {
+    console.error('更新主表总价失败:', error);
+  }
+}
+
 // 表名与模型的映射
 const TABLE_MODELS = {
   'users': User,
@@ -577,7 +601,7 @@ app.post("/api/admin/table/:name/init", requireRole(['super_admin']), async (req
 });
 
 // 新增记录
-app.post("/api/admin/table/:name", requireRole(['super_admin']), async (req, res) => {
+app.post("/api/admin/table/:name", requireRole(['super_admin'], true), async (req, res) => {
   try {
     const { name } = req.params;
     const recordData = req.body;
@@ -593,6 +617,15 @@ app.post("/api/admin/table/:name", requireRole(['super_admin']), async (req, res
     delete recordData.updatedAt;
     
     const newRecord = await model.create(recordData);
+    
+    // 如果是入库明细，更新入库单总价
+    if (name === 'stock_in_items' && recordData.orderId) {
+      await updateOrderTotalAmount('stock_in_orders', 'stock_in_items', recordData.orderId);
+    }
+    // 如果是执药明细，更新执药单总价
+    if (name === 'stock_out_items' && recordData.orderId) {
+      await updateOrderTotalAmount('stock_out_orders', 'stock_out_items', recordData.orderId);
+    }
     
     res.json({ code: 0, message: "新增成功", data: newRecord });
   } catch (error) {
@@ -638,7 +671,7 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
 });
 
 // 删除记录
-app.delete("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, res) => {
+app.delete("/api/admin/table/:name/:id", requireRole(['super_admin'], true), async (req, res) => {
   try {
     const { name, id } = req.params;
     
@@ -655,8 +688,20 @@ app.delete("/api/admin/table/:name/:id", requireRole(['super_admin']), async (re
       return res.status(404).json({ code: 1, message: "记录不存在" });
     }
     
+    // 记录orderId用于更新总价
+    const orderId = record.orderId;
+    
     // 执行删除
     const deletedCount = await model.destroy({ where: { [pk]: id } });
+    
+    // 如果是入库明细，更新入库单总价
+    if (name === 'stock_in_items' && orderId) {
+      await updateOrderTotalAmount('stock_in_orders', 'stock_in_items', orderId);
+    }
+    // 如果是执药明细，更新执药单总价
+    if (name === 'stock_out_items' && orderId) {
+      await updateOrderTotalAmount('stock_out_orders', 'stock_out_items', orderId);
+    }
     
     res.json({ code: 0, message: "删除成功", data: { deletedCount } });
   } catch (error) {

@@ -528,7 +528,15 @@ async function loadTableData() {
             if (isReadonly) {
               html += `<td><span class="cell-readonly">${value || '-'}</span></td>`;
             } else {
-              html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"></td>`;
+              // 添加data属性用于自动计算总价
+              let dataAttrs = '';
+              if (col.key === 'quantity' || col.key === 'unitPrice') {
+                dataAttrs = ' data-calc-source="true"';
+              }
+              if (col.key === 'totalPrice') {
+                dataAttrs = ' data-calc-target="true"';
+              }
+              html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}></td>`;
             }
           });
           html += `<td class="col-action">
@@ -544,7 +552,15 @@ async function loadTableData() {
           if (isReadonly) {
             html += `<td><span class="cell-readonly">自动</span></td>`;
           } else {
-            html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"></td>`;
+            // 添加data属性用于自动计算总价
+            let dataAttrs = '';
+            if (col.key === 'quantity' || col.key === 'unitPrice') {
+              dataAttrs = ' data-calc-source="true"';
+            }
+            if (col.key === 'totalPrice') {
+              dataAttrs = ' data-calc-target="true"';
+            }
+            html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}></td>`;
           }
         });
         html += `<td class="col-action">
@@ -645,8 +661,42 @@ async function loadTableData() {
     
     updateSelectedCount();
     
+    // 绑定明细输入框的失焦事件（自动计算总价）
+    bindDetailCalcEvents();
+    
   } catch (err) {
     tableBody.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><p>${err.message}</p></div>`;
+  }
+}
+
+// 绑定明细输入框失焦事件（自动计算总价）
+function bindDetailCalcEvents() {
+  const calcSources = document.querySelectorAll('.detail-input[data-calc-source="true"]');
+  calcSources.forEach(input => {
+    input.removeEventListener('blur', handleDetailCalc);  // 避免重复绑定
+    input.addEventListener('blur', handleDetailCalc);
+  });
+}
+
+// 处理明细自动计算总价
+function handleDetailCalc(e) {
+  const row = e.target.closest('tr');
+  if (!row) return;
+  
+  const quantityInput = row.querySelector('.detail-input[data-col="quantity"]');
+  const unitPriceInput = row.querySelector('.detail-input[data-col="unitPrice"]');
+  const totalPriceInput = row.querySelector('.detail-input[data-col="totalPrice"]');
+  
+  if (!quantityInput || !unitPriceInput || !totalPriceInput) return;
+  
+  const quantity = parseFloat(quantityInput.value) || 0;
+  const unitPrice = parseFloat(unitPriceInput.value) || 0;
+  const calculatedTotal = (quantity * unitPrice).toFixed(2);
+  
+  // 只有当总价为空或者用户没有手动修改过时才自动填充
+  if (!totalPriceInput.value || totalPriceInput.dataset.autoCalc === 'true') {
+    totalPriceInput.value = calculatedTotal;
+    totalPriceInput.dataset.autoCalc = 'true';
   }
 }
 
