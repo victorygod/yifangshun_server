@@ -433,7 +433,6 @@ async function loadTableData() {
               <th class="col-checkbox">
                 <input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
               </th>
-              ${hasDetail ? '<th class="col-expand"></th>' : ''}
               ${columns.map(col => `<th>${col.label}</th>`).join('')}
               <th class="col-action">操作</th>
             </tr>
@@ -452,15 +451,6 @@ async function loadTableData() {
           ${selectedIds.includes(row.id) ? 'checked' : ''} 
           onchange="toggleSelect('${row.id}')">
       </td>`;
-      
-      // 展开按钮
-      if (hasDetail) {
-        html += `<td class="col-expand">
-          <button class="expand-btn ${isExpanded ? 'expanded' : ''}" data-action="toggleDetail" data-id="${row.id}">
-            ${isExpanded ? '▼' : '▶'}
-          </button>
-        </td>`;
-      }
       
       columns.forEach(col => {
         const value = row[col.key] ?? '';
@@ -496,7 +486,13 @@ async function loadTableData() {
         }
       });
       
+      // 操作列：展开按钮 + 其他操作
       html += `<td class="col-action">`;
+      if (hasDetail) {
+        html += `<button class="action-btn action-btn-expand" data-action="toggleDetail" data-id="${row.id}">
+          ${isExpanded ? '收起' : '展开'}
+        </button>`;
+      }
       if (isEditing) {
         html += `
           <button class="action-btn action-btn-save" data-action="save" data-id="${row.id}">保存</button>
@@ -510,19 +506,21 @@ async function loadTableData() {
       html += `</td></tr>`;
       
       // 详情行
-      if (hasDetail && isExpanded && row.items && row.items.length > 0) {
+      if (hasDetail && isExpanded) {
         const detailConfig = tableConfigs[detailTable];
         const detailColumns = detailConfig ? detailConfig.columns : [];
+        const items = row.items || [];
         
         html += `<tr class="detail-row" data-parent-id="${row.id}">`;
-        html += `<td colspan="${columns.length + 3}" class="detail-cell">`;
+        html += `<td colspan="${columns.length + 2}" class="detail-cell">`;
         html += `<div class="detail-content">`;
         html += `<div class="detail-header">明细信息</div>`;
         html += `<table class="detail-table">`;
         html += `<thead><tr>${detailColumns.map(col => `<th>${col.label}</th>`).join('')}<th class="col-action">操作</th></tr></thead>`;
         html += `<tbody>`;
         
-        row.items.forEach(item => {
+        // 已有明细
+        items.forEach(item => {
           html += `<tr data-detail-id="${item.id}">`;
           detailColumns.forEach(col => {
             const value = item[col.key] ?? '';
@@ -539,8 +537,22 @@ async function loadTableData() {
           html += `</tr>`;
         });
         
+        // 空行用于新增（始终显示）
+        html += `<tr class="detail-new-row" data-order-id="${row.id}">`;
+        detailColumns.forEach(col => {
+          const isReadonly = col.readonly;
+          if (isReadonly) {
+            html += `<td><span class="cell-readonly">自动</span></td>`;
+          } else {
+            html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"></td>`;
+          }
+        });
+        html += `<td class="col-action">
+          <button class="action-btn action-btn-save" data-action="saveDetailNew" data-order-id="${row.id}">添加</button>
+        </td>`;
+        html += `</tr>`;
+        
         html += `</tbody></table>`;
-        html += `<button class="btn btn-sm" data-action="addDetailItem" data-order-id="${row.id}">+ 添加明细</button>`;
         html += `</div></td></tr>`;
       }
     });
@@ -549,9 +561,6 @@ async function loadTableData() {
     if (editingRowId === 'new') {
       html += `<tr class="editing" data-id="new">`;
       html += `<td class="col-checkbox"><input type="checkbox" class="checkbox" disabled></td>`;
-      if (hasDetail) {
-        html += `<td class="col-expand"></td>`;
-      }
       columns.forEach(col => {
         const isReadonly = config.readonly || col.readonly;
         if (isReadonly) {
@@ -615,11 +624,11 @@ async function loadTableData() {
           case 'toggleDetail':
             toggleDetail(id);
             return;
-          case 'addDetailItem':
-            addDetailItem(orderId);
-            return;
           case 'deleteDetail':
             deleteDetailItem(id, orderId);
+            return;
+          case 'saveDetailNew':
+            saveDetailNew(orderId);
             return;
         }
       }
@@ -653,9 +662,42 @@ function toggleDetail(rowId) {
   loadTableData();
 }
 
-async function addDetailItem(orderId) {
-  // 添加空的明细项到列表中，等待保存
-  showToast('请先保存主表，再添加明细', 'warning');
+async function saveDetailNew(orderId) {
+  // 找到新增行
+  const newRow = document.querySelector(`tr.detail-new-row[data-order-id="${orderId}"]`);
+  if (!newRow) {
+    showToast('找不到新增行', 'error');
+    return;
+  }
+  
+  // 获取输入值
+  const inputs = newRow.querySelectorAll('.detail-new-input');
+  const data = { orderId };
+  
+  inputs.forEach(input => {
+    const col = input.dataset.col;
+    data[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
+  });
+  
+  // 验证必填项
+  if (!data.herbName && !data.name) {
+    showToast('请填写药材名称', 'warning');
+    return;
+  }
+  
+  try {
+    const detailTable = tableConfigs[currentTable].detailTable;
+    const res = await homeFetch(`/api/admin/table/${detailTable}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.code !== 0) throw new Error(res.message);
+    showToast('添加成功');
+    loadTableData();
+  } catch (err) {
+    showToast('添加失败: ' + err.message, 'error');
+  }
 }
 
 async function deleteDetailItem(itemId, orderId) {

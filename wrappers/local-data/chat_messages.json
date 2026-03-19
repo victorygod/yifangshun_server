@@ -430,5 +430,41 @@
     "id": 48,
     "createdAt": "2026-03-19T23:55:26.783Z",
     "updatedAt": "2026-03-19T23:55:26.783Z"
+  },
+  {
+    "messageId": "xv6jv65bf",
+    "openid": "user_hntrawr0ocw",
+    "content": "你好",
+    "type": "user",
+    "id": 49,
+    "createdAt": "2026-03-20T00:02:39.010Z",
+    "updatedAt": "2026-03-20T00:02:39.010Z"
+  },
+  {
+    "messageId": "ycuwy4v5k",
+    "openid": "user_hntrawr0ocw",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 50,
+    "createdAt": "2026-03-20T00:02:39.011Z",
+    "updatedAt": "2026-03-20T00:02:39.011Z"
+  },
+  {
+    "messageId": "2camxy9jf",
+    "openid": "user_p7nduwc33p7",
+    "content": "你好",
+    "type": "user",
+    "id": 51,
+    "createdAt": "2026-03-20T00:12:52.710Z",
+    "updatedAt": "2026-03-20T00:12:52.710Z"
+  },
+  {
+    "messageId": "wa0ho9acs",
+    "openid": "user_p7nduwc33p7",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 52,
+    "createdAt": "2026-03-20T00:12:52.712Z",
+    "updatedAt": "2026-03-20T00:12:52.712Z"
   }
 ]

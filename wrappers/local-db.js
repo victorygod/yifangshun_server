@@ -105,7 +105,7 @@ class Model {
             }
           }
           
-          return itemValue === whereValue;
+          return itemValue == whereValue;  // 使用宽松比较，支持字符串和数字类型匹配
         });
       });
     }

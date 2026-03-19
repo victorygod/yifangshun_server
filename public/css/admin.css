@@ -428,6 +428,15 @@ body {
   background: #f8bbd9;
 }
 
+.action-btn-expand {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.action-btn-expand:hover {
+  background: #c8e6c9;
+}
+
 /* 分页 */
 .pagination {
   display: flex;
@@ -603,12 +612,7 @@ body {
   }
 }
 
-/* 展开按钮 */
-.col-expand {
-  width: 40px;
-  text-align: center;
-}
-
+/* 展开按钮（在操作列） */
 .expand-btn {
   background: #f0f0f0;
   border: none;
@@ -619,6 +623,7 @@ body {
   font-size: 10px;
   color: #666;
   transition: all 0.2s;
+  margin-right: 4px;
 }
 
 .expand-btn:hover {
@@ -645,7 +650,7 @@ body {
 }
 
 .detail-content {
-  padding: 16px 20px 16px 60px;
+  padding: 16px 20px 16px 40px;
 }
 
 .detail-header {
@@ -697,6 +702,24 @@ body {
 .detail-input:focus {
   border-color: #409eff;
   box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
+/* 新增明细行 */
+.detail-new-row {
+  background: #fffbe6 !important;
+}
+
+.detail-new-row:hover td {
+  background: #fffbe6 !important;
+}
+
+.detail-new-input {
+  border-color: #ffc53d;
+}
+
+.detail-new-input:focus {
+  border-color: #faad14;
+  box-shadow: 0 0 0 2px rgba(250, 173, 20, 0.2);
 }
 
 .btn-sm {
