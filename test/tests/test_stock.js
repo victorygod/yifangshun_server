@@ -397,6 +397,18 @@ async function runStockTests(users) {
     assertEquals(data2.code, 1, '返回错误');
   });
   
+  await test('PUT /api/admin/table/stock_out_orders/:id - 执药单变为已结算状态', async () => {
+    if (!testData.outOrderId) return 'skipped';
+    
+    // 通过管理后台接口修改状态为settled
+    const { response, data } = await adminRequest('PUT', `/api/admin/table/stock_out_orders/${testData.outOrderId}`, {
+      status: 'settled'
+    });
+    
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '返回成功');
+  });
+  
   await test('GET /api/stock/inventory - 验证出库后库存减少', async () => {
     const { response, data } = await adminRequest('GET', '/api/stock/inventory');
     

@@ -646,5 +646,113 @@
     "id": 72,
     "createdAt": "2026-03-20T02:49:51.764Z",
     "updatedAt": "2026-03-20T02:49:51.764Z"
+  },
+  {
+    "messageId": "l42owwih1",
+    "openid": "user_tux8ioh1eja",
+    "content": "你好",
+    "type": "user",
+    "id": 73,
+    "createdAt": "2026-03-20T03:00:04.725Z",
+    "updatedAt": "2026-03-20T03:00:04.725Z"
+  },
+  {
+    "messageId": "0vxumbq5z",
+    "openid": "user_tux8ioh1eja",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 74,
+    "createdAt": "2026-03-20T03:00:04.726Z",
+    "updatedAt": "2026-03-20T03:00:04.726Z"
+  },
+  {
+    "messageId": "yk0e8hb6e",
+    "openid": "user_flkxdsq8kh",
+    "content": "你好",
+    "type": "user",
+    "id": 75,
+    "createdAt": "2026-03-20T03:00:25.370Z",
+    "updatedAt": "2026-03-20T03:00:25.370Z"
+  },
+  {
+    "messageId": "3yvlyfm2l",
+    "openid": "user_flkxdsq8kh",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 76,
+    "createdAt": "2026-03-20T03:00:25.371Z",
+    "updatedAt": "2026-03-20T03:00:25.371Z"
+  },
+  {
+    "messageId": "cf5867aow",
+    "openid": "user_76qlckvjk",
+    "content": "你好",
+    "type": "user",
+    "id": 77,
+    "createdAt": "2026-03-20T03:00:41.961Z",
+    "updatedAt": "2026-03-20T03:00:41.961Z"
+  },
+  {
+    "messageId": "4akrtyqyl",
+    "openid": "user_76qlckvjk",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 78,
+    "createdAt": "2026-03-20T03:00:41.963Z",
+    "updatedAt": "2026-03-20T03:00:41.963Z"
+  },
+  {
+    "messageId": "spmfnoowl",
+    "openid": "user_1yffrcxxqco",
+    "content": "你好",
+    "type": "user",
+    "id": 79,
+    "createdAt": "2026-03-20T03:00:51.344Z",
+    "updatedAt": "2026-03-20T03:00:51.344Z"
+  },
+  {
+    "messageId": "04c15j6hc",
+    "openid": "user_1yffrcxxqco",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 80,
+    "createdAt": "2026-03-20T03:00:51.346Z",
+    "updatedAt": "2026-03-20T03:00:51.346Z"
+  },
+  {
+    "messageId": "aa0si26q9",
+    "openid": "user_h5wtjnvt83p",
+    "content": "你好",
+    "type": "user",
+    "id": 81,
+    "createdAt": "2026-03-20T03:03:40.162Z",
+    "updatedAt": "2026-03-20T03:03:40.162Z"
+  },
+  {
+    "messageId": "e2zt52rj2",
+    "openid": "user_h5wtjnvt83p",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 82,
+    "createdAt": "2026-03-20T03:03:40.163Z",
+    "updatedAt": "2026-03-20T03:03:40.163Z"
+  },
+  {
+    "messageId": "rvaz23pv2",
+    "openid": "user_kyd94qxma7",
+    "content": "你好",
+    "type": "user",
+    "id": 83,
+    "createdAt": "2026-03-20T03:05:03.324Z",
+    "updatedAt": "2026-03-20T03:05:03.324Z"
+  },
+  {
+    "messageId": "rdnoso6he",
+    "openid": "user_kyd94qxma7",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 84,
+    "createdAt": "2026-03-20T03:05:03.326Z",
+    "updatedAt": "2026-03-20T03:05:03.326Z"
   }
 ]

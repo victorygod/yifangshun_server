@@ -112,5 +112,71 @@
     "id": 11,
     "createdAt": "2026-03-20T02:49:51.849Z",
     "lastStockInDate": "2026-03-19"
+  },
+  {
+    "herbName": "测试药材_1773946803346",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T03:00:04.872Z",
+    "id": 12,
+    "createdAt": "2026-03-20T03:00:04.813Z",
+    "lastStockInDate": "2026-03-19"
+  },
+  {
+    "herbName": "测试药材_1773946823913",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T03:00:25.477Z",
+    "id": 13,
+    "createdAt": "2026-03-20T03:00:25.421Z",
+    "lastStockInDate": "2026-03-19"
+  },
+  {
+    "herbName": "测试药材_1773946840704",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T03:00:42.063Z",
+    "id": 14,
+    "createdAt": "2026-03-20T03:00:42.011Z",
+    "lastStockInDate": "2026-03-19"
+  },
+  {
+    "herbName": "测试药材_1773946849401",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T03:00:51.454Z",
+    "id": 15,
+    "createdAt": "2026-03-20T03:00:51.394Z",
+    "lastStockInDate": "2026-03-19"
+  },
+  {
+    "herbName": "测试药材_1773947018651",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T03:03:40.294Z",
+    "id": 16,
+    "createdAt": "2026-03-20T03:03:40.228Z",
+    "lastStockInDate": "2026-03-19"
+  },
+  {
+    "herbName": "测试药材_1773947102030",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-20T03:05:03.446Z",
+    "id": 17,
+    "createdAt": "2026-03-20T03:05:03.380Z",
+    "lastStockInDate": "2026-03-19"
   }
 ]

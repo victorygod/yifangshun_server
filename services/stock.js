@@ -84,7 +84,7 @@ async function getHerbs(options = {}) {
 
 // 创建药材
 async function createHerb(data) {
-  const { name, alias, unit = '克', minValue = 0, category } = data;
+  const { name, alias, unit = '克', minValue = 0, category, cabinetNo, salePrice, remark } = data;
   
   if (!name) {
     throw new Error('药材名称不能为空');
@@ -102,6 +102,9 @@ async function createHerb(data) {
     unit,
     minValue,
     category,
+    cabinetNo,
+    salePrice,
+    remark,
     isActive: true,
     createdAt: getNow(),
     updatedAt: getNow()
@@ -131,7 +134,7 @@ async function updateHerb(id, data) {
     throw new Error('药材不存在');
   }
   
-  const { name, alias, unit, minValue, category, isActive } = data;
+  const { name, alias, unit, minValue, category, isActive, cabinetNo, salePrice, remark } = data;
   
   // 如果修改名称，检查是否与其他药材重名
   if (name && name !== herb.name) {
@@ -148,6 +151,9 @@ async function updateHerb(id, data) {
   if (minValue !== undefined) updates.minValue = minValue;
   if (category !== undefined) updates.category = category;
   if (isActive !== undefined) updates.isActive = isActive;
+  if (cabinetNo !== undefined) updates.cabinetNo = cabinetNo;
+  if (salePrice !== undefined) updates.salePrice = salePrice;
+  if (remark !== undefined) updates.remark = remark;
   updates.updatedAt = getNow();
   
   await Herb.update(updates, { where: { id } });
