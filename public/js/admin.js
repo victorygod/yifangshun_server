@@ -222,6 +222,7 @@ let expandedRows = new Set(); // 展开的行ID集合
 let pendingFocusCol = null; // 待对焦的列
 let savingDetailRows = new Set(); // 正在保存中的明细行（防止重复保存）
 let manuallyModifiedTotals = new Set(); // 手动修改过总价的明细ID集合（纯前端状态，刷新即失）
+let tableData = []; // 当前表格数据（用于放大展示等功能）
 
 // ==================== 初始化 ====================
 
@@ -410,6 +411,9 @@ async function loadTableData() {
       rows = res.data.rows;
       pagination = res.data.pagination;
     }
+    
+    // 保存到全局变量（用于放大展示等功能）
+    tableData = rows;
     
     const columns = config.columns;
     
