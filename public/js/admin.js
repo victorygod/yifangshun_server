@@ -764,7 +764,7 @@ async function loadTableData() {
             return;
           case 'settleOrder':
             // 确认结算执药单
-            settleOutOrder(id);
+            settleOutOrder(orderId);
             return;
         }
       }
