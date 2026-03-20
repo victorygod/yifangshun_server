@@ -63,9 +63,15 @@ const User = sequelize.define("User", {
 
 // 预约模型
 const Booking = sequelize.define("Booking", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   bookingId: {
     type: DataTypes.STRING,
-    primaryKey: true,
+    allowNull: false,
+    unique: true,
   },
   openid: {
     type: DataTypes.STRING,
@@ -92,9 +98,15 @@ const Booking = sequelize.define("Booking", {
 
 // 聊天消息模型
 const ChatMessage = sequelize.define("ChatMessage", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
   messageId: {
     type: DataTypes.STRING,
-    primaryKey: true,
+    allowNull: false,
+    unique: true,
   },
   openid: {
     type: DataTypes.STRING,

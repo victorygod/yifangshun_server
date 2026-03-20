@@ -178,5 +178,15 @@
     "id": 18,
     "createdAt": "2026-03-20T20:19:36.282Z",
     "updatedAt": "2026-03-20T20:19:36.282Z"
+  },
+  {
+    "checkId": 19,
+    "herbName": "测试药材_1774009701527",
+    "systemQuantity": 500,
+    "actualQuantity": 480,
+    "difference": -20,
+    "id": 19,
+    "createdAt": "2026-03-20T20:28:22.757Z",
+    "updatedAt": "2026-03-20T20:28:22.757Z"
   }
 ]

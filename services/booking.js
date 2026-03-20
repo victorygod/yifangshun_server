@@ -171,7 +171,7 @@ async function cancelBooking(bookingId, openid) {
     throw new Error("缺少用户标识");
   }
 
-  const booking = await Booking.findByPk(bookingId);
+  const booking = await Booking.findOne({ where: { bookingId } });
 
   if (!booking) {
     throw new Error("预约不存在");

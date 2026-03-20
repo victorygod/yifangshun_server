@@ -862,5 +862,23 @@
     "id": 96,
     "createdAt": "2026-03-20T20:19:36.170Z",
     "updatedAt": "2026-03-20T20:19:36.170Z"
+  },
+  {
+    "messageId": "yks83xbcd",
+    "openid": "user_uoo4c2ay4cs",
+    "content": "你好",
+    "type": "user",
+    "id": 97,
+    "createdAt": "2026-03-20T20:28:22.652Z",
+    "updatedAt": "2026-03-20T20:28:22.652Z"
+  },
+  {
+    "messageId": "6j6oqzrba",
+    "openid": "user_uoo4c2ay4cs",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 98,
+    "createdAt": "2026-03-20T20:28:22.654Z",
+    "updatedAt": "2026-03-20T20:28:22.654Z"
   }
 ]

@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "bookingId": "gotvbz0ag",
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "date": "2026-03-21",
+    "status": "confirmed",
+    "time": "14:00",
+    "id": 1,
+    "createdAt": "2026-03-20T20:29:08.482Z",
+    "updatedAt": "2026-03-20T20:29:08.482Z"
+  }
+]

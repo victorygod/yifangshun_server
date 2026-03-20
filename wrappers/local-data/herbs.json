@@ -38,5 +38,31 @@
     "updatedAt": "2026-03-20T20:19:59.734Z",
     "id": 3,
     "stock": 500
+  },
+  {
+    "name": "测试药材_1774009701527",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "cabinetNo": "B-01",
+    "salePrice": 0.06,
+    "remark": "测试备注",
+    "isActive": true,
+    "createdAt": "2026-03-20T20:28:22.717Z",
+    "updatedAt": "2026-03-20T20:28:22.783Z",
+    "id": 4,
+    "stock": 500
+  },
+  {
+    "name": "测试药材_1773946017030",
+    "alias": "",
+    "unit": "克",
+    "minValue": 0,
+    "salePrice": 0.06,
+    "stock": 0,
+    "isActive": true,
+    "createdAt": "2026-03-20T20:28:22.764Z",
+    "updatedAt": "2026-03-20T20:28:22.770Z",
+    "id": 5
   }
 ]

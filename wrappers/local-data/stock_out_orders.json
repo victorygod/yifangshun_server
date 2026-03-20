@@ -138,5 +138,15 @@
     "createdAt": "2026-03-20T20:19:36.271Z",
     "updatedAt": "2026-03-20T20:19:36.271Z",
     "id": 27
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774009702733",
+    "prescriptionTime": "2026-03-20T12:28:22.746Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-20T20:28:22.746Z",
+    "updatedAt": "2026-03-20T20:28:22.746Z",
+    "id": 29
   }
 ]
