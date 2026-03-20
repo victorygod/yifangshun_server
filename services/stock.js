@@ -129,7 +129,7 @@ async function createHerb(data) {
 
 // 更新药材
 async function updateHerb(id, data) {
-  const herb = await Herb.findByPk(id);
+  const herb = await Herb.findOne({ where: { id } });
   if (!herb) {
     throw new Error('药材不存在');
   }
@@ -169,7 +169,7 @@ async function updateHerb(id, data) {
     await StockInventory.update(invUpdates, { where: { herbName: herb.name } });
   }
   
-  const updated = await Herb.findByPk(id);
+  const updated = await Herb.findOne({ where: { id } });
   return {
     code: 0,
     message: '更新成功',
@@ -179,7 +179,7 @@ async function updateHerb(id, data) {
 
 // 删除药材
 async function deleteHerb(id) {
-  const herb = await Herb.findByPk(id);
+  const herb = await Herb.findOne({ where: { id } });
   if (!herb) {
     throw new Error('药材不存在');
   }
@@ -250,7 +250,7 @@ async function getInOrders(options = {}) {
 
 // 获取入库单详情
 async function getInOrderById(id) {
-  const order = await StockInOrder.findByPk(id);
+  const order = await StockInOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('入库单不存在');
   }
@@ -318,7 +318,7 @@ async function createInOrder(data) {
 
 // 更新入库单
 async function updateInOrder(id, data) {
-  const order = await StockInOrder.findByPk(id);
+  const order = await StockInOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('入库单不存在');
   }
@@ -377,7 +377,7 @@ async function updateInOrder(id, data) {
 
 // 删除入库单
 async function deleteInOrder(id) {
-  const order = await StockInOrder.findByPk(id);
+  const order = await StockInOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('入库单不存在');
   }
@@ -400,7 +400,7 @@ async function deleteInOrder(id) {
 
 // 确认入库单
 async function confirmInOrder(id) {
-  const order = await StockInOrder.findByPk(id);
+  const order = await StockInOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('入库单不存在');
   }
@@ -421,7 +421,7 @@ async function confirmInOrder(id) {
 
 // 执行入库（更新库存）
 async function executeStockIn(id, operator = 'system') {
-  const order = await StockInOrder.findByPk(id);
+  const order = await StockInOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('入库单不存在');
   }
@@ -511,7 +511,7 @@ async function executeStockIn(id, operator = 'system') {
 
 // 回退入库（从库存中扣除）
 async function revertStockIn(id, operator = 'system') {
-  const order = await StockInOrder.findByPk(id);
+  const order = await StockInOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('入库单不存在');
   }
@@ -557,7 +557,7 @@ async function revertStockIn(id, operator = 'system') {
 
 // 执行执药（扣减库存）
 async function executeStockOut(id, operator = 'system') {
-  const order = await StockOutOrder.findByPk(id);
+  const order = await StockOutOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('执药单不存在');
   }
@@ -603,7 +603,7 @@ async function executeStockOut(id, operator = 'system') {
 
 // 回滚执药（恢复库存）
 async function revertStockOut(id, operator = 'system') {
-  const order = await StockOutOrder.findByPk(id);
+  const order = await StockOutOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('执药单不存在');
   }
@@ -759,7 +759,7 @@ async function createOutOrder(data, operator = 'system') {
 
 // 获取出库单详情
 async function getOutOrderById(id) {
-  const order = await StockOutOrder.findByPk(id);
+  const order = await StockOutOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('出库单不存在');
   }
@@ -774,7 +774,7 @@ async function getOutOrderById(id) {
 
 // 删除出库单
 async function deleteOutOrder(id) {
-  const order = await StockOutOrder.findByPk(id);
+  const order = await StockOutOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('执药单不存在');
   }
@@ -793,7 +793,7 @@ async function deleteOutOrder(id) {
 
 // 撤销执药（回滚库存）
 async function revertOutOrder(id, operator = 'system') {
-  const order = await StockOutOrder.findByPk(id);
+  const order = await StockOutOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('执药单不存在');
   }
@@ -829,7 +829,7 @@ async function revertOutOrder(id, operator = 'system') {
 
 // 结算执药单
 async function settleOutOrder(id) {
-  const order = await StockOutOrder.findByPk(id);
+  const order = await StockOutOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('执药单不存在');
   }
@@ -1048,7 +1048,7 @@ async function createCheckOrder(data) {
 
 // 获取盘点单详情
 async function getCheckOrderById(id) {
-  const order = await StockCheckOrder.findByPk(id);
+  const order = await StockCheckOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('盘点单不存在');
   }
@@ -1063,7 +1063,7 @@ async function getCheckOrderById(id) {
 
 // 确认盘点（调整库存）
 async function confirmCheckOrder(id, operator = 'system') {
-  const order = await StockCheckOrder.findByPk(id);
+  const order = await StockCheckOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('盘点单不存在');
   }

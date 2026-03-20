@@ -659,7 +659,7 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
     }
     
     // 检查记录是否存在
-    const record = await model.findByPk(id);
+    const record = await model.findOne({ where: { id } });
     if (!record) {
       return res.status(404).json({ code: 1, message: "记录不存在" });
     }
@@ -672,7 +672,7 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
     await model.update(updates, { where: { id } });
     
     // 返回更新后的记录
-    const updatedRecord = await model.findByPk(id);
+    const updatedRecord = await model.findOne({ where: { id } });
     
     // 如果是入库单，检查状态变化
     if (name === 'stock_in_orders') {
@@ -718,7 +718,7 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
     // 如果是入库明细，检查入库单状态
     if (name === 'stock_in_items' && record.orderId) {
       // 检查入库单是否已入库
-      const order = await StockInOrder.findByPk(record.orderId);
+      const order = await StockInOrder.findOne({ where: { id: record.orderId } });
       if (order && order.status === 'stocked') {
         return res.status(400).json({ code: 1, message: "已入库的单据明细不能修改" });
       }
@@ -747,7 +747,7 @@ app.delete("/api/admin/table/:name/:id", requireRole(['super_admin'], true), asy
     }
     
     // 检查记录是否存在
-    const record = await model.findByPk(id);
+    const record = await model.findOne({ where: { id } });
     if (!record) {
       return res.status(404).json({ code: 1, message: "记录不存在" });
     }

@@ -898,5 +898,23 @@
     "id": 100,
     "createdAt": "2026-03-20T20:38:18.611Z",
     "updatedAt": "2026-03-20T20:38:18.611Z"
+  },
+  {
+    "messageId": "903106wat",
+    "openid": "user_9irfyc8xnlh",
+    "content": "你好",
+    "type": "user",
+    "id": 101,
+    "createdAt": "2026-03-20T20:51:24.223Z",
+    "updatedAt": "2026-03-20T20:51:24.223Z"
+  },
+  {
+    "messageId": "ctjw1gm61",
+    "openid": "user_9irfyc8xnlh",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 102,
+    "createdAt": "2026-03-20T20:51:24.225Z",
+    "updatedAt": "2026-03-20T20:51:24.225Z"
   }
 ]

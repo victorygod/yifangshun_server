@@ -1748,5 +1748,125 @@
     "createdAt": "2026-03-20T20:38:18.745Z",
     "id": 175,
     "updatedAt": "2026-03-20T20:38:18.745Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260320-030",
+    "herbName": "测试药材_1774011082147",
+    "quantity": 600,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.295Z",
+    "id": 176,
+    "updatedAt": "2026-03-20T20:51:24.295Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-TEST_PRESCRIPTION_1774011084308",
+    "herbName": "测试药材_1774011082147",
+    "quantity": 100,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.306Z",
+    "id": 177,
+    "updatedAt": "2026-03-20T20:51:24.306Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-DUPLICATE_TEST_1774011084311",
+    "herbName": "测试药材_1774011082147",
+    "quantity": 100,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.309Z",
+    "id": 178,
+    "updatedAt": "2026-03-20T20:51:24.309Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-32",
+    "herbName": "测试药材_1774011082147",
+    "quantity": -100,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.313Z",
+    "id": 179,
+    "updatedAt": "2026-03-20T20:51:24.313Z"
+  },
+  {
+    "action": "check",
+    "orderNo": "PD-20260320-350",
+    "herbName": "测试药材_1774011082147",
+    "quantity": -20,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.320Z",
+    "id": 180,
+    "updatedAt": "2026-03-20T20:51:24.320Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260320-713",
+    "herbName": "测试药材_1773946803346",
+    "quantity": 600,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.328Z",
+    "id": 181,
+    "updatedAt": "2026-03-20T20:51:24.328Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260320-713",
+    "herbName": "测试药材_1774011082147",
+    "quantity": 200,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.330Z",
+    "id": 182,
+    "updatedAt": "2026-03-20T20:51:24.330Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260320-713",
+    "herbName": "测试药材_1773946803346",
+    "quantity": -600,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.334Z",
+    "id": 183,
+    "updatedAt": "2026-03-20T20:51:24.334Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260320-713",
+    "herbName": "测试药材_1774011082147",
+    "quantity": -200,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.336Z",
+    "id": 184,
+    "updatedAt": "2026-03-20T20:51:24.336Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-STATUS_TEST_1774011084343",
+    "herbName": "测试药材_1774011082147",
+    "quantity": 50,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.340Z",
+    "id": 185,
+    "updatedAt": "2026-03-20T20:51:24.340Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-34",
+    "herbName": "测试药材_1774011082147",
+    "quantity": -50,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.345Z",
+    "id": 186,
+    "updatedAt": "2026-03-20T20:51:24.345Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-34",
+    "herbName": "测试药材_1774011082147",
+    "quantity": 50,
+    "operator": "system",
+    "createdAt": "2026-03-20T20:51:24.349Z",
+    "id": 187,
+    "updatedAt": "2026-03-20T20:51:24.349Z"
   }
 ]
