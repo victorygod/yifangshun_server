@@ -839,8 +839,13 @@ async function settleOutOrder(id) {
     throw new Error('只有待执药状态可以结算');
   }
   
+  // 获取明细 - 使用宽松比较匹配orderId（可能是字符串或数字）
+  const allItems = await StockOutItem.findAll();
+  const items = allItems.filter(item => item.orderId == id);
+  
+  console.log(`[settleOutOrder] 执药单ID: ${id}, 找到明细: ${items.length} 条`);
+  
   // 检查库存并扣减
-  const items = await StockOutItem.findAll({ where: { orderId: id } });
   for (const item of items) {
     const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
     if (!inventory || inventory.quantity < item.quantity) {
@@ -902,6 +907,69 @@ async function settleOutOrder(id) {
   return {
     code: 0,
     message: '结算成功',
+    data: updated
+  };
+}
+
+// 撤销已结算的执药单
+async function revokeSettledOrder(id, operator = 'system') {
+  const order = await StockOutOrder.findOne({ where: { id } });
+  if (!order) {
+    throw new Error('执药单不存在');
+  }
+  
+  if (order.status !== 'settled') {
+    throw new Error('只有已结算状态可以撤销');
+  }
+  
+  // 恢复库存
+  await revertStockOut(id, operator);
+  
+  // 更新执药单状态为待执药
+  await StockOutOrder.update({ status: 'pending', updatedAt: getNow() }, { where: { id } });
+  
+  // 更新对应处方状态为已审核
+  if (order.prescriptionId) {
+    try {
+      const prescription = await Prescription.findOne({
+        where: { prescriptionId: order.prescriptionId, status: '已结算' }
+      });
+      if (prescription) {
+        const oldData = {
+          openid: prescription.openid,
+          data: prescription.data,
+          thumbnail: prescription.thumbnail,
+          reviewer: prescription.reviewer,
+          reviewDate: prescription.reviewDate,
+          prescriptionDate: prescription.prescriptionDate,
+          createTime: prescription.createTime
+        };
+        await prescription.destroy();
+        
+        await Prescription.create({
+          prescriptionId: order.prescriptionId,
+          openid: oldData.openid,
+          status: '已审核',
+          data: oldData.data,
+          thumbnail: oldData.thumbnail,
+          reviewer: oldData.reviewer,
+          reviewDate: oldData.reviewDate,
+          modifyDate: new Date(),
+          prescriptionDate: oldData.prescriptionDate,
+          createTime: oldData.createTime,
+          updatedAt: getNow()
+        });
+        console.log(`[revokeSettledOrder] 处方状态回退为已审核: ${order.prescriptionId}`);
+      }
+    } catch (error) {
+      console.error('[revokeSettledOrder] 更新处方状态失败:', error.message);
+    }
+  }
+  
+  const updated = await getOutOrderById(id);
+  return {
+    code: 0,
+    message: '撤销成功',
     data: updated
   };
 }
@@ -1170,6 +1238,7 @@ module.exports = {
   deleteOutOrder,
   revertOutOrder,
   settleOutOrder,
+  revokeSettledOrder,
   executeStockOut,
   revertStockOut,
   

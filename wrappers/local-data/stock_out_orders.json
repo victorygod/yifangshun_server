@@ -131,10 +131,11 @@
     "prescriptionId": "DUPLICATE_TEST_1774024872894",
     "prescriptionTime": "2026-03-20T16:41:12.888Z",
     "pharmacist": "测试药师",
-    "status": "pending",
-    "totalAmount": 6,
+    "status": "settled",
+    "totalAmount": 12,
     "createdAt": "2026-03-21T00:41:12.888Z",
-    "updatedAt": "2026-03-21T00:41:12.888Z",
-    "id": 26
+    "updatedAt": "2026-03-21T01:03:17.512Z",
+    "id": 26,
+    "remark": ""
   }
 ]

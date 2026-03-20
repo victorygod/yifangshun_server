@@ -3798,5 +3798,25 @@
     "createdAt": "2026-03-21T00:41:12.939Z",
     "id": 380,
     "updatedAt": "2026-03-21T00:41:12.939Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-26",
+    "herbName": "测试药材_1774024871147",
+    "quantity": 100,
+    "operator": "system",
+    "createdAt": "2026-03-21T01:02:05.404Z",
+    "id": 381,
+    "updatedAt": "2026-03-21T01:02:05.404Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-26",
+    "herbName": "测试药材_1774024871147",
+    "quantity": 200,
+    "operator": "system",
+    "createdAt": "2026-03-21T01:03:07.214Z",
+    "id": 382,
+    "updatedAt": "2026-03-21T01:03:07.214Z"
   }
 ]

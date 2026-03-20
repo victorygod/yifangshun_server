@@ -434,10 +434,10 @@
   {
     "herbName": "测试药材_1774024871147",
     "herbAlias": "更新后的别名",
-    "quantity": 480,
+    "quantity": 380,
     "avgPrice": 0.05705882352941176,
     "minValue": 500,
-    "updatedAt": "2026-03-21T00:41:12.939Z",
+    "updatedAt": "2026-03-21T01:03:17.511Z",
     "id": 41,
     "createdAt": "2026-03-21T00:41:12.859Z",
     "lastStockInDate": "2026-03-20"

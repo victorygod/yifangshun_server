@@ -188,11 +188,12 @@
   {
     "orderId": 26,
     "herbName": "测试药材_1774024871147",
-    "quantity": 100,
+    "quantity": 200,
     "unitPrice": 0.06,
-    "totalPrice": 6,
+    "totalPrice": 12,
     "createdAt": "2026-03-21T00:41:12.889Z",
     "id": 63,
-    "updatedAt": "2026-03-21T00:41:12.889Z"
+    "updatedAt": "2026-03-21T01:02:57.299Z",
+    "cabinetNo": "B-01"
   }
 ]
