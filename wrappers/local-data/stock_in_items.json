@@ -254,5 +254,68 @@
     "id": 41,
     "createdAt": "2026-03-21T01:39:27.599Z",
     "updatedAt": "2026-03-21T01:39:27.599Z"
+  },
+  {
+    "orderId": "23",
+    "herbName": "测试药材_1774028937052",
+    "quantity": 600,
+    "unitPrice": 0.06,
+    "totalPrice": 36,
+    "id": 42,
+    "createdAt": "2026-03-21T01:48:58.320Z",
+    "updatedAt": "2026-03-21T01:48:58.320Z"
+  },
+  {
+    "orderId": 24,
+    "herbName": "测试药材_1774028937052",
+    "quantity": 200,
+    "unitPrice": 0.05,
+    "totalPrice": 10,
+    "remark": "测试回滚",
+    "id": 43,
+    "createdAt": "2026-03-21T01:48:58.373Z",
+    "updatedAt": "2026-03-21T01:48:58.373Z"
+  },
+  {
+    "orderId": "25",
+    "herbName": "测试药材_1774029033300",
+    "quantity": 600,
+    "unitPrice": 0.06,
+    "totalPrice": 36,
+    "id": 44,
+    "createdAt": "2026-03-21T01:50:35.312Z",
+    "updatedAt": "2026-03-21T01:50:35.312Z"
+  },
+  {
+    "orderId": "26",
+    "herbName": "测试药材_1774029035683",
+    "quantity": 610,
+    "unitPrice": 0.06,
+    "totalPrice": 36.6,
+    "id": 45,
+    "createdAt": "2026-03-21T01:50:37.633Z",
+    "updatedAt": "2026-03-21T01:54:02.389Z",
+    "supplierName": ""
+  },
+  {
+    "orderId": "27",
+    "herbName": "测试药材_1774029856928",
+    "quantity": 600,
+    "unitPrice": 0.06,
+    "totalPrice": 36,
+    "id": 46,
+    "createdAt": "2026-03-21T02:04:19.028Z",
+    "updatedAt": "2026-03-21T02:04:19.028Z"
+  },
+  {
+    "orderId": "28",
+    "herbName": "测试药材_1774029859158",
+    "quantity": 620,
+    "unitPrice": 0.06,
+    "totalPrice": 37.2,
+    "id": 47,
+    "createdAt": "2026-03-21T02:04:20.684Z",
+    "updatedAt": "2026-03-21T02:05:32.048Z",
+    "supplierName": ""
   }
 ]

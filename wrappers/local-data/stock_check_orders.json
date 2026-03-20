@@ -340,5 +340,50 @@
     "createdAt": "2026-03-21T01:39:27.592Z",
     "id": 38,
     "updatedAt": "2026-03-21T01:39:27.596Z"
+  },
+  {
+    "checkNo": "PD-20260320-574",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T01:48:58.365Z",
+    "id": 39,
+    "updatedAt": "2026-03-21T01:48:58.370Z"
+  },
+  {
+    "checkNo": "PD-20260320-299",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T01:50:35.353Z",
+    "id": 40,
+    "updatedAt": "2026-03-21T01:50:35.358Z"
+  },
+  {
+    "checkNo": "PD-20260320-669",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T01:50:37.677Z",
+    "id": 41,
+    "updatedAt": "2026-03-21T01:50:37.681Z"
+  },
+  {
+    "checkNo": "PD-20260320-168",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T02:04:19.067Z",
+    "id": 42,
+    "updatedAt": "2026-03-21T02:04:19.072Z"
+  },
+  {
+    "checkNo": "PD-20260320-554",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T02:04:20.719Z",
+    "id": 43,
+    "updatedAt": "2026-03-21T02:04:20.724Z"
   }
 ]

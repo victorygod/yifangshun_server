@@ -517,6 +517,26 @@ async function runStockTests(users) {
     assertEquals(herb.quantity, 680, '库存数量应为680');
   });
   
+  await test('PUT /api/admin/table/stock_in_orders/:id - 已入库单变为草稿状态应回滚库存', async () => {
+    if (!rollbackInOrderId) return 'skipped';
+    
+    // 通过管理后台接口修改状态为draft
+    const { response, data } = await adminRequest('PUT', `/api/admin/table/stock_in_orders/${rollbackInOrderId}`, {
+      status: 'draft'
+    });
+    
+    assertEquals(response.statusCode, 200, '请求成功');
+  });
+  
+  await test('GET /api/stock/inventory - 验证状态回滚后库存减少', async () => {
+    const { response, data } = await adminRequest('GET', '/api/stock/inventory');
+    
+    const herb = data.data.find(h => h.herbName === testData.herbName);
+    assert(herb, '找到测试药材');
+    // 680 - 200 = 480
+    assertEquals(herb.quantity, 480, '库存数量应恢复为480');
+  });
+  
   // 清理回滚测试数据
   if (rollbackInOrderId) {
     await adminRequest('DELETE', `/api/stock/in/orders/${rollbackInOrderId}`);

@@ -469,9 +469,9 @@
     "remark": "测试备注",
     "isActive": true,
     "createdAt": "2026-03-21T01:35:13.343Z",
-    "updatedAt": "2026-03-21T01:44:07.119Z",
+    "updatedAt": "2026-03-21T01:44:29.396Z",
     "id": 36,
-    "stock": 690
+    "stock": 800
   },
   {
     "name": "测试药材_1774028366334",
@@ -486,5 +486,75 @@
     "updatedAt": "2026-03-21T01:39:27.620Z",
     "id": 37,
     "stock": 800
+  },
+  {
+    "name": "测试药材_1774028937052",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "cabinetNo": "B-01",
+    "salePrice": 0.06,
+    "remark": "测试备注",
+    "isActive": true,
+    "createdAt": "2026-03-21T01:48:58.306Z",
+    "updatedAt": "2026-03-21T01:48:58.400Z",
+    "id": 38,
+    "stock": 700
+  },
+  {
+    "name": "测试药材_1774029033300",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "cabinetNo": "B-01",
+    "salePrice": 0.06,
+    "remark": "测试备注",
+    "isActive": true,
+    "createdAt": "2026-03-21T01:50:35.297Z",
+    "updatedAt": "2026-03-21T01:50:35.391Z",
+    "id": 39,
+    "stock": 500
+  },
+  {
+    "name": "测试药材_1774029035683",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "cabinetNo": "B-01",
+    "salePrice": 0.06,
+    "remark": "测试备注",
+    "isActive": true,
+    "createdAt": "2026-03-21T01:50:37.608Z",
+    "updatedAt": "2026-03-21T01:55:17.658Z",
+    "id": 40,
+    "stock": 500
+  },
+  {
+    "name": "测试药材_1774029856928",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "cabinetNo": "B-01",
+    "salePrice": 0.06,
+    "remark": "测试备注",
+    "isActive": true,
+    "createdAt": "2026-03-21T02:04:19.015Z",
+    "updatedAt": "2026-03-21T02:04:19.104Z",
+    "id": 41,
+    "stock": 500
+  },
+  {
+    "name": "测试药材_1774029859158",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "cabinetNo": "B-01",
+    "salePrice": 0.06,
+    "remark": "测试备注",
+    "isActive": true,
+    "createdAt": "2026-03-21T02:04:20.671Z",
+    "updatedAt": "2026-03-21T02:05:41.005Z",
+    "id": 42,
+    "stock": 620
   }
 ]

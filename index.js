@@ -689,13 +689,14 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
     
     // 如果是入库单，检查状态
     if (name === 'stock_in_orders') {
-      // 已入库状态禁止编辑
+      // 已入库状态：只允许修改状态字段（用于回滚），忽略其他字段
       if (record.status === 'stocked') {
-        return res.status(400).json({ code: 1, message: "已入库单据不可编辑" });
-      }
-      // 禁止直接修改status字段（应使用专用接口）
-      if (updates.status) {
-        return res.status(400).json({ code: 1, message: "入库单状态不能直接修改，请使用确认入库功能" });
+        // 只保留status字段的更新
+        const newStatus = updates.status;
+        Object.keys(updates).forEach(key => delete updates[key]);
+        if (newStatus) {
+          updates.status = newStatus;
+        }
       }
     }
     
@@ -739,6 +740,26 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
     
     // 返回更新后的记录
     const updatedRecord = await model.findOne({ where: { id } });
+    
+    // 入库单状态变化时同步库存
+    if (name === 'stock_in_orders') {
+      // 状态变为"已入库"，增加库存
+      if (record.status !== 'stocked' && updates.status === 'stocked') {
+        try {
+          await stock.executeStockIn(id);
+        } catch (stockErr) {
+          console.error('自动入库失败:', stockErr);
+        }
+      }
+      // 状态从"已入库"变为其他状态，回退库存
+      if (record.status === 'stocked' && updates.status && updates.status !== 'stocked') {
+        try {
+          await stock.revertStockIn(id);
+        } catch (stockErr) {
+          console.error('回退库存失败:', stockErr);
+        }
+      }
+    }
     
     // 更新入库单总价
     if (name === 'stock_in_items' && record.orderId) {

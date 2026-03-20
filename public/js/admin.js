@@ -124,7 +124,7 @@ const tableConfigs = {
       { key: 'prescriptionId', label: '处方ID', readonly: true },
       { key: 'pharmacist', label: '药师', editable: true },
       { key: 'reviewer', label: '审核人', readonly: true },
-      { key: 'status', label: '状态', type: 'select', options: [
+      { key: 'status', label: '状态', type: 'select', readonly: true, options: [
         { value: 'pending', label: '待执药', badge: 'badge-pending' },
         { value: 'settled', label: '已结算', badge: 'badge-stocked' }
       ]},

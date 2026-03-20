@@ -456,10 +456,10 @@
   {
     "herbName": "测试药材_1774028112024",
     "herbAlias": "更新后的别名",
-    "quantity": 570,
+    "quantity": 680,
     "avgPrice": 0.05705882352941176,
     "minValue": 500,
-    "updatedAt": "2026-03-21T01:44:07.119Z",
+    "updatedAt": "2026-03-21T01:44:29.397Z",
     "id": 43,
     "createdAt": "2026-03-21T01:35:13.344Z",
     "lastStockInDate": "2026-03-20"
@@ -473,6 +473,61 @@
     "updatedAt": "2026-03-21T01:39:27.620Z",
     "id": 44,
     "createdAt": "2026-03-21T01:39:27.550Z",
+    "lastStockInDate": "2026-03-20"
+  },
+  {
+    "herbName": "测试药材_1774028937052",
+    "herbAlias": "更新后的别名",
+    "quantity": 680,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-21T01:48:58.401Z",
+    "id": 45,
+    "createdAt": "2026-03-21T01:48:58.306Z",
+    "lastStockInDate": "2026-03-20"
+  },
+  {
+    "herbName": "测试药材_1774029033300",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-21T01:50:35.391Z",
+    "id": 46,
+    "createdAt": "2026-03-21T01:50:35.298Z",
+    "lastStockInDate": "2026-03-20"
+  },
+  {
+    "herbName": "测试药材_1774029035683",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-21T01:55:17.659Z",
+    "id": 47,
+    "createdAt": "2026-03-21T01:50:37.609Z",
+    "lastStockInDate": "2026-03-20"
+  },
+  {
+    "herbName": "测试药材_1774029856928",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-21T02:04:19.105Z",
+    "id": 48,
+    "createdAt": "2026-03-21T02:04:19.015Z",
+    "lastStockInDate": "2026-03-20"
+  },
+  {
+    "herbName": "测试药材_1774029859158",
+    "herbAlias": "更新后的别名",
+    "quantity": 620,
+    "avgPrice": 0.05999999999999999,
+    "minValue": 500,
+    "updatedAt": "2026-03-21T02:05:41.006Z",
+    "id": 49,
+    "createdAt": "2026-03-21T02:04:20.671Z",
     "lastStockInDate": "2026-03-20"
   }
 ]
