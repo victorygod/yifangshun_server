@@ -687,6 +687,18 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
       return res.status(400).json({ code: 1, message: "已结算处方不可编辑" });
     }
     
+    // 如果是入库单，检查状态
+    if (name === 'stock_in_orders') {
+      // 已入库状态禁止编辑
+      if (record.status === 'stocked') {
+        return res.status(400).json({ code: 1, message: "已入库单据不可编辑" });
+      }
+      // 禁止直接修改status字段（应使用专用接口）
+      if (updates.status) {
+        return res.status(400).json({ code: 1, message: "入库单状态不能直接修改，请使用确认入库功能" });
+      }
+    }
+    
     // 如果是执药单，检查状态
     if (name === 'stock_out_orders') {
       // 已结算状态禁止编辑
@@ -706,65 +718,34 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
     // 执行更新
     await model.update(updates, { where: { id } });
     
-    // 返回更新后的记录
-    const updatedRecord = await model.findOne({ where: { id } });
-    
-    // 如果是入库单，检查状态变化
-    if (name === 'stock_in_orders') {
-      // 如果状态变为"已入库"，自动更新库存
-      if (record.status !== 'stocked' && updates.status === 'stocked') {
-        try {
-          await stock.executeStockIn(id);
-        } catch (stockErr) {
-          console.error('自动入库失败:', stockErr);
-          // 不阻断响应，但记录错误
-        }
-      }
-      // 如果状态从"已入库"变为其他状态，回退库存
-      if (record.status === 'stocked' && updates.status && updates.status !== 'stocked') {
-        try {
-          await stock.revertStockIn(id);
-        } catch (stockErr) {
-          console.error('回退库存失败:', stockErr);
-        }
-      }
-    }
-    
-    // 如果是执药单，检查状态变化
-    if (name === 'stock_out_orders') {
-      // 如果状态变为"已结算"，扣减库存
-      if (record.status !== 'settled' && updates.status === 'settled') {
-        try {
-          await stock.executeStockOut(id);
-        } catch (stockErr) {
-          console.error('结算扣库存失败:', stockErr);
-        }
-      }
-      // 如果状态从"已结算"变为其他状态，回滚库存
-      if (record.status === 'settled' && updates.status && updates.status !== 'settled') {
-        try {
-          await stock.revertStockOut(id);
-        } catch (stockErr) {
-          console.error('回滚库存失败:', stockErr);
-        }
-      }
-    }
-    
-    // 如果是入库明细，检查入库单状态
+    // 如果是入库明细，检查入库单状态（必须在更新之前检查）
     if (name === 'stock_in_items' && record.orderId) {
-      // 检查入库单是否已入库
       const order = await StockInOrder.findOne({ where: { id: record.orderId } });
       if (order && order.status === 'stocked') {
         return res.status(400).json({ code: 1, message: "已入库的单据明细不能修改" });
       }
-      await updateOrderTotalAmount('stock_in_orders', 'stock_in_items', record.orderId);
     }
-    // 如果是执药明细，检查执药单状态
+    
+    // 如果是执药明细，检查执药单状态（必须在更新之前检查）
     if (name === 'stock_out_items' && record.orderId) {
       const order = await StockOutOrder.findOne({ where: { id: record.orderId } });
       if (order && order.status === 'settled') {
         return res.status(400).json({ code: 1, message: "已结算执药单明细不能修改" });
       }
+    }
+    
+    // 执行更新
+    await model.update(updates, { where: { id } });
+    
+    // 返回更新后的记录
+    const updatedRecord = await model.findOne({ where: { id } });
+    
+    // 更新入库单总价
+    if (name === 'stock_in_items' && record.orderId) {
+      await updateOrderTotalAmount('stock_in_orders', 'stock_in_items', record.orderId);
+    }
+    // 更新执药单总价
+    if (name === 'stock_out_items' && record.orderId) {
       await updateOrderTotalAmount('stock_out_orders', 'stock_out_items', record.orderId);
     }
     
@@ -789,6 +770,14 @@ app.delete("/api/admin/table/:name/:id", requireRole(['super_admin'], true), asy
     const record = await model.findOne({ where: { id } });
     if (!record) {
       return res.status(404).json({ code: 1, message: "记录不存在" });
+    }
+    
+    // 已入库/已结算状态的单据不能删除
+    if (name === 'stock_in_orders' && record.status === 'stocked') {
+      return res.status(400).json({ code: 1, message: "已入库单据不能删除" });
+    }
+    if (name === 'stock_out_orders' && record.status === 'settled') {
+      return res.status(400).json({ code: 1, message: "已结算执药单不能删除，请使用撤销功能" });
     }
     
     // 级联删除：删除入库单时同步删除入库明细

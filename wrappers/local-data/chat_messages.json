@@ -1142,5 +1142,21 @@
     "id": 130,
     "createdAt": "2026-03-21T00:41:12.812Z",
     "updatedAt": "2026-03-21T00:41:12.812Z"
+  },
+  {
+    "openid": "user_ekj3wbctold",
+    "content": "你好",
+    "type": "user",
+    "id": 131,
+    "createdAt": "2026-03-21T01:24:20.366Z",
+    "updatedAt": "2026-03-21T01:24:20.366Z"
+  },
+  {
+    "openid": "user_ekj3wbctold",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 132,
+    "createdAt": "2026-03-21T01:24:20.366Z",
+    "updatedAt": "2026-03-21T01:24:20.366Z"
   }
 ]

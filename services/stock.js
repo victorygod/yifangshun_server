@@ -847,17 +847,31 @@ async function settleOutOrder(id) {
   
   // 检查库存并扣减
   for (const item of items) {
+    // 检查库存统计表
     const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
     if (!inventory || inventory.quantity < item.quantity) {
       throw new Error(`药材 ${item.herbName} 库存不足`);
     }
     
-    // 扣减库存
+    // 更新药材表的库存
+    let herb = await Herb.findOne({ where: { name: item.herbName } });
+    if (herb) {
+      const oldStock = herb.stock || 0;
+      const newStock = Math.max(0, oldStock - item.quantity);
+      await Herb.update({ stock: newStock, updatedAt: getNow() }, { where: { id: herb.id } });
+      console.log(`[settleOutOrder] 扣减药材库存: ${item.herbName}, 旧库存: ${oldStock}, 新库存: ${newStock}`);
+    }
+    
+    // 更新库存统计表
     const newQuantity = inventory.quantity - item.quantity;
     await StockInventory.update({ 
       quantity: newQuantity, 
       updatedAt: getNow() 
     }, { where: { id: inventory.id } });
+    console.log(`[settleOutOrder] 扣减库存统计: ${item.herbName}, 旧数量: ${inventory.quantity}, 新数量: ${newQuantity}`);
+    
+    // 添加日志
+    await addStockLog('stock_out', `ZD-${id}`, item.herbName, -item.quantity, 'admin');
   }
   
   // 更新状态

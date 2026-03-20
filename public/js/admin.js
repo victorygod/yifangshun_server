@@ -538,31 +538,167 @@ async function loadTableData() {
           
                 
           
-                                if (isEditing) {
+                                                                if (isEditing) {
           
                 
           
-                                  // 编辑模式：显示保存按钮
+                                
           
                 
           
-                                  html += `<button class="action-btn action-btn-save" data-action="save" data-id="${row.id}">保存</button>`;
+                                          
           
                 
           
-                                } else {
+                                
           
                 
           
-                                  // 非编辑模式：显示删除按钮
+                                                                  // 编辑模式：显示保存按钮
           
                 
           
-                                  html += `<button class="action-btn action-btn-delete" data-action="delete" data-id="${row.id}">删除</button>`;
+                                
           
                 
           
-                                }
+                                          
+          
+                
+          
+                                
+          
+                
+          
+                                                                  html += `<button class="action-btn action-btn-save" data-action="save" data-id="${row.id}">保存</button>`;
+          
+                
+          
+                                
+          
+                
+          
+                                          
+          
+                
+          
+                                
+          
+                
+          
+                                                                } else {
+          
+                
+          
+                                
+          
+                
+          
+                                          
+          
+                
+          
+                                
+          
+                
+          
+                                                                  // 非编辑模式：检查是否为已结算执药单
+          
+                
+          
+                                
+          
+                
+          
+                                          
+          
+                
+          
+                                
+          
+                
+          
+                                                                  if (currentTable === 'stock_out_orders' && row.status === 'settled') {
+          
+                
+          
+                                
+          
+                
+          
+                                          
+          
+                
+          
+                                
+          
+                
+          
+                                                                    html += `<button class="action-btn action-btn-revoke" data-action="revokeOrder" data-id="${row.id}" data-order-id="${row.id}">撤销</button>`;
+          
+                
+          
+                                
+          
+                
+          
+                                          
+          
+                
+          
+                                
+          
+                
+          
+                                                                  } else {
+          
+                
+          
+                                
+          
+                
+          
+                                          
+          
+                
+          
+                                
+          
+                
+          
+                                                                    html += `<button class="action-btn action-btn-delete" data-action="delete" data-id="${row.id}">删除</button>`;
+          
+                
+          
+                                
+          
+                
+          
+                                          
+          
+                
+          
+                                
+          
+                
+          
+                                                                  }
+          
+                
+          
+                                
+          
+                
+          
+                                          
+          
+                
+          
+                                
+          
+                
+          
+                                                                }
           
                 
           
@@ -596,6 +732,9 @@ async function loadTableData() {
         html += `<thead><tr>${detailColumns.map(col => `<th>${col.label}</th>`).join('')}<th class="col-action">操作</th></tr></thead>`;
         html += `<tbody>`;
         
+        // 已结算状态的执药单，明细只读
+        const isSettled = currentTable === 'stock_out_orders' && row.status === 'settled';
+        
         // 已有明细
         items.forEach(item => {
           html += `<tr data-detail-id="${item.id}" data-order-id="${row.id}">`;
@@ -603,7 +742,9 @@ async function loadTableData() {
             const value = item[col.key] ?? '';
             const isReadonly = col.readonly;
             const isDisabled = col.disabled;
-            if (isReadonly) {
+            
+            // 已结算状态全部只读显示
+            if (isSettled || isReadonly) {
               html += `<td><span class="cell-readonly">${value || '-'}</span></td>`;
             } else {
               // 添加data属性用于自动计算和保存
@@ -629,44 +770,50 @@ async function loadTableData() {
               }
             }
           });
-          html += `<td class="col-action">
-            <button class="action-btn action-btn-save" data-action="saveDetail" data-id="${item.id}" data-order-id="${row.id}">保存</button>
-            <button class="action-btn action-btn-delete" data-action="deleteDetail" data-id="${item.id}" data-order-id="${row.id}">删除</button>
-          </td>`;
+          // 已结算状态不显示操作按钮
+          if (isSettled) {
+            html += `<td class="col-action"><span class="cell-readonly">-</span></td>`;
+          } else {
+            html += `<td class="col-action">
+              <button class="action-btn action-btn-save" data-action="saveDetail" data-id="${item.id}" data-order-id="${row.id}">保存</button>
+              <button class="action-btn action-btn-delete" data-action="deleteDetail" data-id="${item.id}" data-order-id="${row.id}">删除</button>
+            </td>`;
+          }
           html += `</tr>`;
         });
         
-        // 空行用于新增（始终显示）
-        html += `<tr class="detail-new-row" data-order-id="${row.id}">`;
-        detailColumns.forEach(col => {
-          const isReadonly = col.readonly;
-          const isDisabled = col.disabled;
-          if (isReadonly) {
-            html += `<td><span class="cell-readonly">自动</span></td>`;
-          } else {
-            // 添加data属性用于自动计算
-            let dataAttrs = ' data-is-new="true"';
-            if (col.key === 'quantity' || col.key === 'unitPrice' || col.key === 'herbName') {
-              dataAttrs += ' data-calc-source="true"';
-            }
-            if (col.key === 'totalPrice') {
-              dataAttrs += ' data-calc-target="true"';
-            }
-            if (col.key === 'cabinetNo') {
-              dataAttrs += ' data-cabinet-no="true"';
-            }
-            const disabledAttr = isDisabled ? ' disabled' : '';
-            // 总价列添加状态显示
-            if (col.key === 'totalPrice') {
-              html += `<td class="cell-with-status"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}><span class="manual-status" style="display:none;">已手动指定</span></td>`;
+        // 空行用于新增（已结算状态不显示新增行）
+        if (!isSettled) {
+          html += `<tr class="detail-new-row" data-order-id="${row.id}">`;
+          detailColumns.forEach(col => {
+            const isReadonly = col.readonly;
+            const isDisabled = col.disabled;
+            if (isReadonly) {
+              html += `<td><span class="cell-readonly">自动</span></td>`;
             } else {
-              html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}></td>`;
+              // 添加data属性用于自动计算
+              let dataAttrs = ' data-is-new="true"';
+              if (col.key === 'quantity' || col.key === 'unitPrice' || col.key === 'herbName') {
+                dataAttrs += ' data-calc-source="true"';
+              }
+              if (col.key === 'totalPrice') {
+                dataAttrs += ' data-calc-target="true"';
+              }
+              if (col.key === 'cabinetNo') {
+                dataAttrs += ' data-cabinet-no="true"';
+              }
+              const disabledAttr = isDisabled ? ' disabled' : '';
+              // 总价列添加状态显示
+              if (col.key === 'totalPrice') {
+                html += `<td class="cell-with-status"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}><span class="manual-status" style="display:none;">已手动指定</span></td>`;
+              } else {
+                html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}></td>`;
+              }
             }
-          }
-        });
-        html += `<td class="col-action">
-          <button class="action-btn action-btn-add" data-action="saveDetailNew" data-order-id="${row.id}">添加</button>
-        </td>`;
+          });
+          html += `<td class="col-action">
+            <button class="action-btn action-btn-add" data-action="saveDetailNew" data-order-id="${row.id}">添加</button>
+          </td>`;
         html += `</tr>`;
         
         html += `</tbody></table>`;
@@ -765,6 +912,10 @@ async function loadTableData() {
           case 'settleOrder':
             // 确认结算执药单
             settleOutOrder(orderId);
+            return;
+          case 'revokeOrder':
+            // 撤销已结算的执药单
+            revokeSettledOrder(orderId);
             return;
         }
       }
@@ -1241,6 +1392,23 @@ async function settleOutOrder(orderId) {
       loadStats();
     } catch (err) {
       showToast('结算失败: ' + err.message, 'error');
+    }
+  });
+}
+
+// 撤销已结算的执药单
+async function revokeSettledOrder(orderId) {
+  showConfirm('确认撤销', '撤销后，执药单将恢复为"待执药"状态，库存将自动恢复，对应处方变为"已审核"。确定要撤销吗？', async () => {
+    try {
+      const res = await homeFetch(`/api/stock/out/orders/${orderId}/revoke`, {
+        method: 'POST'
+      });
+      if (res.code !== 0) throw new Error(res.message);
+      showToast('撤销成功', 'success');
+      loadTableData();
+      loadStats();
+    } catch (err) {
+      showToast('撤销失败: ' + err.message, 'error');
     }
   });
 }
