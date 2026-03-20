@@ -6,7 +6,7 @@
     "remark": "的说法是大",
     "id": 1,
     "createdAt": "2026-03-19T23:22:13.933Z",
-    "updatedAt": "2026-03-20T02:33:33.032Z",
+    "updatedAt": "2026-03-20T20:03:58.098Z",
     "totalAmount": 275
   },
   {
@@ -98,5 +98,45 @@
     "createdAt": "2026-03-20T03:31:23.397Z",
     "updatedAt": "2026-03-20T03:31:23.397Z",
     "id": 19
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1773948825780",
+    "prescriptionTime": "2026-03-19T19:33:45.777Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-20T03:33:45.777Z",
+    "updatedAt": "2026-03-20T03:33:45.777Z",
+    "id": 21
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1773948956946",
+    "prescriptionTime": "2026-03-19T19:35:56.948Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-20T03:35:56.949Z",
+    "updatedAt": "2026-03-20T03:35:56.949Z",
+    "id": 23
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1773948968052",
+    "prescriptionTime": "2026-03-19T19:36:08.056Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-20T03:36:08.056Z",
+    "updatedAt": "2026-03-20T03:36:08.056Z",
+    "id": 25
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774009176267",
+    "prescriptionTime": "2026-03-20T12:19:36.271Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-20T20:19:36.271Z",
+    "updatedAt": "2026-03-20T20:19:36.271Z",
+    "id": 27
   }
 ]

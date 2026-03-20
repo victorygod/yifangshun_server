@@ -16,8 +16,7 @@ const menuConfig = [
     children: [
       { id: 'herbs', icon: '🌿', label: '药材信息', type: 'table', tableName: 'herbs' },
       { id: 'stock_in_orders', icon: '📥', label: '入库管理', type: 'table', tableName: 'stock_in_orders' },
-      { id: 'stock_out_orders', icon: '📤', label: '执药管理', type: 'table', tableName: 'stock_out_orders' },
-      { id: 'stock_check_orders', icon: '🔢', label: '盘点管理', type: 'table', tableName: 'stock_check_orders' }
+      { id: 'stock_out_orders', icon: '📤', label: '执药管理', type: 'table', tableName: 'stock_out_orders' }
     ]
   },
   { 
@@ -30,7 +29,6 @@ const menuConfig = [
       { id: 'prescriptions', icon: '💊', label: '处方记录', type: 'table', tableName: 'prescriptions' },
       { id: 'stock_in_items', icon: '📝', label: '入库明细', type: 'table', tableName: 'stock_in_items' },
       { id: 'stock_out_items', icon: '📝', label: '执药明细', type: 'table', tableName: 'stock_out_items' },
-      { id: 'stock_check_items', icon: '📝', label: '盘点明细', type: 'table', tableName: 'stock_check_items' },
       { id: 'stock_logs', icon: '📜', label: '操作日志', type: 'table', tableName: 'stock_logs' }
     ]
   }
@@ -496,31 +494,75 @@ async function loadTableData() {
           
                 
           
-                // 操作列：展开按钮 + 其他操作
+                // 操作列：展开按钮 + 保存按钮 + 删除按钮
           
-                html += `<td class="col-action">`;
+                
           
-                if (hasDetail) {
+                                html += `<td class="col-action">`;
           
-                  html += `<button class="action-btn action-btn-expand" data-action="toggleDetail" data-id="${row.id}">
+                
           
-                    ${isExpanded ? '收起' : '展开'}
+                                
           
-                  </button>`;
+                
           
-                }
+                                if (hasDetail) {
           
-                if (!isEditing) {
+                
           
-                  html += `
+                                  html += `<button class="action-btn action-btn-expand" data-action="toggleDetail" data-id="${row.id}">
           
-                    <button class="action-btn action-btn-delete" data-action="delete" data-id="${row.id}">删除</button>
+                
           
-                  `;
+                                    ${isExpanded ? '收起' : '展开'}
           
-                }
+                
           
-                html += `</td></tr>`;
+                                  </button>`;
+          
+                
+          
+                                }
+          
+                
+          
+                                
+          
+                
+          
+                                if (isEditing) {
+          
+                
+          
+                                  // 编辑模式：显示保存按钮
+          
+                
+          
+                                  html += `<button class="action-btn action-btn-save" data-action="save" data-id="${row.id}">保存</button>`;
+          
+                
+          
+                                } else {
+          
+                
+          
+                                  // 非编辑模式：显示删除按钮
+          
+                
+          
+                                  html += `<button class="action-btn action-btn-delete" data-action="delete" data-id="${row.id}">删除</button>`;
+          
+                
+          
+                                }
+          
+                
+          
+                                
+          
+                
+          
+                                html += `</td></tr>`;
       
       // 详情行
       if (hasDetail && isExpanded) {
@@ -570,6 +612,7 @@ async function loadTableData() {
             }
           });
           html += `<td class="col-action">
+            <button class="action-btn action-btn-save" data-action="saveDetail" data-id="${item.id}" data-order-id="${row.id}">保存</button>
             <button class="action-btn action-btn-delete" data-action="deleteDetail" data-id="${item.id}" data-order-id="${row.id}">删除</button>
           </td>`;
           html += `</tr>`;
@@ -613,7 +656,7 @@ async function loadTableData() {
       }
     });
     
-    // 新增行（失焦自动保存，不需要按钮）
+    // 新增行（点击保存按钮保存）
     if (editingRowId === 'new') {
       html += `<tr class="editing" data-id="new">`;
       html += `<td class="col-checkbox"><input type="checkbox" class="checkbox" disabled></td>`;
@@ -632,6 +675,7 @@ async function loadTableData() {
         }
       });
       html += `<td class="col-action">
+        <button class="action-btn action-btn-save" data-action="saveNew">保存</button>
         <button class="action-btn action-btn-cancel" data-action="cancel">取消</button>
       </td></tr>`;
     }
@@ -663,6 +707,12 @@ async function loadTableData() {
           case 'delete':
             deleteRow(id);
             return;
+          case 'save':
+            saveRow(id);
+            return;
+          case 'saveNew':
+            saveNewRow();
+            return;
           case 'cancel':
             cancelEdit();
             return;
@@ -676,8 +726,15 @@ async function loadTableData() {
           case 'deleteDetail':
             deleteDetailItem(id, orderId);
             return;
+          case 'saveDetail':
+            // 保存明细编辑行
+            const editRow = document.querySelector(`tr[data-detail-id="${id}"]`);
+            if (editRow) {
+              saveDetailEdit(id, orderId, editRow);
+            }
+            return;
           case 'saveDetailNew':
-            // 点击添加按钮时，手动触发保存
+            // 点击添加按钮时，保存新增明细
             const newRow = document.querySelector(`tr.detail-new-row[data-order-id="${orderId}"]`);
             if (newRow) {
               saveDetailNewAuto(newRow);
@@ -822,7 +879,7 @@ function handleHerbNameInput(e) {
   // 用户手动指定的总价不会被自动覆盖
 }
 
-// 处理明细输入框失焦（自动计算 + 自动保存）
+// 处理明细输入框失焦（自动计算，但不自动保存）
 async function handleDetailBlur(e) {
   console.log('[handleDetailBlur] ====== 触发失焦事件 ======');
   
@@ -842,31 +899,8 @@ async function handleDetailBlur(e) {
   // 自动计算总价（新增行和已有行都需要）
   await calculateDetailTotalPrice(row);
   
-  if (isNew) {
-    // 新增行：不自动保存，需要点击"添加"按钮
-    console.log('[handleDetailBlur] 新增行不自动保存，请点击添加按钮');
-    return;
-  }
-  
-  // 已有行：自动更新
-  const saveKey = `edit-${detailId}`;
-  
-  // 检查是否正在保存中
-  if (savingDetailRows.has(saveKey)) {
-    console.log('[handleDetailBlur] 正在保存中，跳过');
-    return;
-  }
-  
-  savingDetailRows.add(saveKey);
-  
-  try {
-    console.log('[handleDetailBlur] 已有行更新, detailId:', detailId);
-    if (detailId && orderId) {
-      await updateDetailItemAuto(detailId, orderId, row);
-    }
-  } finally {
-    savingDetailRows.delete(saveKey);
-  }
+  // 失焦时不自动保存，用户需要点击保存按钮
+  console.log('[handleDetailBlur] 失焦时不自动保存，请点击保存按钮');
 }
 
 // 自动计算明细总价
@@ -946,26 +980,10 @@ async function calculateDetailTotalPrice(row) {
   }
 }
 
-// 处理主表输入框失焦（自动保存）
+// 处理主表输入框失焦（不自动保存，需要点击保存按钮）
 async function handleCellBlur(e) {
-  const input = e.target;
-  const row = input.closest('tr');
-  if (!row) return;
-  
-  const rowId = row.dataset.id;
-  if (rowId === 'new') {
-    // 新增行：失焦自动保存
-    const config = tableConfigs[currentTable];
-    const requiredCol = config.columns.find(col => col.required);
-    if (requiredCol) {
-      const requiredInput = row.querySelector(`[data-col="${requiredCol.key}"]`);
-      if (requiredInput && !requiredInput.value.trim()) return; // 必填项为空不保存
-    }
-    await saveNewRowAuto(row);
-  } else if (rowId && editingRowId === rowId) {
-    // 编辑行：失焦自动保存
-    await saveRowAuto(rowId, row);
-  }
+  // 失焦时不自动保存，用户需要点击保存按钮
+  console.log('[handleCellBlur] 失焦事件触发，不自动保存');
 }
 
 // 自动保存新增明细
@@ -1032,6 +1050,11 @@ async function updateDetailItemAuto(detailId, orderId, row) {
   } catch (err) {
     showToast('保存失败: ' + err.message, 'error');
   }
+}
+
+// 保存明细编辑行（点击保存按钮调用）
+async function saveDetailEdit(detailId, orderId, row) {
+  await updateDetailItemAuto(detailId, orderId, row);
 }
 
 // 自动保存新增主表行

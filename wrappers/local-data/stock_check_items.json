@@ -138,5 +138,45 @@
     "id": 14,
     "createdAt": "2026-03-20T03:31:23.408Z",
     "updatedAt": "2026-03-20T03:31:23.408Z"
+  },
+  {
+    "checkId": 15,
+    "herbName": "测试药材_1773948824257",
+    "systemQuantity": 500,
+    "actualQuantity": 480,
+    "difference": -20,
+    "id": 15,
+    "createdAt": "2026-03-20T03:33:45.787Z",
+    "updatedAt": "2026-03-20T03:33:45.787Z"
+  },
+  {
+    "checkId": 16,
+    "herbName": "测试药材_1773948955232",
+    "systemQuantity": 500,
+    "actualQuantity": 480,
+    "difference": -20,
+    "id": 16,
+    "createdAt": "2026-03-20T03:35:56.959Z",
+    "updatedAt": "2026-03-20T03:35:56.959Z"
+  },
+  {
+    "checkId": 17,
+    "herbName": "测试药材_1773948966322",
+    "systemQuantity": 500,
+    "actualQuantity": 480,
+    "difference": -20,
+    "id": 17,
+    "createdAt": "2026-03-20T03:36:08.066Z",
+    "updatedAt": "2026-03-20T03:36:08.066Z"
+  },
+  {
+    "checkId": 18,
+    "herbName": "测试药材_1774009174577",
+    "systemQuantity": 500,
+    "actualQuantity": 480,
+    "difference": -20,
+    "id": 18,
+    "createdAt": "2026-03-20T20:19:36.282Z",
+    "updatedAt": "2026-03-20T20:19:36.282Z"
   }
 ]
