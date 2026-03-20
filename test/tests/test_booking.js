@@ -112,7 +112,7 @@ function assertEquals(actual, expected, message) {
 async function cleanupTestData() {
   try {
     if (testData.bookingId) {
-      await Booking.destroy({ where: { bookingId: testData.bookingId } });
+      await Booking.destroy({ where: { id: testData.bookingId } });
     }
     console.log('✅ 预约测试数据清理完成');
   } catch (error) {
@@ -166,8 +166,8 @@ async function runBookingTests(testUsers) {
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '预约成功');
-    assert(data.data.bookingId, '返回预约ID');
-    testData.bookingId = data.data.bookingId;
+    assert(data.data.id, '返回预约ID');
+    testData.bookingId = data.data.id;
   });
   
   await test('POST /api/booking - 业务规则验证（不支持当日预约）', async () => {
@@ -222,8 +222,8 @@ async function runBookingTests(testUsers) {
     assert(Array.isArray(data.data), '返回数组');
   });
   
-  // DELETE /api/booking/:bookingId
-  await test('DELETE /api/booking/:bookingId - 取消预约', async () => {
+  // DELETE /api/booking/:id
+  await test('DELETE /api/booking/:id - 取消预约', async () => {
     if (!testData.bookingId) {
       return 'skipped';
     }

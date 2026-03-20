@@ -202,11 +202,11 @@ app.post("/api/booking", async (req, res) => {
 });
 
 // 取消预约
-app.delete("/api/booking/:bookingId", async (req, res) => {
+app.delete("/api/booking/:id", async (req, res) => {
   try {
-    const { bookingId } = req.params;
+    const { id } = req.params;
     const { openid } = req.query;
-    const result = await booking.cancelBooking(bookingId, openid);
+    const result = await booking.cancelBooking(id, openid);
     res.json(result);
   } catch (error) {
     console.error("取消预约失败:", error);

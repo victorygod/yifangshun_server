@@ -187,5 +187,23 @@
     "createdAt": "2026-03-20T20:51:24.318Z",
     "id": 21,
     "updatedAt": "2026-03-20T20:51:24.321Z"
+  },
+  {
+    "checkNo": "PD-20260320-241",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-20T21:14:13.103Z",
+    "id": 22,
+    "updatedAt": "2026-03-20T21:14:13.107Z"
+  },
+  {
+    "checkNo": "PD-20260320-186",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-20T21:30:37.836Z",
+    "id": 23,
+    "updatedAt": "2026-03-20T21:30:37.840Z"
   }
 ]

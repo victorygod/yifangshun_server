@@ -1,8 +1,5 @@
 const { ChatMessage } = require('../wrappers/db-wrapper');
 
-// 生成随机 ID
-const generateId = () => Math.random().toString(36).substr(2, 9);
-
 // 生成 AI 回复（模拟）
 function generateReply(message) {
   // 这里可以接入真实的 AI 服务
@@ -12,9 +9,7 @@ function generateReply(message) {
 
 // 保存用户消息
 async function saveUserMessage(openid, message) {
-  const userMessageId = generateId();
   await ChatMessage.create({
-    messageId: userMessageId,
     openid: openid || "anonymous",
     content: message,
     type: "user",
@@ -23,9 +18,7 @@ async function saveUserMessage(openid, message) {
 
 // 保存机器人回复
 async function saveBotMessage(openid, reply) {
-  const botMessageId = generateId();
   await ChatMessage.create({
-    messageId: botMessageId,
     openid: openid || "anonymous",
     content: reply,
     type: "bot",
@@ -65,7 +58,7 @@ async function getChatHistory(openid) {
   });
 
   const messageList = messages.map((msg) => ({
-    messageId: msg.messageId,
+    id: msg.id,
     content: msg.content,
     type: msg.type,
     createTime: msg.createTime,

@@ -146,9 +146,7 @@ async function createBooking(date, openid) {
     throw new Error("不支持当日预约");
   }
 
-  const bookingId = generateId();
   const booking = await Booking.create({
-    bookingId,
     openid,
     date,
     status: "confirmed",
@@ -158,7 +156,7 @@ async function createBooking(date, openid) {
   return {
     code: 0,
     data: {
-      bookingId: booking.bookingId,
+      id: booking.id,
       date: booking.date,
       status: booking.status,
     },
@@ -166,12 +164,12 @@ async function createBooking(date, openid) {
 }
 
 // 取消预约
-async function cancelBooking(bookingId, openid) {
+async function cancelBooking(id, openid) {
   if (!openid) {
     throw new Error("缺少用户标识");
   }
 
-  const booking = await Booking.findOne({ where: { bookingId } });
+  const booking = await Booking.findOne({ where: { id } });
 
   if (!booking) {
     throw new Error("预约不存在");
@@ -206,7 +204,7 @@ async function cancelBooking(bookingId, openid) {
 
   // 直接删除预约记录
   await Booking.destroy({
-    where: { bookingId }
+    where: { id }
   });
 
   return { code: 0, message: "预约已取消" };
@@ -224,7 +222,7 @@ async function getMyBookings(openid) {
   });
 
   const bookingList = bookings.map((booking) => ({
-    bookingId: booking.bookingId,
+    id: booking.id,
     date: booking.date,
     time: booking.time,
     status: booking.status,

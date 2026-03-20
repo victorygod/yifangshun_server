@@ -175,12 +175,13 @@
   {
     "orderId": 31,
     "herbName": "测试药材_1774010296767",
-    "quantity": 100,
+    "quantity": 10,
     "unitPrice": 0.06,
-    "totalPrice": 6,
+    "totalPrice": 0.6,
     "createdAt": "2026-03-20T20:38:18.704Z",
     "id": 33,
-    "updatedAt": "2026-03-20T20:38:18.704Z"
+    "updatedAt": "2026-03-20T21:24:47.567Z",
+    "cabinetNo": "B-01"
   },
   {
     "orderId": 33,
@@ -190,6 +191,28 @@
     "totalPrice": 6,
     "createdAt": "2026-03-20T20:51:24.308Z",
     "id": 35,
-    "updatedAt": "2026-03-20T20:51:24.308Z"
+    "updatedAt": "2026-03-20T21:24:48.937Z",
+    "cabinetNo": ""
+  },
+  {
+    "orderId": 35,
+    "herbName": "测试药材_1774012451383",
+    "quantity": 100,
+    "unitPrice": 0.06,
+    "totalPrice": 6,
+    "createdAt": "2026-03-20T21:14:13.093Z",
+    "id": 37,
+    "updatedAt": "2026-03-20T21:14:13.093Z"
+  },
+  {
+    "orderId": 37,
+    "herbName": "测试药材_1774013435723",
+    "quantity": 1000,
+    "unitPrice": 0.06,
+    "totalPrice": 60,
+    "createdAt": "2026-03-20T21:30:37.826Z",
+    "id": 39,
+    "updatedAt": "2026-03-20T21:34:29.986Z",
+    "cabinetNo": "B-01"
   }
 ]

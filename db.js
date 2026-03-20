@@ -68,11 +68,6 @@ const Booking = sequelize.define("Booking", {
     primaryKey: true,
     autoIncrement: true,
   },
-  bookingId: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
   openid: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -102,11 +97,6 @@ const ChatMessage = sequelize.define("ChatMessage", {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
-  },
-  messageId: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
   },
   openid: {
     type: DataTypes.STRING,
@@ -456,7 +446,7 @@ const StockCheckOrder = sequelize.define("StockCheckOrder", {
     primaryKey: true,
     autoIncrement: true,
   },
-  orderNo: {
+  checkNo: {
     type: DataTypes.STRING(50),
     allowNull: true,
   },
