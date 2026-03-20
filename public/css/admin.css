@@ -654,6 +654,9 @@ body {
 }
 
 .detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 14px;
   font-weight: 600;
   color: #333;
@@ -749,4 +752,115 @@ body {
   color: #fa8c16;
   margin-left: 4px;
   white-space: nowrap;
+}
+
+/* 放大展示弹窗 */
+.zoom-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+.zoom-modal.show {
+  display: flex;
+}
+
+.zoom-content {
+  background: #fff;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.zoom-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.zoom-title {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.zoom-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.zoom-close:hover {
+  opacity: 1;
+}
+
+.zoom-body {
+  padding: 24px;
+  overflow-y: auto;
+  max-height: calc(90vh - 80px);
+}
+
+.zoom-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.zoom-table th {
+  background: #f5f7fa;
+  padding: 16px 20px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e8e8e8;
+}
+
+.zoom-table td {
+  padding: 20px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: 500;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.zoom-table tr:hover td {
+  background: #fafafa;
+}
+
+.zoom-table tr:nth-child(even) td {
+  background: #f9fafc;
+}
+
+.zoom-table tr:nth-child(even):hover td {
+  background: #f0f2f5;
+}
+
+/* 放大展示按钮样式 */
+.action-btn-zoom {
+  background: #52c41a;
+  color: white;
+  margin-left: 12px;
+}
+
+.action-btn-zoom:hover {
+  background: #389e0d;
 }

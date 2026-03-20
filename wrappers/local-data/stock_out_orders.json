@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "pharmacist": "的萨芬",
+    "reviewer": "的萨芬",
+    "status": "pending",
+    "id": 1,
+    "createdAt": "2026-03-20T21:41:09.259Z",
+    "updatedAt": "2026-03-20T21:41:09.259Z"
+  },
+  {
+    "pharmacist": "大师傅",
+    "reviewer": "地方撒",
+    "status": "pending",
+    "id": 2,
+    "createdAt": "2026-03-20T21:41:23.226Z",
+    "updatedAt": "2026-03-20T21:43:30.116Z",
+    "totalAmount": "",
+    "remark": ""
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774014603167",
+    "prescriptionTime": "2026-03-20T13:50:03.164Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-20T21:50:03.164Z",
+    "updatedAt": "2026-03-20T21:50:03.164Z",
+    "id": 4
+  }
+]

@@ -573,7 +573,12 @@ async function loadTableData() {
         html += `<tr class="detail-row" data-parent-id="${row.id}">`;
         html += `<td colspan="${columns.length + 2}" class="detail-cell">`;
         html += `<div class="detail-content">`;
-        html += `<div class="detail-header">明细信息</div>`;
+        // 执药单添加放大展示按钮
+        if (currentTable === 'stock_out_orders') {
+          html += `<div class="detail-header"><span>明细信息</span><button class="action-btn action-btn-zoom" data-action="zoomDetail" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">放大展示</button></div>`;
+        } else {
+          html += `<div class="detail-header">明细信息</div>`;
+        }
         html += `<table class="detail-table">`;
         html += `<thead><tr>${detailColumns.map(col => `<th>${col.label}</th>`).join('')}<th class="col-action">操作</th></tr></thead>`;
         html += `<tbody>`;
@@ -739,6 +744,10 @@ async function loadTableData() {
             if (newRow) {
               saveDetailNewAuto(newRow);
             }
+            return;
+          case 'zoomDetail':
+            // 放大展示执药单明细
+            showZoomDetail(orderId);
             return;
         }
       }
@@ -1450,4 +1459,71 @@ function showConfirm(title, message, onConfirm) {
 
 function closeConfirm() {
   document.getElementById('confirmModal').classList.remove('show');
+}
+
+// ==================== 放大展示执药单明细 ====================
+
+function showZoomDetail(orderId) {
+  // 从当前展示的数据中获取执药单明细
+  const order = tableData.find(r => String(r.id) === String(orderId));
+  if (!order || !order.items || order.items.length === 0) {
+    showToast('没有明细数据', 'error');
+    return;
+  }
+  
+  // 创建或获取放大展示弹窗
+  let zoomModal = document.getElementById('zoomModal');
+  if (!zoomModal) {
+    zoomModal = document.createElement('div');
+    zoomModal.id = 'zoomModal';
+    zoomModal.className = 'zoom-modal';
+    zoomModal.innerHTML = `
+      <div class="zoom-content">
+        <div class="zoom-header">
+          <span class="zoom-title">执药单明细</span>
+          <button class="zoom-close" onclick="closeZoomModal()">✕</button>
+        </div>
+        <div class="zoom-body">
+          <table class="zoom-table">
+            <thead>
+              <tr>
+                <th>药材名称</th>
+                <th>货柜号</th>
+                <th>克数</th>
+              </tr>
+            </thead>
+            <tbody id="zoomTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(zoomModal);
+    
+    // 点击背景关闭
+    zoomModal.addEventListener('click', (e) => {
+      if (e.target === zoomModal) {
+        closeZoomModal();
+      }
+    });
+  }
+  
+  // 填充数据
+  const tbody = document.getElementById('zoomTableBody');
+  tbody.innerHTML = order.items.map(item => `
+    <tr>
+      <td>${escapeHtml(item.herbName || '-')}</td>
+      <td>${escapeHtml(item.cabinetNo || '-')}</td>
+      <td>${escapeHtml(item.quantity || '-')}</td>
+    </tr>
+  `).join('');
+  
+  // 显示弹窗
+  zoomModal.classList.add('show');
+}
+
+function closeZoomModal() {
+  const zoomModal = document.getElementById('zoomModal');
+  if (zoomModal) {
+    zoomModal.classList.remove('show');
+  }
 }

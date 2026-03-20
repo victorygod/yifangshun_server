@@ -950,5 +950,21 @@
     "id": 106,
     "createdAt": "2026-03-20T21:30:37.729Z",
     "updatedAt": "2026-03-20T21:30:37.729Z"
+  },
+  {
+    "openid": "user_ou8sb0ss9sf",
+    "content": "你好",
+    "type": "user",
+    "id": 107,
+    "createdAt": "2026-03-20T21:50:03.058Z",
+    "updatedAt": "2026-03-20T21:50:03.058Z"
+  },
+  {
+    "openid": "user_ou8sb0ss9sf",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 108,
+    "createdAt": "2026-03-20T21:50:03.059Z",
+    "updatedAt": "2026-03-20T21:50:03.059Z"
   }
 ]

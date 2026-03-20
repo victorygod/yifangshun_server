@@ -7,7 +7,7 @@
     "status": "draft",
     "id": 1,
     "createdAt": "2026-03-19T21:45:05.006Z",
-    "updatedAt": "2026-03-20T20:20:52.250Z"
+    "updatedAt": "2026-03-20T21:39:03.378Z"
   },
   {
     "orderNo": "RK-20260320-121",
@@ -21,5 +21,16 @@
     "id": 5,
     "supplier": "委屈热污染",
     "phone": ""
+  },
+  {
+    "orderNo": "RK-20260320-298",
+    "orderDate": "2026-03-20",
+    "supplierName": "更新后的供应商",
+    "supplierPhone": "13800138000",
+    "status": "stocked",
+    "totalAmount": 36,
+    "createdAt": "2026-03-20T21:50:03.143Z",
+    "updatedAt": "2026-03-20T21:50:03.153Z",
+    "id": 6
   }
 ]
