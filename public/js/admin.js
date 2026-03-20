@@ -814,7 +814,8 @@ async function loadTableData() {
           html += `<td class="col-action">
             <button class="action-btn action-btn-add" data-action="saveDetailNew" data-order-id="${row.id}">添加</button>
           </td>`;
-        html += `</tr>`;
+          html += `</tr>`;
+        }
         
         html += `</tbody></table>`;
         html += `</div></td></tr>`;

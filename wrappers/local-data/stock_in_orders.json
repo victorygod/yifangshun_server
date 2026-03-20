@@ -142,5 +142,49 @@
     "createdAt": "2026-03-21T01:24:20.430Z",
     "updatedAt": "2026-03-21T01:24:20.440Z",
     "id": 18
+  },
+  {
+    "orderNo": "RK-20260320-268",
+    "orderDate": "2026-03-20",
+    "supplierName": "更新后的供应商",
+    "supplierPhone": "13800138000",
+    "status": "stocked",
+    "totalAmount": 36,
+    "createdAt": "2026-03-21T01:35:13.351Z",
+    "updatedAt": "2026-03-21T01:35:13.362Z",
+    "id": 19
+  },
+  {
+    "orderNo": "RK-20260320-704",
+    "orderDate": "2026-03-20",
+    "supplierName": "回滚测试供应商",
+    "supplierPhone": "13900139000",
+    "status": "stocked",
+    "totalAmount": 10,
+    "createdAt": "2026-03-21T01:35:13.395Z",
+    "updatedAt": "2026-03-21T01:35:13.400Z",
+    "id": 20
+  },
+  {
+    "orderNo": "RK-20260320-884",
+    "orderDate": "2026-03-20",
+    "supplierName": "更新后的供应商",
+    "supplierPhone": "13800138000",
+    "status": "stocked",
+    "totalAmount": 36,
+    "createdAt": "2026-03-21T01:39:27.557Z",
+    "updatedAt": "2026-03-21T01:39:27.567Z",
+    "id": 21
+  },
+  {
+    "orderNo": "RK-20260320-093",
+    "orderDate": "2026-03-20",
+    "supplierName": "回滚测试供应商",
+    "supplierPhone": "13900139000",
+    "status": "stocked",
+    "totalAmount": 10,
+    "createdAt": "2026-03-21T01:39:27.599Z",
+    "updatedAt": "2026-03-21T01:39:27.606Z",
+    "id": 22
   }
 ]

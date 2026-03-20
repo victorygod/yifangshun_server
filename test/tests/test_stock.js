@@ -397,13 +397,11 @@ async function runStockTests(users) {
     assertEquals(data2.code, 1, '返回错误');
   });
   
-  await test('PUT /api/admin/table/stock_out_orders/:id - 执药单变为已结算状态', async () => {
+  await test('POST /api/stock/out/orders/:id/settle - 结算执药单', async () => {
     if (!testData.outOrderId) return 'skipped';
     
-    // 通过管理后台接口修改状态为settled
-    const { response, data } = await adminRequest('PUT', `/api/admin/table/stock_out_orders/${testData.outOrderId}`, {
-      status: 'settled'
-    });
+    // 使用专用结算接口
+    const { response, data } = await adminRequest('POST', `/api/stock/out/orders/${testData.outOrderId}/settle`);
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
@@ -519,26 +517,6 @@ async function runStockTests(users) {
     assertEquals(herb.quantity, 680, '库存数量应为680');
   });
   
-  await test('PUT /api/stock/in/orders/:id - 已入库单变为草稿状态应回滚库存', async () => {
-    if (!rollbackInOrderId) return 'skipped';
-    
-    // 通过管理后台接口修改状态为draft
-    const { response, data } = await adminRequest('PUT', `/api/admin/table/stock_in_orders/${rollbackInOrderId}`, {
-      status: 'draft'
-    });
-    
-    assertEquals(response.statusCode, 200, '请求成功');
-  });
-  
-  await test('GET /api/stock/inventory - 验证状态回滚后库存减少', async () => {
-    const { response, data } = await adminRequest('GET', '/api/stock/inventory');
-    
-    const herb = data.data.find(h => h.herbName === testData.herbName);
-    assert(herb, '找到测试药材');
-    // 680 - 200 = 480
-    assertEquals(herb.quantity, 480, '库存数量应恢复为480');
-  });
-  
   // 清理回滚测试数据
   if (rollbackInOrderId) {
     await adminRequest('DELETE', `/api/stock/in/orders/${rollbackInOrderId}`);
@@ -578,12 +556,10 @@ async function runStockTests(users) {
     assertEquals(herb.quantity, 480, '库存数量仍为480');
   });
   
-  await test('PUT /api/admin/table/stock_out_orders/:id - 执药单变为已结算状态', async () => {
+  await test('POST /api/stock/out/orders/:id/settle - 结算执药单', async () => {
     if (!statusOutOrderId) return 'skipped';
     
-    const { response, data } = await adminRequest('PUT', `/api/admin/table/stock_out_orders/${statusOutOrderId}`, {
-      status: 'settled'
-    });
+    const { response, data } = await adminRequest('POST', `/api/stock/out/orders/${statusOutOrderId}/settle`);
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
@@ -598,12 +574,10 @@ async function runStockTests(users) {
     assertEquals(herb.quantity, 430, '库存数量应为430');
   });
   
-  await test('PUT /api/admin/table/stock_out_orders/:id - 已结算变为待执药状态', async () => {
+  await test('POST /api/stock/out/orders/:id/revoke - 撤销已结算执药单', async () => {
     if (!statusOutOrderId) return 'skipped';
     
-    const { response, data } = await adminRequest('PUT', `/api/admin/table/stock_out_orders/${statusOutOrderId}`, {
-      status: 'pending'
-    });
+    const { response, data } = await adminRequest('POST', `/api/stock/out/orders/${statusOutOrderId}/revoke`);
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');

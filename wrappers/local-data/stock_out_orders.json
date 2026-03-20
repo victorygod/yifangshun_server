@@ -171,5 +171,73 @@
     "createdAt": "2026-03-21T01:24:20.454Z",
     "updatedAt": "2026-03-21T01:30:52.307Z",
     "id": 30
+  },
+  {
+    "prescriptionId": "APPROVE_TEST_1774028112108",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T01:35:12.098Z",
+    "updatedAt": "2026-03-21T01:35:12.098Z",
+    "id": 31
+  },
+  {
+    "prescriptionId": "CONFIRM_APPROVE_1774028112113",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T01:35:12.104Z",
+    "updatedAt": "2026-03-21T01:35:12.104Z",
+    "id": 32
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774028113390",
+    "prescriptionTime": "2026-03-20T17:35:13.377Z",
+    "pharmacist": "测试药师",
+    "status": "settled",
+    "totalAmount": 6.6,
+    "createdAt": "2026-03-21T01:35:13.377Z",
+    "updatedAt": "2026-03-21T01:44:07.121Z",
+    "id": 34
+  },
+  {
+    "prescriptionId": "APPROVE_TEST_1774028366389",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T01:39:26.389Z",
+    "updatedAt": "2026-03-21T01:39:26.389Z",
+    "id": 35
+  },
+  {
+    "prescriptionId": "CONFIRM_APPROVE_1774028366395",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T01:39:26.395Z",
+    "updatedAt": "2026-03-21T01:39:26.395Z",
+    "id": 36
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774028367585",
+    "prescriptionTime": "2026-03-20T17:39:27.582Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-21T01:39:27.582Z",
+    "updatedAt": "2026-03-21T01:39:27.582Z",
+    "id": 38
   }
 ]
