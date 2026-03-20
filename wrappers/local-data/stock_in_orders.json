@@ -32,5 +32,38 @@
     "createdAt": "2026-03-20T21:50:03.143Z",
     "updatedAt": "2026-03-20T21:50:03.153Z",
     "id": 6
+  },
+  {
+    "orderNo": "RK-20260320-299",
+    "orderDate": "2026-03-20",
+    "supplierName": "更新后的供应商",
+    "supplierPhone": "13800138000",
+    "status": "stocked",
+    "totalAmount": 36,
+    "createdAt": "2026-03-20T22:04:46.916Z",
+    "updatedAt": "2026-03-20T22:04:46.926Z",
+    "id": 7
+  },
+  {
+    "orderNo": "RK-20260320-053",
+    "orderDate": "2026-03-20",
+    "supplierName": "更新后的供应商",
+    "supplierPhone": "13800138000",
+    "status": "stocked",
+    "totalAmount": 36,
+    "createdAt": "2026-03-20T22:09:44.877Z",
+    "updatedAt": "2026-03-20T22:09:44.884Z",
+    "id": 8
+  },
+  {
+    "orderNo": "RK-20260320-033",
+    "orderDate": "2026-03-20",
+    "supplierName": "更新后的供应商",
+    "supplierPhone": "13800138000",
+    "status": "stocked",
+    "totalAmount": 36,
+    "createdAt": "2026-03-20T22:34:50.256Z",
+    "updatedAt": "2026-03-20T22:34:50.267Z",
+    "id": 9
   }
 ]

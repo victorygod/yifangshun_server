@@ -523,6 +523,24 @@ app.get("/api/admin/table/:name", requireRole(['super_admin']), async (req, res)
       raw: true  // 返回纯JSON数据，而不是Sequelize模型实例
     });
     
+    // 对于bookings表，关联用户信息（姓名和手机号）
+    if (name === 'bookings') {
+      const openids = [...new Set(allData.map(row => row.openid).filter(Boolean))];
+      if (openids.length > 0) {
+        const users = await User.findAll({
+          where: { openid: { [Op.in]: openids } },
+          raw: true
+        });
+        const userMap = {};
+        users.forEach(u => { userMap[u.openid] = u; });
+        allData = allData.map(row => ({
+          ...row,
+          name: userMap[row.openid]?.name || '',
+          phone: userMap[row.openid]?.phone || ''
+        }));
+      }
+    }
+    
     // 多维度搜索
     if (keyword) {
       const keywordLower = keyword.toLowerCase();

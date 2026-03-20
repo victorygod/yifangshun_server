@@ -55,6 +55,8 @@ const tableConfigs = {
     displayName: '预约记录',
     columns: [
       { key: 'id', label: 'ID', readonly: true },
+      { key: 'name', label: '姓名', readonly: true },
+      { key: 'phone', label: '手机号', readonly: true },
       { key: 'openid', label: 'OpenID', readonly: true },
       { key: 'date', label: '预约日期', editable: true },
       { key: 'status', label: '状态', type: 'select', options: [
@@ -63,7 +65,7 @@ const tableConfigs = {
       ]},
       { key: 'createdAt', label: '创建时间', readonly: true, type: 'datetime' }
     ],
-    searchFields: ['openid', 'date']
+    searchFields: ['openid', 'date', 'name', 'phone']
   },
   prescriptions: {
     displayName: '处方记录',

@@ -23,10 +23,19 @@
     "bookingId": "jdspooea6",
     "openid": "test_user",
     "date": "2026-03-27",
-    "status": "confirmed",
+    "status": "active",
     "time": "14:00",
     "id": 3,
     "createdAt": "2026-03-20T21:14:26.335Z",
-    "updatedAt": "2026-03-20T21:14:26.335Z"
+    "updatedAt": "2026-03-20T22:11:59.476Z"
+  },
+  {
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "date": "2026-03-21",
+    "status": "active",
+    "time": "14:00",
+    "id": 4,
+    "createdAt": "2026-03-20T22:11:29.459Z",
+    "updatedAt": "2026-03-20T22:11:54.862Z"
   }
 ]

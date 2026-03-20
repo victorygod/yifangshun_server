@@ -69,6 +69,10 @@ class Model {
           
           // 处理特殊操作符
           if (typeof whereValue === 'object') {
+            if (whereValue[Symbol.for('sequelize:op.in')] !== undefined) {
+              const arr = whereValue[Symbol.for('sequelize:op.in')];
+              return Array.isArray(arr) && arr.includes(itemValue);
+            }
             if (whereValue[Symbol.for('sequelize:op.ne')] !== undefined) {
               return itemValue !== whereValue[Symbol.for('sequelize:op.ne')];
             }
@@ -209,6 +213,10 @@ class Model {
           const itemValue = item[key];
           
           if (typeof whereValue === 'object') {
+            if (whereValue[Symbol.for('sequelize:op.in')] !== undefined) {
+              const arr = whereValue[Symbol.for('sequelize:op.in')];
+              return Array.isArray(arr) && arr.includes(itemValue);
+            }
             if (whereValue[Symbol.for('sequelize:op.ne')] !== undefined) {
               return itemValue !== whereValue[Symbol.for('sequelize:op.ne')];
             }
@@ -261,6 +269,10 @@ class Model {
         const itemValue = item[key];
         
         if (typeof whereValue === 'object') {
+          if (whereValue[Symbol.for('sequelize:op.in')] !== undefined) {
+            const arr = whereValue[Symbol.for('sequelize:op.in')];
+            return Array.isArray(arr) && arr.includes(itemValue);
+          }
           if (whereValue[Symbol.for('sequelize:op.ne')] !== undefined) {
             return itemValue !== whereValue[Symbol.for('sequelize:op.ne')];
           }
@@ -334,6 +346,7 @@ async function init() {
 
 // Sequelize操作符模拟
 const Op = {
+  in: Symbol.for('sequelize:op.in'),
   ne: Symbol.for('sequelize:op.ne'),
   like: Symbol.for('sequelize:op.like'),
   lt: Symbol.for('sequelize:op.lt'),
