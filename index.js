@@ -761,59 +761,87 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
       }
     }
     
-    // 处方表状态变化时自动创建执药单
-    if (name === 'prescriptions' && updates.status === '已审核' && record.status === '待审核') {
-      try {
-        // 解析处方数据
-        const prescriptionData = JSON.parse(record.data);
-        const targetPrescriptionId = prescriptionData.prescriptionId || record.prescriptionId;
-        
-        // 检查是否已存在该处方的执药单
-        const existingOrder = await StockOutOrder.findOne({ where: { prescriptionId: targetPrescriptionId } });
-        if (!existingOrder) {
-          // 从处方数据中提取药材明细
-          const medicines = prescriptionData.medicines || prescriptionData['药方'] || [];
-          if (medicines.length > 0) {
-            const now = new Date().toISOString();
-            // 创建执药单主记录
-            const outOrder = await StockOutOrder.create({
-              prescriptionId: targetPrescriptionId,
-              prescriptionTime: record.prescriptionDate || now,
-              pharmacist: '',
-              reviewer: '',
-              status: 'pending',
-              remark: '处方审核通过自动生成',
-              totalAmount: 0,
-              createdAt: now,
-              updatedAt: now
-            });
-            
-            // 创建执药明细
-            for (const med of medicines) {
-              const herbName = med.name || med['药名'] || '';
-              const quantity = parseFloat(med.quantity || med['数量'] || 0);
+    // 处方表状态变化时自动创建/删除执药单
+    if (name === 'prescriptions') {
+      // 待审核 → 已审核：创建执药单
+      if (updates.status === '已审核' && record.status === '待审核') {
+        try {
+          // 解析处方数据
+          const prescriptionData = JSON.parse(record.data);
+          const targetPrescriptionId = prescriptionData.prescriptionId || record.prescriptionId;
+          
+          // 检查是否已存在该处方的执药单
+          const existingOrder = await StockOutOrder.findOne({ where: { prescriptionId: targetPrescriptionId } });
+          if (!existingOrder) {
+            // 从处方数据中提取药材明细
+            const medicines = prescriptionData.medicines || prescriptionData['药方'] || [];
+            if (medicines.length > 0) {
+              const now = new Date().toISOString();
+              // 创建执药单主记录
+              const outOrder = await StockOutOrder.create({
+                prescriptionId: targetPrescriptionId,
+                prescriptionTime: record.prescriptionDate || now,
+                pharmacist: '',
+                reviewer: '',
+                status: 'pending',
+                remark: '处方审核通过自动生成',
+                totalAmount: 0,
+                createdAt: now,
+                updatedAt: now
+              });
               
-              if (herbName && quantity > 0) {
-                // 获取药材售价
-                const herb = await Herb.findOne({ where: { name: herbName } });
-                const unitPrice = herb ? (herb.salePrice || 0) : 0;
+              // 创建执药明细
+              for (const med of medicines) {
+                const herbName = med.name || med['药名'] || '';
+                const quantity = parseFloat(med.quantity || med['数量'] || 0);
                 
-                await StockOutItem.create({
-                  orderId: outOrder.id,
-                  herbName,
-                  quantity,
-                  unitPrice,
-                  totalPrice: quantity * unitPrice,
-                  createdAt: now
-                });
+                if (herbName && quantity > 0) {
+                  // 获取药材售价
+                  const herb = await Herb.findOne({ where: { name: herbName } });
+                  const unitPrice = herb ? (herb.salePrice || 0) : 0;
+                  
+                  await StockOutItem.create({
+                    orderId: outOrder.id,
+                    herbName,
+                    quantity,
+                    unitPrice,
+                    totalPrice: quantity * unitPrice,
+                    createdAt: now
+                  });
+                }
               }
+              
+              console.log('[PUT处方审核] 自动创建执药单成功:', outOrder.id, '处方ID:', targetPrescriptionId);
             }
-            
-            console.log('[PUT处方审核] 自动创建执药单成功:', outOrder.id, '处方ID:', targetPrescriptionId);
           }
+        } catch (err) {
+          console.error('[PUT处方审核] 创建执药单失败:', err.message);
         }
-      } catch (err) {
-        console.error('[PUT处方审核] 创建执药单失败:', err.message);
+      }
+      
+      // 已审核 → 待审核：删除执药单（仅限待执药状态）
+      if (updates.status === '待审核' && record.status === '已审核') {
+        try {
+          const prescriptionData = JSON.parse(record.data);
+          const targetPrescriptionId = prescriptionData.prescriptionId || record.prescriptionId;
+          
+          // 查找对应执药单
+          const existingOrder = await StockOutOrder.findOne({ where: { prescriptionId: targetPrescriptionId } });
+          if (existingOrder) {
+            // 只有待执药状态才能删除
+            if (existingOrder.status === 'pending') {
+              // 先删除明细
+              await StockOutItem.destroy({ where: { orderId: existingOrder.id } });
+              // 再删除主表
+              await StockOutOrder.destroy({ where: { id: existingOrder.id } });
+              console.log('[PUT处方取消审核] 删除执药单成功:', existingOrder.id, '处方ID:', targetPrescriptionId);
+            } else {
+              console.log('[PUT处方取消审核] 执药单已结算，不删除:', existingOrder.id);
+            }
+          }
+        } catch (err) {
+          console.error('[PUT处方取消审核] 删除执药单失败:', err.message);
+        }
       }
     }
     

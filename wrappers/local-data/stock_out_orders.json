@@ -355,5 +355,73 @@
     "createdAt": "2026-03-21T02:22:31.829Z",
     "updatedAt": "2026-03-21T02:22:31.829Z",
     "id": 70
+  },
+  {
+    "prescriptionId": "APPROVE_TEST_1774031367865",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T02:29:27.872Z",
+    "updatedAt": "2026-03-21T02:29:27.872Z",
+    "id": 71
+  },
+  {
+    "prescriptionId": "CONFIRM_APPROVE_1774031367871",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T02:29:27.878Z",
+    "updatedAt": "2026-03-21T02:29:27.878Z",
+    "id": 72
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774031369079",
+    "prescriptionTime": "2026-03-20T18:29:29.082Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-21T02:29:29.083Z",
+    "updatedAt": "2026-03-21T02:29:29.083Z",
+    "id": 74
+  },
+  {
+    "prescriptionId": "APPROVE_TEST_1774031374018",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T02:29:34.027Z",
+    "updatedAt": "2026-03-21T02:29:34.027Z",
+    "id": 75
+  },
+  {
+    "prescriptionId": "CONFIRM_APPROVE_1774031374023",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T02:29:34.033Z",
+    "updatedAt": "2026-03-21T02:29:34.033Z",
+    "id": 76
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774031375854",
+    "prescriptionTime": "2026-03-20T18:29:35.861Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-21T02:29:35.861Z",
+    "updatedAt": "2026-03-21T02:29:35.861Z",
+    "id": 78
   }
 ]

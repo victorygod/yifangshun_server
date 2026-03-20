@@ -412,5 +412,23 @@
     "createdAt": "2026-03-21T02:21:09.292Z",
     "id": 46,
     "updatedAt": "2026-03-21T02:21:09.296Z"
+  },
+  {
+    "checkNo": "PD-20260320-587",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T02:29:29.097Z",
+    "id": 47,
+    "updatedAt": "2026-03-21T02:29:29.101Z"
+  },
+  {
+    "checkNo": "PD-20260320-612",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T02:29:35.876Z",
+    "id": 48,
+    "updatedAt": "2026-03-21T02:29:35.882Z"
   }
 ]
