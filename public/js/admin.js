@@ -58,12 +58,13 @@ const tableConfigs = {
       { key: 'name', label: '姓名', readonly: true },
       { key: 'phone', label: '手机号', readonly: true },
       { key: 'openid', label: 'OpenID', readonly: true },
-      { key: 'date', label: '预约日期', editable: true },
+      { key: 'date', label: '预约日期', readonly: true },
+      { key: 'time', label: '预约时间', readonly: true },
       { key: 'status', label: '状态', type: 'select', options: [
-        { value: 'active', label: '有效', badge: 'badge-active' },
-        { value: 'cancelled', label: '已取消', badge: 'badge-cancelled' }
+        { value: 'confirmed', label: '待签到', badge: 'badge-active' },
+        { value: 'checked_in', label: '已签到', badge: 'badge-reviewed' }
       ]},
-      { key: 'createdAt', label: '创建时间', readonly: true, type: 'datetime' }
+      { key: 'createTime', label: '创建时间', readonly: true, type: 'datetime' }
     ],
     searchFields: ['openid', 'date', 'name', 'phone']
   },
@@ -71,17 +72,18 @@ const tableConfigs = {
     displayName: '处方记录',
     columns: [
       { key: 'id', label: 'ID', readonly: true },
-      { key: 'prescriptionId', label: '处方号', editable: true },
-      { key: 'name', label: '患者姓名', editable: true },
+      { key: 'prescriptionId', label: '处方号', readonly: true },
       { key: 'openid', label: 'OpenID', readonly: true },
       { key: 'status', label: '状态', type: 'select', options: [
-        { value: 'pending', label: '待审核', badge: 'badge-pending' },
-        { value: 'reviewed', label: '已审核', badge: 'badge-reviewed' },
-        { value: 'rejected', label: '已拒绝', badge: 'badge-rejected' }
+        { value: '待审核', label: '待审核', badge: 'badge-pending' },
+        { value: '已审核', label: '已审核', badge: 'badge-reviewed' },
+        { value: '已结算', label: '已结算', badge: 'badge-stocked' }
       ]},
-      { key: 'createdAt', label: '创建时间', readonly: true, type: 'datetime' }
+      { key: 'reviewer', label: '审核人', readonly: true },
+      { key: 'prescriptionDate', label: '处方日期', readonly: true, type: 'date' },
+      { key: 'createTime', label: '创建时间', readonly: true, type: 'datetime' }
     ],
-    searchFields: ['prescriptionId', 'name', 'openid']
+    searchFields: ['prescriptionId', 'openid']
   },
   herbs: {
     displayName: '药材信息',
@@ -118,15 +120,15 @@ const tableConfigs = {
     displayName: '执药单管理',
     columns: [
       { key: 'id', label: 'ID', readonly: true },
-      { key: 'prescriptionTime', label: '处方更新时间', readonly: true, type: 'datetime' },
+      { key: 'prescriptionTime', label: '处方时间', readonly: true, type: 'datetime' },
       { key: 'prescriptionId', label: '处方ID', readonly: true },
       { key: 'pharmacist', label: '药师', editable: true },
-      { key: 'reviewer', label: '审核人', editable: true },
+      { key: 'reviewer', label: '审核人', readonly: true },
       { key: 'status', label: '状态', type: 'select', options: [
         { value: 'pending', label: '待执药', badge: 'badge-pending' },
         { value: 'settled', label: '已结算', badge: 'badge-stocked' }
       ]},
-      { key: 'totalAmount', label: '总价', editable: true, type: 'number' },
+      { key: 'totalAmount', label: '总价', readonly: true, type: 'number' },
       { key: 'remark', label: '备注', editable: true }
     ],
     searchFields: ['prescriptionId', 'pharmacist'],
@@ -579,9 +581,14 @@ async function loadTableData() {
         html += `<tr class="detail-row" data-parent-id="${row.id}">`;
         html += `<td colspan="${columns.length + 2}" class="detail-cell">`;
         html += `<div class="detail-content">`;
-        // 执药单添加放大展示按钮
+        // 执药单添加放大展示按钮和结算按钮
         if (currentTable === 'stock_out_orders') {
-          html += `<div class="detail-header"><span>明细信息</span><button class="action-btn action-btn-zoom" data-action="zoomDetail" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">放大展示</button></div>`;
+          const isPending = row.status === 'pending';
+          html += `<div class="detail-header"><span>明细信息</span>`;
+          if (isPending) {
+            html += `<button class="action-btn action-btn-settle" data-action="settleOrder" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">确认结算</button>`;
+          }
+          html += `<button class="action-btn action-btn-zoom" data-action="zoomDetail" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">放大展示</button></div>`;
         } else {
           html += `<div class="detail-header">明细信息</div>`;
         }
@@ -754,6 +761,10 @@ async function loadTableData() {
           case 'zoomDetail':
             // 放大展示执药单明细
             showZoomDetail(orderId);
+            return;
+          case 'settleOrder':
+            // 确认结算执药单
+            settleOutOrder(id);
             return;
         }
       }
@@ -1217,6 +1228,23 @@ async function deleteDetailItem(itemId, orderId) {
   }
 }
 
+// 结算执药单
+async function settleOutOrder(orderId) {
+  showConfirm('确认结算', '确认结算后，对应处方将变为"已结算"状态，且库存将自动扣减。确定要结算吗？', async () => {
+    try {
+      const res = await homeFetch(`/api/stock/out/orders/${orderId}/settle`, {
+        method: 'POST'
+      });
+      if (res.code !== 0) throw new Error(res.message);
+      showToast('结算成功', 'success');
+      loadTableData();
+      loadStats();
+    } catch (err) {
+      showToast('结算失败: ' + err.message, 'error');
+    }
+  });
+}
+
 // ==================== 编辑操作 ====================
 
 function startEdit(rowId) {
@@ -1319,18 +1347,65 @@ async function saveNewRow() {
 }
 
 async function deleteRow(rowId) {
-  showConfirm('确认删除', '确定要删除这条记录吗？', async () => {
+  // 检查是否是入库单或执药单，需要显示明细数量
+  if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
     try {
-      const res = await homeFetch(`/api/admin/table/${currentTable}/${rowId}`, { method: 'DELETE' });
-      if (res.code !== 0) throw new Error(res.message);
+      // 获取明细数量
+      const detailTable = currentTable === 'stock_in_orders' ? 'stock_in_items' : 'stock_out_items';
+      const orderIdField = currentTable === 'stock_in_orders' ? 'orderId' : 'orderId';
       
-      showToast('删除成功', 'success');
-      loadTableData();
-      loadStats();
+      const res = await homeFetch(`/api/admin/table/${detailTable}?search=${encodeURIComponent(JSON.stringify({ [orderIdField]: rowId }))}&pageSize=1`);
+      const detailCount = res.data?.total || 0;
+      
+      const tableLabel = currentTable === 'stock_in_orders' ? '入库单' : '执药单';
+      const detailLabel = currentTable === 'stock_in_orders' ? '入库明细' : '执药明细';
+      
+      const message = detailCount > 0 
+        ? `确定要删除这条${tableLabel}吗？\n\n⚠️ 关联的 ${detailCount} 条${detailLabel}也将一并删除！` 
+        : `确定要删除这条${tableLabel}吗？`;
+      
+      showConfirm('确认删除', message, async () => {
+        try {
+          const res = await homeFetch(`/api/admin/table/${currentTable}/${rowId}`, { method: 'DELETE' });
+          if (res.code !== 0) throw new Error(res.message);
+          
+          showToast('删除成功', 'success');
+          loadTableData();
+          loadStats();
+        } catch (err) {
+          showToast('删除失败: ' + err.message, 'error');
+        }
+      });
     } catch (err) {
-      showToast('删除失败: ' + err.message, 'error');
+      // 获取明细数量失败，使用默认确认
+      showConfirm('确认删除', '确定要删除这条记录吗？', async () => {
+        try {
+          const res = await homeFetch(`/api/admin/table/${currentTable}/${rowId}`, { method: 'DELETE' });
+          if (res.code !== 0) throw new Error(res.message);
+          
+          showToast('删除成功', 'success');
+          loadTableData();
+          loadStats();
+        } catch (err) {
+          showToast('删除失败: ' + err.message, 'error');
+        }
+      });
     }
-  });
+  } else {
+    // 其他表使用默认确认
+    showConfirm('确认删除', '确定要删除这条记录吗？', async () => {
+      try {
+        const res = await homeFetch(`/api/admin/table/${currentTable}/${rowId}`, { method: 'DELETE' });
+        if (res.code !== 0) throw new Error(res.message);
+        
+        showToast('删除成功', 'success');
+        loadTableData();
+        loadStats();
+      } catch (err) {
+        showToast('删除失败: ' + err.message, 'error');
+      }
+    });
+  }
 }
 
 // ==================== 多选与批量删除 ====================
@@ -1377,23 +1452,81 @@ function updateSelectedCount() {
 async function batchDelete() {
   if (selectedIds.length === 0) return;
   
-  showConfirm('批量删除', `确定要删除选中的 ${selectedIds.length} 条记录吗？`, async () => {
+  // 检查是否是入库单或执药单，需要统计明细数量
+  if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
     try {
-      const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
-        method: 'POST',
-        body: JSON.stringify({ ids: selectedIds })
+      const detailTable = currentTable === 'stock_in_orders' ? 'stock_in_items' : 'stock_out_items';
+      const tableLabel = currentTable === 'stock_in_orders' ? '入库单' : '执药单';
+      const detailLabel = currentTable === 'stock_in_orders' ? '入库明细' : '执药明细';
+      
+      // 统计所有选中单据的明细总数
+      let totalDetailCount = 0;
+      for (const id of selectedIds) {
+        const res = await homeFetch(`/api/admin/table/${detailTable}?search=${encodeURIComponent(JSON.stringify({ orderId: id }))}&pageSize=1`);
+        totalDetailCount += res.data?.total || 0;
+      }
+      
+      const message = totalDetailCount > 0
+        ? `确定要删除选中的 ${selectedIds.length} 条${tableLabel}吗？\n\n⚠️ 关联的 ${totalDetailCount} 条${detailLabel}也将一并删除！`
+        : `确定要删除选中的 ${selectedIds.length} 条${tableLabel}吗？`;
+      
+      showConfirm('批量删除', message, async () => {
+        try {
+          const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
+            method: 'POST',
+            body: JSON.stringify({ ids: selectedIds })
+          });
+          
+          if (res.code !== 0) throw new Error(res.message);
+          
+          showToast(`成功删除 ${res.data.deletedCount} 条记录`, 'success');
+          selectedIds = [];
+          loadTableData();
+          loadStats();
+        } catch (err) {
+          showToast('批量删除失败: ' + err.message, 'error');
+        }
       });
-      
-      if (res.code !== 0) throw new Error(res.message);
-      
-      showToast(`成功删除 ${res.data.deletedCount} 条记录`, 'success');
-      selectedIds = [];
-      loadTableData();
-      loadStats();
     } catch (err) {
-      showToast('批量删除失败: ' + err.message, 'error');
+      // 获取明细数量失败，使用默认确认
+      showConfirm('批量删除', `确定要删除选中的 ${selectedIds.length} 条记录吗？`, async () => {
+        try {
+          const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
+            method: 'POST',
+            body: JSON.stringify({ ids: selectedIds })
+          });
+          
+          if (res.code !== 0) throw new Error(res.message);
+          
+          showToast(`成功删除 ${res.data.deletedCount} 条记录`, 'success');
+          selectedIds = [];
+          loadTableData();
+          loadStats();
+        } catch (err) {
+          showToast('批量删除失败: ' + err.message, 'error');
+        }
+      });
     }
-  });
+  } else {
+    // 其他表使用默认确认
+    showConfirm('批量删除', `确定要删除选中的 ${selectedIds.length} 条记录吗？`, async () => {
+      try {
+        const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
+          method: 'POST',
+          body: JSON.stringify({ ids: selectedIds })
+        });
+        
+        if (res.code !== 0) throw new Error(res.message);
+        
+        showToast(`成功删除 ${res.data.deletedCount} 条记录`, 'success');
+        selectedIds = [];
+        loadTableData();
+        loadStats();
+      } catch (err) {
+        showToast('批量删除失败: ' + err.message, 'error');
+      }
+    });
+  }
 }
 
 // ==================== 分页与搜索 ====================

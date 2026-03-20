@@ -62,13 +62,64 @@ class Model {
     
     // 处理where条件
     if (options.where) {
+      // 首先处理 Op.or（需要特殊处理，因为它是数组条件）
+      const orSymbol = Symbol.for('sequelize:op.or');
+      const orConditions = options.where[orSymbol];
+      
+      if (orConditions && Array.isArray(orConditions)) {
+        data = data.filter(item => {
+          // Op.or: 满足任意一个条件即可
+          return orConditions.some(condition => {
+            return Object.keys(condition).every(key => {
+              const condValue = condition[key];
+              const itemValue = item[key];
+              
+              // 处理嵌套的操作符
+              if (typeof condValue === 'object' && condValue !== null) {
+                if (condValue[Symbol.for('sequelize:op.like')] !== undefined) {
+                  const pattern = condValue[Symbol.for('sequelize:op.like')].replace(/%/g, '');
+                  return itemValue && itemValue.includes(pattern);
+                }
+                if (condValue[Symbol.for('sequelize:op.ne')] !== undefined) {
+                  return itemValue !== condValue[Symbol.for('sequelize:op.ne')];
+                }
+                if (condValue[Symbol.for('sequelize:op.in')] !== undefined) {
+                  const arr = condValue[Symbol.for('sequelize:op.in')];
+                  return Array.isArray(arr) && arr.includes(itemValue);
+                }
+                if (condValue[Symbol.for('sequelize:op.gte')] !== undefined) {
+                  return itemValue >= condValue[Symbol.for('sequelize:op.gte')];
+                }
+                if (condValue[Symbol.for('sequelize:op.gt')] !== undefined) {
+                  return itemValue > condValue[Symbol.for('sequelize:op.gt')];
+                }
+                if (condValue[Symbol.for('sequelize:op.lte')] !== undefined) {
+                  return itemValue <= condValue[Symbol.for('sequelize:op.lte')];
+                }
+                if (condValue[Symbol.for('sequelize:op.lt')] !== undefined) {
+                  return itemValue < condValue[Symbol.for('sequelize:op.lt')];
+                }
+              }
+              
+              return itemValue == condValue;
+            });
+          });
+        });
+      }
+      
+      // 处理普通where条件
       data = data.filter(item => {
         return Object.keys(options.where).every(key => {
+          // 跳过已处理的 Op.or
+          if (key === orSymbol) {
+            return true;
+          }
+          
           const whereValue = options.where[key];
           const itemValue = item[key];
           
           // 处理特殊操作符
-          if (typeof whereValue === 'object') {
+          if (typeof whereValue === 'object' && whereValue !== null) {
             if (whereValue[Symbol.for('sequelize:op.in')] !== undefined) {
               const arr = whereValue[Symbol.for('sequelize:op.in')];
               return Array.isArray(arr) && arr.includes(itemValue);
@@ -347,6 +398,8 @@ async function init() {
 // Sequelize操作符模拟
 const Op = {
   in: Symbol.for('sequelize:op.in'),
+  or: Symbol.for('sequelize:op.or'),
+  and: Symbol.for('sequelize:op.and'),
   ne: Symbol.for('sequelize:op.ne'),
   like: Symbol.for('sequelize:op.like'),
   lt: Symbol.for('sequelize:op.lt'),

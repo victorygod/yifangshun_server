@@ -82,8 +82,9 @@ const Booking = sequelize.define("Booking", {
     defaultValue: "09:30",
   },
   status: {
-    type: DataTypes.ENUM("confirmed", "cancelled"),
+    type: DataTypes.ENUM("confirmed", "checked_in"),
     defaultValue: "confirmed",
+    comment: "confirmed: 待签到, checked_in: 已签到"
   },
   createTime: {
     type: DataTypes.DATE,
@@ -130,15 +131,15 @@ const Prescription = sequelize.define("Prescription", {
     comment: '处方ID（业务标识）'
   },
   status: {
-    type: DataTypes.ENUM('待审核', '已审核'),
+    type: DataTypes.ENUM('待审核', '已审核', '已结算'),
     defaultValue: '待审核',
     allowNull: false,
     comment: '审核状态'
   },
   openid: {
     type: DataTypes.STRING(50),
-    allowNull: false,
-    comment: '用户openid'
+    allowNull: true,
+    comment: '用户openid（管理员录入可为空）'
   },
   reviewer: {
     type: DataTypes.STRING(50),

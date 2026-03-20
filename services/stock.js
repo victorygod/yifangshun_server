@@ -12,6 +12,7 @@ const {
   StockCheckOrder,
   StockCheckItem,
   StockLog,
+  Prescription,
   Op
 } = require('../wrappers/db-wrapper');
 
@@ -856,6 +857,46 @@ async function settleOutOrder(id) {
   
   // 更新状态
   await StockOutOrder.update({ status: 'settled', updatedAt: getNow() }, { where: { id } });
+  
+  // 更新对应处方状态为已结算
+  if (order.prescriptionId) {
+    try {
+      const prescription = await Prescription.findOne({
+        where: { prescriptionId: order.prescriptionId, status: '已审核' }
+      });
+      if (prescription) {
+        // 删除旧的已审核记录，创建新的已结算记录
+        const oldData = {
+          openid: prescription.openid,
+          data: prescription.data,
+          thumbnail: prescription.thumbnail,
+          reviewer: prescription.reviewer,
+          reviewDate: prescription.reviewDate,
+          prescriptionDate: prescription.prescriptionDate,
+          createTime: prescription.createTime
+        };
+        await prescription.destroy();
+        
+        await Prescription.create({
+          prescriptionId: order.prescriptionId,
+          openid: oldData.openid,
+          status: '已结算',
+          data: oldData.data,
+          thumbnail: oldData.thumbnail,
+          reviewer: oldData.reviewer,
+          reviewDate: oldData.reviewDate,
+          modifyDate: new Date(),
+          prescriptionDate: oldData.prescriptionDate,
+          createTime: oldData.createTime,
+          updatedAt: getNow()
+        });
+        console.log(`[settleOutOrder] 处方状态更新为已结算: ${order.prescriptionId}`);
+      }
+    } catch (error) {
+      console.error('[settleOutOrder] 更新处方状态失败:', error.message);
+      // 处方状态更新失败不影响结算结果
+    }
+  }
   
   const updated = await getOutOrderById(id);
   return {

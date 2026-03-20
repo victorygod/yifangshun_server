@@ -1014,5 +1014,85 @@
     "id": 114,
     "createdAt": "2026-03-20T22:34:50.177Z",
     "updatedAt": "2026-03-20T22:34:50.177Z"
+  },
+  {
+    "openid": "user_i42qe75rqu",
+    "content": "你好",
+    "type": "user",
+    "id": 115,
+    "createdAt": "2026-03-21T00:07:07.447Z",
+    "updatedAt": "2026-03-21T00:07:07.447Z"
+  },
+  {
+    "openid": "user_i42qe75rqu",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 116,
+    "createdAt": "2026-03-21T00:07:07.450Z",
+    "updatedAt": "2026-03-21T00:07:07.450Z"
+  },
+  {
+    "openid": "user_shur5e73nom",
+    "content": "你好",
+    "type": "user",
+    "id": 117,
+    "createdAt": "2026-03-21T00:07:27.618Z",
+    "updatedAt": "2026-03-21T00:07:27.618Z"
+  },
+  {
+    "openid": "user_shur5e73nom",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 118,
+    "createdAt": "2026-03-21T00:07:27.621Z",
+    "updatedAt": "2026-03-21T00:07:27.621Z"
+  },
+  {
+    "openid": "user_mbhvil7z8lp",
+    "content": "你好",
+    "type": "user",
+    "id": 119,
+    "createdAt": "2026-03-21T00:12:16.986Z",
+    "updatedAt": "2026-03-21T00:12:16.986Z"
+  },
+  {
+    "openid": "user_mbhvil7z8lp",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 120,
+    "createdAt": "2026-03-21T00:12:16.987Z",
+    "updatedAt": "2026-03-21T00:12:16.987Z"
+  },
+  {
+    "openid": "user_qo9boplmfm",
+    "content": "你好",
+    "type": "user",
+    "id": 121,
+    "createdAt": "2026-03-21T00:12:41.586Z",
+    "updatedAt": "2026-03-21T00:12:41.586Z"
+  },
+  {
+    "openid": "user_qo9boplmfm",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 122,
+    "createdAt": "2026-03-21T00:12:41.586Z",
+    "updatedAt": "2026-03-21T00:12:41.586Z"
+  },
+  {
+    "openid": "user_y68il9kp7tf",
+    "content": "你好",
+    "type": "user",
+    "id": 123,
+    "createdAt": "2026-03-21T00:17:07.419Z",
+    "updatedAt": "2026-03-21T00:17:07.419Z"
+  },
+  {
+    "openid": "user_y68il9kp7tf",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 124,
+    "createdAt": "2026-03-21T00:17:07.423Z",
+    "updatedAt": "2026-03-21T00:17:07.423Z"
   }
 ]

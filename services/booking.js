@@ -19,9 +19,12 @@ async function generateAvailableSlots(startDate, openid) {
 
   const slots = [];
 
-  // 获取所有已预约的日期，并统计每个日期的预约数量
+  // 获取所有有效预约的日期（confirmed 和 checked_in 都算有效预约）
+  // confirmed: 待签到, checked_in: 已签到
   const bookings = await Booking.findAll({
-    where: { status: "confirmed" }
+    where: { 
+      status: { [Op.in]: ["confirmed", "checked_in"] }
+    }
   });
 
   // 统计每个日期的预约数量
@@ -102,10 +105,11 @@ async function createBooking(date, openid) {
   console.log(`预约检查 - 今天: ${todayStr}, 明天: ${tomorrowStr}, 预约日期: ${date}`);
 
   // 检查用户是否已有预约（一个用户最多同时预约一天）
+  // confirmed 和 checked_in 都算有效预约
   const existingBooking = await Booking.findOne({
     where: { 
       openid, 
-      status: "confirmed",
+      status: { [Op.in]: ["confirmed", "checked_in"] },
       date: {
         [Op.gte]: tomorrowStr  // 大于等于明天（明天及以后的所有日期）
       }
@@ -124,10 +128,11 @@ async function createBooking(date, openid) {
   }
 
   // 检查该日期的预约数量是否已达上限
+  // confirmed 和 checked_in 都算有效预约
   const allBookings = await Booking.findAll({
     where: { 
       date, 
-      status: "confirmed"
+      status: { [Op.in]: ["confirmed", "checked_in"] }
     },
   });
   
@@ -216,8 +221,12 @@ async function getMyBookings(openid) {
     throw new Error("缺少用户标识");
   }
 
+  // 查询所有有效预约（confirmed 和 checked_in）
   const bookings = await Booking.findAll({
-    where: { openid, status: "confirmed" },
+    where: { 
+      openid, 
+      status: { [Op.in]: ["confirmed", "checked_in"] }
+    },
     order: [["date", "ASC"]],
   });
 

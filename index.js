@@ -770,6 +770,22 @@ app.delete("/api/admin/table/:name/:id", requireRole(['super_admin'], true), asy
       return res.status(404).json({ code: 1, message: "记录不存在" });
     }
     
+    // 级联删除：删除入库单时同步删除入库明细
+    if (name === 'stock_in_orders') {
+      const detailCount = await StockInItem.count({ where: { orderId: id } });
+      if (detailCount > 0) {
+        await StockInItem.destroy({ where: { orderId: id } });
+      }
+    }
+    
+    // 级联删除：删除执药单时同步删除执药明细
+    if (name === 'stock_out_orders') {
+      const detailCount = await StockOutItem.count({ where: { orderId: id } });
+      if (detailCount > 0) {
+        await StockOutItem.destroy({ where: { orderId: id } });
+      }
+    }
+    
     // 记录orderId用于更新总价
     const orderId = record.orderId;
     
@@ -810,6 +826,15 @@ app.post("/api/admin/table/:name/batch-delete", requireRole(['super_admin']), as
     // 执行批量删除
     let deletedCount = 0;
     for (const id of ids) {
+      // 级联删除：删除入库单时同步删除入库明细
+      if (name === 'stock_in_orders') {
+        await StockInItem.destroy({ where: { orderId: id } });
+      }
+      // 级联删除：删除执药单时同步删除执药明细
+      if (name === 'stock_out_orders') {
+        await StockOutItem.destroy({ where: { orderId: id } });
+      }
+      
       const count = await model.destroy({ where: { id } });
       deletedCount += count;
     }

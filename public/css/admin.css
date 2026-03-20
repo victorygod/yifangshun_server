@@ -857,12 +857,47 @@ body {
 }
 
 /* 放大展示按钮样式 */
+
 .action-btn-zoom {
+
   background: #52c41a;
+
   color: white;
+
   margin-left: 12px;
+
 }
 
+
+
 .action-btn-zoom:hover {
+
   background: #389e0d;
+
 }
+
+
+
+/* 结算按钮样式 */
+
+.action-btn-settle {
+
+  background: #1890ff;
+
+  color: white;
+
+  margin-left: 12px;
+
+}
+
+
+
+.action-btn-settle:hover {
+
+  background: #096dd9;
+
+}
+
+
+
+

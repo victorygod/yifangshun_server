@@ -36,6 +36,8 @@ const testUserManager = require('./tests/test_user_manager');
 const testDbManager = require('./tests/test_db_manager');
 // 库存管理测试
 const testStock = require('./tests/test_stock');
+// 数据表管理改造测试
+const testDataManagement = require('./tests/test_data_management');
 
 // 全局测试统计
 const globalStats = {
@@ -101,6 +103,11 @@ async function runAllTests() {
     const stockStats = testStock.getTestStats();
     updateGlobalStats(stockStats);
     
+    // 10. 数据表管理改造测试（待功能实现后启用）
+    // await testDataManagement.runDataManagementTests(testUsers);
+    // const dataManagementStats = testDataManagement.getTestStats();
+    // updateGlobalStats(dataManagementStats);
+    
     // 清理所有测试数据
     console.log('\n========================================');
     console.log('清理测试数据');
@@ -115,6 +122,7 @@ async function runAllTests() {
     await testUserManager.cleanupTestData();
     await testDbManager.cleanupTestData();
     await testStock.cleanupTestData();
+    // testDataManagement 的清理在模块内部完成
     
     // 输出测试结果
     printTestResults();
