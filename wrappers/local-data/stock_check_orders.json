@@ -286,5 +286,32 @@
     "createdAt": "2026-03-21T00:17:07.532Z",
     "id": 32,
     "updatedAt": "2026-03-21T00:17:07.536Z"
+  },
+  {
+    "checkNo": "PD-20260320-434",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T00:24:08.986Z",
+    "id": 33,
+    "updatedAt": "2026-03-21T00:24:08.990Z"
+  },
+  {
+    "checkNo": "PD-20260320-945",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T00:32:41.857Z",
+    "id": 34,
+    "updatedAt": "2026-03-21T00:32:41.860Z"
+  },
+  {
+    "checkNo": "PD-20260320-333",
+    "checkDate": "2026-03-20",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T00:41:12.901Z",
+    "id": 35,
+    "updatedAt": "2026-03-21T00:41:12.905Z"
   }
 ]

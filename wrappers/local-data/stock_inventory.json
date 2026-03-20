@@ -218,7 +218,7 @@
     "quantity": 480,
     "avgPrice": 0.05869281045751634,
     "minValue": 500,
-    "updatedAt": "2026-03-21T00:12:41.707Z",
+    "updatedAt": "2026-03-21T00:24:09.026Z",
     "id": 21,
     "createdAt": "2026-03-20T03:35:56.916Z",
     "lastStockInDate": "2026-03-20"
@@ -229,7 +229,7 @@
     "quantity": 480,
     "avgPrice": 0.05869281045751634,
     "minValue": 500,
-    "updatedAt": "2026-03-21T00:17:07.551Z",
+    "updatedAt": "2026-03-21T00:32:41.889Z",
     "id": 22,
     "createdAt": "2026-03-20T03:36:08.026Z",
     "lastStockInDate": "2026-03-20"
@@ -238,9 +238,9 @@
     "herbName": "测试药材_1774009174577",
     "herbAlias": "更新后的别名",
     "quantity": 480,
-    "avgPrice": 0.05705882352941176,
+    "avgPrice": 0.05869281045751634,
     "minValue": 500,
-    "updatedAt": "2026-03-20T20:19:36.309Z",
+    "updatedAt": "2026-03-21T00:41:12.937Z",
     "id": 23,
     "createdAt": "2026-03-20T20:19:36.243Z",
     "lastStockInDate": "2026-03-20"
@@ -407,6 +407,39 @@
     "updatedAt": "2026-03-21T00:17:07.572Z",
     "id": 38,
     "createdAt": "2026-03-21T00:17:07.488Z",
+    "lastStockInDate": "2026-03-20"
+  },
+  {
+    "herbName": "测试药材_1774023847759",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-21T00:24:09.028Z",
+    "id": 39,
+    "createdAt": "2026-03-21T00:24:08.947Z",
+    "lastStockInDate": "2026-03-20"
+  },
+  {
+    "herbName": "测试药材_1774024359682",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-21T00:32:41.891Z",
+    "id": 40,
+    "createdAt": "2026-03-21T00:32:41.817Z",
+    "lastStockInDate": "2026-03-20"
+  },
+  {
+    "herbName": "测试药材_1774024871147",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-21T00:41:12.939Z",
+    "id": 41,
+    "createdAt": "2026-03-21T00:41:12.859Z",
     "lastStockInDate": "2026-03-20"
   }
 ]

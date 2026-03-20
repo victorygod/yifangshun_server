@@ -682,6 +682,11 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
       return res.status(404).json({ code: 1, message: "记录不存在" });
     }
     
+    // 如果是处方表，检查是否为已结算状态
+    if (name === 'prescriptions' && record.status === '已结算') {
+      return res.status(400).json({ code: 1, message: "已结算处方不可编辑" });
+    }
+    
     // 受保护字段：不允许修改
     const protectedFields = ['id', 'openid', 'createdAt'];
     protectedFields.forEach(field => delete updates[field]);

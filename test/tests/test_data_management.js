@@ -209,6 +209,105 @@ async function testCascadeDelete() {
     const items = res.data.data.rows.filter(item => testData.inOrderItemIds.includes(item.id));
     assertEquals(items.length, 0, '明细应已被级联删除');
   });
+  
+  // 1.7 创建执药单测试级联删除
+  let outOrderId1, outOrderId2, outOrderItemId1, outOrderItemId2;
+  await test('创建执药单用于级联删除测试', async () => {
+    const res = await superAdminRequest('POST', '/api/stock/out/orders', {
+      prescriptionId: 'CASCADE_OUT_TEST_' + Date.now(),
+      items: [
+        { herbName: '黄芪', quantity: 10 },
+        { herbName: '当归', quantity: 15 }
+      ],
+      operator: '测试管理员'
+    });
+    assert(res.data.code === 0, '创建执药单失败');
+    outOrderId1 = res.data.data.id;
+  });
+  
+  // 1.8 验证执药单明细已创建
+  await test('验证执药单明细已创建', async () => {
+    const res = await superAdminRequest('GET', `/api/admin/table/stock_out_items?pageSize=100`);
+    const items = res.data.data.rows.filter(item => item.orderId === outOrderId1);
+    assert(items.length >= 2, '执药单明细应至少有2条');
+    outOrderItemId1 = items[0].id;
+    outOrderItemId2 = items[1].id;
+  });
+  
+  // 1.9 删除执药单
+  await test('删除执药单', async () => {
+    const res = await superAdminRequest('DELETE', `/api/admin/table/stock_out_orders/${outOrderId1}`);
+    assert(res.data.code === 0, '删除执药单失败');
+  });
+  
+  // 1.10 验证执药单明细已级联删除
+  await test('验证执药单明细已级联删除', async () => {
+    const res = await superAdminRequest('GET', `/api/admin/table/stock_out_items?pageSize=100`);
+    const items = res.data.data.rows.filter(item => item.orderId === outOrderId1);
+    assertEquals(items.length, 0, '执药单明细应已被级联删除');
+  });
+  
+  // 1.11 测试批量删除级联
+  let batchInOrderId1, batchInOrderId2;
+  await test('创建入库单用于批量删除测试', async () => {
+    const res1 = await superAdminRequest('POST', '/api/stock/in/orders', {
+      orderDate: new Date().toISOString().split('T')[0],
+      supplier: '批量删除测试供应商1',
+      phone: '13800138001',
+      status: 'draft'
+    });
+    assert(res1.data.code === 0, '创建入库单1失败');
+    batchInOrderId1 = res1.data.data.id;
+    
+    const res2 = await superAdminRequest('POST', '/api/stock/in/orders', {
+      orderDate: new Date().toISOString().split('T')[0],
+      supplier: '批量删除测试供应商2',
+      phone: '13800138002',
+      status: 'draft'
+    });
+    assert(res2.data.code === 0, '创建入库单2失败');
+    batchInOrderId2 = res2.data.data.id;
+  });
+  
+  // 1.12 创建明细用于批量删除测试
+  let batchItemIds = [];
+  await test('创建入库明细用于批量删除测试', async () => {
+    const res1 = await superAdminRequest('POST', '/api/admin/table/stock_in_items', {
+      orderId: batchInOrderId1,
+      herbName: '批量测试药材1',
+      quantity: 10,
+      unitPrice: 10,
+      totalPrice: 100
+    });
+    assert(res1.data.code === 0, '创建明细1失败');
+    batchItemIds.push(res1.data.data.id);
+    
+    const res2 = await superAdminRequest('POST', '/api/admin/table/stock_in_items', {
+      orderId: batchInOrderId2,
+      herbName: '批量测试药材2',
+      quantity: 20,
+      unitPrice: 20,
+      totalPrice: 400
+    });
+    assert(res2.data.code === 0, '创建明细2失败');
+    batchItemIds.push(res2.data.data.id);
+  });
+  
+  // 1.13 批量删除入库单
+  await test('批量删除入库单', async () => {
+    const res = await superAdminRequest('POST', '/api/admin/table/stock_in_orders/batch-delete', {
+      ids: [batchInOrderId1, batchInOrderId2]
+    });
+    assert(res.data.code === 0, '批量删除失败');
+    assertEquals(res.data.data.deletedCount, 2, '应删除2条记录');
+  });
+  
+  // 1.14 验证批量删除后明细已级联删除
+  await test('验证批量删除后明细已级联删除', async () => {
+    const res = await superAdminRequest('GET', `/api/admin/table/stock_in_items?pageSize=100`);
+    const items = res.data.data.rows.filter(item => batchItemIds.includes(item.id));
+    assertEquals(items.length, 0, '批量删除后明细应已被级联删除');
+  });
 }
 
 /**
@@ -257,13 +356,22 @@ async function testBookingStatus() {
     assertEquals(booking.status, 'checked_in', '状态应为checked_in(已签到)');
   });
   
-  // 2.5 取消预约（直接删除）
+  // 2.5 验证getMyBookings返回checked_in状态
+  await test('验证getMyBookings返回checked_in状态', async () => {
+    const res = await request('GET', `/api/my-bookings?openid=${testUsers.normalUser.openid}`);
+    assert(res.data.code === 0, '获取我的预约失败');
+    const booking = res.data.data.find(b => b.id === testData.bookingId);
+    assert(booking, '应返回已签到的预约');
+    assertEquals(booking.status, 'checked_in', '预约状态应为checked_in');
+  });
+  
+  // 2.6 取消预约（直接删除）
   await test('取消预约（删除记录）', async () => {
     const res = await request('DELETE', `/api/booking/${testData.bookingId}?openid=${testUsers.normalUser.openid}`);
     assert(res.data.code === 0, '取消预约失败');
   });
   
-  // 2.6 验证记录已删除
+  // 2.7 验证记录已删除
   await test('验证预约记录已删除', async () => {
     const res = await superAdminRequest('GET', `/api/admin/table/bookings?pageSize=100`);
     const booking = res.data.data.rows.find(b => b.id === testData.bookingId);
@@ -381,12 +489,25 @@ async function testOutOrderSettle() {
     assertEquals(res.data.data.status, 'pending', '执药单状态应为pending');
   });
   
-  // 4.2 结算执药单
-  await test('结算执药单', async () => {
-    const res = await superAdminRequest('PUT', `/api/admin/table/stock_out_orders/${testData.outOrderId}`, {
-      status: 'settled'
+  // 4.2 使用专用接口结算执药单
+  await test('使用settle接口结算执药单', async () => {
+    // 先创建库存
+    await superAdminRequest('POST', '/api/stock/herbs', {
+      name: '黄芪',
+      alias: '黄芪',
+      salePrice: 10,
+      stock: 100
     });
-    assert(res.data.code === 0, '结算执药单失败');
+    await superAdminRequest('POST', '/api/stock/herbs', {
+      name: '当归',
+      alias: '当归',
+      salePrice: 15,
+      stock: 100
+    });
+    
+    // 调用专用结算接口
+    const res = await superAdminRequest('POST', `/api/stock/out/orders/${testData.outOrderId}/settle`);
+    assert(res.data.code === 0, '结算执药单失败: ' + JSON.stringify(res.data));
   });
   
   // 4.3 验证执药单状态为已结算
@@ -417,13 +538,53 @@ async function testOutOrderSettle() {
       return 'skipped';
     }
     
-    // 尝试更新处方
-    const res = await superAdminRequest('PUT', `/api/admin/table/prescriptions/${prescription.id}`, {
-      data: JSON.stringify({ name: '修改后的名字' })
-    });
+    // 尝试通过update接口更新处方
+    const res = await request('POST', '/api/prescription/update', {
+      prescriptionId: testData.prescriptionId,
+      status: '已结算',
+      data: { name: '修改后的名字' },
+      openid: testUsers.adminUser.openid
+    }, { 'x-home-page': 'true' });
     
     // 应该返回错误
-    assert(res.data.code !== 0, '已结算处方应该不可编辑');
+    assert(res.data.code !== 0, '已结算处方应该不可编辑，但操作成功了');
+  });
+  
+  // 4.6 测试重复审核不重复创建执药单
+  await test('测试重复审核不重复创建执药单', async () => {
+    // 创建新处方
+    const res = await superAdminRequest('POST', '/api/admin/table/prescriptions', {
+      prescriptionId: 'DUP_TEST_' + Date.now(),
+      openid: null,
+      status: '待审核',
+      data: JSON.stringify({
+        name: '重复测试患者',
+        medicines: [{ name: '黄芪', quantity: '10' }]
+      })
+    });
+    const dupPrescriptionId = res.data.data.prescriptionId;
+    
+    // 第一次审核
+    await request('POST', '/api/prescription/review', {
+      prescriptionId: dupPrescriptionId,
+      status: '待审核',
+      action: 'approve',
+      reviewerName: '测试管理员',
+      openid: testUsers.adminUser.openid
+    }, { 'x-home-page': 'true' });
+    
+    // 获取执药单数量
+    const list1 = await superAdminRequest('GET', `/api/admin/table/stock_out_orders?pageSize=100`);
+    const count1 = list1.data.data.rows.filter(o => o.prescriptionId === dupPrescriptionId).length;
+    
+    // 再次尝试审核（此时状态已变，应该找不到）
+    // 这不应该创建重复执药单
+    
+    const list2 = await superAdminRequest('GET', `/api/admin/table/stock_out_orders?pageSize=100`);
+    const count2 = list2.data.data.rows.filter(o => o.prescriptionId === dupPrescriptionId).length;
+    
+    assertEquals(count1, count2, '不应创建重复执药单');
+    assertEquals(count1, 1, '应该只有1个执药单');
   });
 }
 

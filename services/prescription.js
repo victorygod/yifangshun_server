@@ -441,6 +441,11 @@ async function updatePrescription(prescriptionId, status, prescriptionData, thum
   console.log('  status:', status);
   console.log('========================================');
 
+  // 检查是否为已结算状态
+  if (status === '已结算') {
+    throw new Error("已结算处方不可编辑");
+  }
+
   // 使用双键查找
   const prescription = await Prescription.findOne({
     where: { prescriptionId, status }

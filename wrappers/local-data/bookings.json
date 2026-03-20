@@ -1,41 +1,26 @@
 [
   {
-    "bookingId": "gotvbz0ag",
     "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
     "date": "2026-03-21",
-    "status": "cancelled",
+    "status": "checked_in",
     "time": "14:00",
     "id": 1,
-    "createdAt": "2026-03-20T20:29:08.482Z",
-    "updatedAt": "2026-03-20T20:58:01.869Z"
+    "createTime": "2026-03-20T20:29:08.482Z"
   },
   {
-    "bookingId": "xra5u4k5k",
     "openid": "user_0wafa1z76y8d",
     "date": "2026-03-27",
     "status": "confirmed",
     "time": "14:00",
     "id": 2,
-    "createdAt": "2026-03-20T21:14:11.425Z",
-    "updatedAt": "2026-03-20T21:14:11.425Z"
+    "createTime": "2026-03-20T21:14:11.425Z"
   },
   {
-    "bookingId": "jdspooea6",
     "openid": "test_user",
-    "date": "2026-03-27",
-    "status": "active",
+    "date": "2026-03-28",
+    "status": "confirmed",
     "time": "14:00",
     "id": 3,
-    "createdAt": "2026-03-20T21:14:26.335Z",
-    "updatedAt": "2026-03-20T22:11:59.476Z"
-  },
-  {
-    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "date": "2026-03-21",
-    "status": "active",
-    "time": "14:00",
-    "id": 4,
-    "createdAt": "2026-03-20T22:11:29.459Z",
-    "updatedAt": "2026-03-20T22:11:54.862Z"
+    "createTime": "2026-03-20T21:14:26.335Z"
   }
 ]
