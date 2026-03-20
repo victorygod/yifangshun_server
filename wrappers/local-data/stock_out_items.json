@@ -33,26 +33,6 @@
     "updatedAt": "2026-03-20T02:26:19.181Z"
   },
   {
-    "orderId": 4,
-    "herbName": "测试药材_1774014601294",
-    "quantity": 100,
-    "unitPrice": 0.06,
-    "totalPrice": 6,
-    "createdAt": "2026-03-20T21:50:03.165Z",
-    "id": 41,
-    "updatedAt": "2026-03-20T21:50:03.165Z"
-  },
-  {
-    "orderId": 6,
-    "herbName": "测试药材_1774015484870",
-    "quantity": 100,
-    "unitPrice": 0.06,
-    "totalPrice": 6,
-    "createdAt": "2026-03-20T22:04:46.938Z",
-    "id": 43,
-    "updatedAt": "2026-03-20T22:04:46.938Z"
-  },
-  {
     "orderId": 26,
     "herbName": "测试药材_1774024871147",
     "quantity": 200,
@@ -195,17 +175,6 @@
     "updatedAt": "2026-03-21T01:50:35.761Z"
   },
   {
-    "orderId": 50,
-    "herbName": "测试药材_1774029035683",
-    "quantity": 110,
-    "unitPrice": 0.06,
-    "totalPrice": 6.6,
-    "createdAt": "2026-03-21T01:50:37.663Z",
-    "id": 87,
-    "updatedAt": "2026-03-21T01:55:01.919Z",
-    "cabinetNo": "B-01"
-  },
-  {
     "orderId": 51,
     "herbName": "当归",
     "quantity": 15,
@@ -224,16 +193,6 @@
     "createdAt": "2026-03-21T02:04:17.022Z",
     "id": 89,
     "updatedAt": "2026-03-21T02:04:17.022Z"
-  },
-  {
-    "orderId": 54,
-    "herbName": "测试药材_1774029856928",
-    "quantity": 100,
-    "unitPrice": 0.06,
-    "totalPrice": 6,
-    "createdAt": "2026-03-21T02:04:19.053Z",
-    "id": 91,
-    "updatedAt": "2026-03-21T02:04:19.053Z"
   },
   {
     "orderId": 55,
@@ -256,13 +215,113 @@
     "updatedAt": "2026-03-21T02:04:19.229Z"
   },
   {
+    "orderId": 57,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": 5,
+    "totalPrice": 75,
+    "createdAt": "2026-03-21T02:14:33.401Z",
+    "id": 94,
+    "updatedAt": "2026-03-21T02:14:33.401Z"
+  },
+  {
     "orderId": 58,
-    "herbName": "测试药材_1774029859158",
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": 5,
+    "totalPrice": 75,
+    "createdAt": "2026-03-21T02:14:33.407Z",
+    "id": 95,
+    "updatedAt": "2026-03-21T02:14:33.407Z"
+  },
+  {
+    "orderId": 60,
+    "herbName": "测试药材_1774030473316",
     "quantity": 100,
     "unitPrice": 0.06,
     "totalPrice": 6,
-    "createdAt": "2026-03-21T02:04:20.706Z",
-    "id": 95,
-    "updatedAt": "2026-03-21T02:04:20.706Z"
+    "createdAt": "2026-03-21T02:14:34.753Z",
+    "id": 97,
+    "updatedAt": "2026-03-21T02:14:34.753Z"
+  },
+  {
+    "orderId": 61,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": 5,
+    "totalPrice": 75,
+    "createdAt": "2026-03-21T02:16:24.316Z",
+    "id": 98,
+    "updatedAt": "2026-03-21T02:16:24.316Z"
+  },
+  {
+    "orderId": 62,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": 5,
+    "totalPrice": 75,
+    "createdAt": "2026-03-21T02:21:01.596Z",
+    "id": 99,
+    "updatedAt": "2026-03-21T02:21:01.596Z"
+  },
+  {
+    "orderId": 63,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": 5,
+    "totalPrice": 75,
+    "createdAt": "2026-03-21T02:21:01.604Z",
+    "id": 100,
+    "updatedAt": "2026-03-21T02:21:01.604Z"
+  },
+  {
+    "orderId": 65,
+    "herbName": "测试药材_1774030861491",
+    "quantity": 100,
+    "unitPrice": 0.06,
+    "totalPrice": 6,
+    "createdAt": "2026-03-21T02:21:03.336Z",
+    "id": 102,
+    "updatedAt": "2026-03-21T02:21:03.336Z"
+  },
+  {
+    "orderId": 66,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": 5,
+    "totalPrice": 75,
+    "createdAt": "2026-03-21T02:21:08.100Z",
+    "id": 103,
+    "updatedAt": "2026-03-21T02:21:08.100Z"
+  },
+  {
+    "orderId": 67,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": 5,
+    "totalPrice": 75,
+    "createdAt": "2026-03-21T02:21:08.106Z",
+    "id": 104,
+    "updatedAt": "2026-03-21T02:21:08.106Z"
+  },
+  {
+    "orderId": 69,
+    "herbName": "测试药材_1774030868039",
+    "quantity": 100,
+    "unitPrice": 0.06,
+    "totalPrice": 6,
+    "createdAt": "2026-03-21T02:21:09.278Z",
+    "id": 106,
+    "updatedAt": "2026-03-21T02:21:09.278Z"
+  },
+  {
+    "orderId": 70,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": 5,
+    "totalPrice": 75,
+    "createdAt": "2026-03-21T02:22:31.830Z",
+    "id": 107,
+    "updatedAt": "2026-03-21T02:22:31.830Z"
   }
 ]

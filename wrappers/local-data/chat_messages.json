@@ -1270,5 +1270,53 @@
     "id": 146,
     "createdAt": "2026-03-21T02:04:20.610Z",
     "updatedAt": "2026-03-21T02:04:20.610Z"
+  },
+  {
+    "openid": "user_q2ogibzavv",
+    "content": "你好",
+    "type": "user",
+    "id": 147,
+    "createdAt": "2026-03-21T02:14:34.652Z",
+    "updatedAt": "2026-03-21T02:14:34.652Z"
+  },
+  {
+    "openid": "user_q2ogibzavv",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 148,
+    "createdAt": "2026-03-21T02:14:34.655Z",
+    "updatedAt": "2026-03-21T02:14:34.655Z"
+  },
+  {
+    "openid": "user_u6w462588p",
+    "content": "你好",
+    "type": "user",
+    "id": 149,
+    "createdAt": "2026-03-21T02:21:03.237Z",
+    "updatedAt": "2026-03-21T02:21:03.237Z"
+  },
+  {
+    "openid": "user_u6w462588p",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 150,
+    "createdAt": "2026-03-21T02:21:03.240Z",
+    "updatedAt": "2026-03-21T02:21:03.240Z"
+  },
+  {
+    "openid": "user_8nooow7dpf",
+    "content": "你好",
+    "type": "user",
+    "id": 151,
+    "createdAt": "2026-03-21T02:21:09.190Z",
+    "updatedAt": "2026-03-21T02:21:09.190Z"
+  },
+  {
+    "openid": "user_8nooow7dpf",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 152,
+    "createdAt": "2026-03-21T02:21:09.193Z",
+    "updatedAt": "2026-03-21T02:21:09.193Z"
   }
 ]

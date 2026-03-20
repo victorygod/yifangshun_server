@@ -210,7 +210,10 @@ async function deleteHerb(id) {
 
 // 获取入库单列表
 async function getInOrders(options = {}) {
-  const { status = 'all', page = 1, pageSize = 20 } = options;
+  // 确保参数为数字类型
+  const page = parseInt(options.page) || 1;
+  const pageSize = parseInt(options.pageSize) || 20;
+  const status = options.status || 'all';
   
   let where = {};
   if (status !== 'all') {
@@ -228,9 +231,10 @@ async function getInOrders(options = {}) {
   const start = (page - 1) * pageSize;
   const pagedOrders = orders.slice(start, start + pageSize);
   
-  // 获取每个订单的明细
+  // 获取每个订单的明细（使用宽松比较匹配orderId）
+  const allItems = await StockInItem.findAll();
   const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
-    const items = await StockInItem.findAll({ where: { orderId: order.id } });
+    const items = allItems.filter(item => item.orderId == order.id);
     return {
       ...order,
       items
@@ -654,7 +658,10 @@ async function revertStockOut(id, operator = 'system') {
 
 // 获取执药单列表
 async function getOutOrders(options = {}) {
-  const { status = 'all', page = 1, pageSize = 20 } = options;
+  // 确保参数为数字类型
+  const page = parseInt(options.page) || 1;
+  const pageSize = parseInt(options.pageSize) || 20;
+  const status = options.status || 'all';
   
   let where = {};
   if (status !== 'all') {
@@ -672,9 +679,10 @@ async function getOutOrders(options = {}) {
   const start = (page - 1) * pageSize;
   const pagedOrders = orders.slice(start, start + pageSize);
   
-  // 获取每个订单的明细
+  // 获取每个订单的明细（使用宽松比较匹配orderId）
+  const allItems = await StockOutItem.findAll();
   const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
-    const items = await StockOutItem.findAll({ where: { orderId: order.id } });
+    const items = allItems.filter(item => item.orderId == order.id);
     return {
       ...order,
       items
