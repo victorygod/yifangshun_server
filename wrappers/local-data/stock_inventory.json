@@ -2,33 +2,33 @@
   {
     "herbName": "白芷",
     "herbAlias": "",
-    "quantity": 500,
+    "quantity": 494,
     "avgPrice": 21,
     "minValue": 0,
     "lastStockInDate": "",
-    "updatedAt": "2026-03-21T19:26:10.463Z",
+    "updatedAt": "2026-03-21T19:34:44.710Z",
     "id": 1,
     "createdAt": "2026-03-21T19:15:51.921Z"
   },
   {
     "herbName": "车前花",
     "herbAlias": "",
-    "quantity": 500,
+    "quantity": 494,
     "avgPrice": 2,
     "minValue": 0,
     "lastStockInDate": "",
-    "updatedAt": "2026-03-21T19:26:10.464Z",
+    "updatedAt": "2026-03-21T19:34:44.712Z",
     "id": 2,
     "createdAt": "2026-03-21T19:15:51.922Z"
   },
   {
     "herbName": "续断",
     "herbAlias": "",
-    "quantity": 600,
+    "quantity": 590,
     "avgPrice": 2,
     "minValue": 0,
     "lastStockInDate": "",
-    "updatedAt": "2026-03-21T19:26:10.465Z",
+    "updatedAt": "2026-03-21T19:34:44.715Z",
     "id": 3,
     "createdAt": "2026-03-21T19:15:51.924Z"
   },
@@ -53,5 +53,16 @@
     "updatedAt": "2026-03-21T19:26:10.467Z",
     "id": 5,
     "createdAt": "2026-03-21T19:26:10.467Z"
+  },
+  {
+    "herbName": "测试药材_1774094558090",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-21T20:02:40.271Z",
+    "id": 6,
+    "createdAt": "2026-03-21T20:02:40.209Z",
+    "lastStockInDate": "2026-03-21"
   }
 ]

@@ -14,5 +14,21 @@
     "id": 2,
     "createdAt": "2026-03-21T19:24:16.011Z",
     "updatedAt": "2026-03-21T19:24:16.011Z"
+  },
+  {
+    "openid": "user_v2gencphtua",
+    "content": "你好",
+    "type": "user",
+    "id": 3,
+    "createdAt": "2026-03-21T20:02:40.145Z",
+    "updatedAt": "2026-03-21T20:02:40.145Z"
+  },
+  {
+    "openid": "user_v2gencphtua",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 4,
+    "createdAt": "2026-03-21T20:02:40.146Z",
+    "updatedAt": "2026-03-21T20:02:40.146Z"
   }
 ]

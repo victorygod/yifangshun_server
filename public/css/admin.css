@@ -879,23 +879,141 @@ body {
 
 
 /* 结算按钮样式 */
-
 .action-btn-settle {
-
   background: #1890ff;
-
   color: white;
-
   margin-left: 12px;
-
 }
 
-
-
 .action-btn-settle:hover {
-
   background: #096dd9;
+}
 
+/* 入库单确认/退回按钮样式 */
+.action-btn-confirm {
+  background: #52c41a;
+  color: white;
+}
+
+.action-btn-confirm:hover {
+  background: #389e0d;
+}
+
+.action-btn-revert {
+  background: #fa8c16;
+  color: white;
+}
+
+.action-btn-revert:hover {
+  background: #d46b08;
+}
+
+/* 撤销按钮样式 */
+.action-btn-revoke {
+  background: #fa8c16;
+  color: white;
+}
+
+.action-btn-revoke:hover {
+  background: #d46b08;
+}
+
+/* 处方详情样式 */
+.prescription-detail-row {
+  background: #f6f8fc !important;
+}
+
+.prescription-detail-row:hover td {
+  background: #f6f8fc !important;
+}
+
+.prescription-detail {
+  padding: 16px 20px 16px 40px;
+}
+
+.prescription-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px 24px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+}
+
+.prescription-info-grid .info-item {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+}
+
+.prescription-info-grid .info-label {
+  color: #999;
+  margin-right: 8px;
+  white-space: nowrap;
+}
+
+.prescription-info-grid .info-value {
+  color: #333;
+  font-weight: 500;
+}
+
+.medicines-section {
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+  overflow: hidden;
+}
+
+.medicines-title {
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.medicines-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.medicines-table th {
+  background: #f5f7fa;
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.medicines-table td {
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.medicines-table tr:hover td {
+  background: #fafafa;
+}
+
+.medicines-table td:first-child {
+  width: 50px;
+  text-align: center;
+  color: #999;
+}
+
+.no-medicines {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+  background: #fff;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
 }
 
 

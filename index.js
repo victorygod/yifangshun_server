@@ -1081,6 +1081,35 @@ app.post("/api/stock/in/orders/:id/stock", requireRole(['admin', 'super_admin'])
   }
 });
 
+// 入库单状态更新（确认入库/退回草稿）
+app.put("/api/stock/in/orders/:id/status", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const operator = req.user?.openid || 'system';
+
+    if (status === 'stocked') {
+      // 确认入库
+      const result = await stock.executeStockIn(id, operator);
+      res.json(result);
+    } else if (status === 'draft') {
+      // 退回草稿 - 先回退库存，再更新状态
+      const result = await stock.revertStockIn(id, operator);
+      if (result.code === 0) {
+        // 直接更新订单状态为草稿
+        await StockInOrder.update({ status: 'draft', updatedAt: new Date().toISOString() }, { where: { id } });
+        res.json({ code: 0, message: '已退回草稿' });
+      } else {
+        res.json(result);
+      }
+    } else {
+      res.status(400).json({ code: 1, message: '无效的状态' });
+    }
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
 // 出库管理
 app.get("/api/stock/out/orders", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
@@ -1104,6 +1133,16 @@ app.post("/api/stock/out/orders", requireRole(['admin', 'super_admin']), async (
 app.delete("/api/stock/out/orders/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const result = await stock.deleteOutOrder(req.params.id);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
+// 获取单个执药单（包含明细）
+app.get("/api/stock/out/orders/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.getOutOrderById(req.params.id);
     res.json(result);
   } catch (error) {
     res.status(400).json({ code: 1, message: error.message });

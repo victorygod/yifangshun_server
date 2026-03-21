@@ -900,14 +900,32 @@ async function settleOutOrder(id) {
   
   console.log(`[settleOutOrder] 执药单ID: ${id}, 找到明细: ${items.length} 条`);
   
-  // 检查库存并扣减
+  // 先检查所有药材库存情况
+  const insufficientItems = [];
   for (const item of items) {
-    // 检查库存统计表
-    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
-    if (!inventory || inventory.quantity < item.quantity) {
-      throw new Error(`药材 ${item.herbName} 库存不足`);
-    }
+    const herb = await Herb.findOne({ where: { name: item.herbName } });
+    const herbStock = herb ? (herb.stock || 0) : 0;
     
+    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
+    
+    // 检查库存是否充足
+    if (!herb && !inventory) {
+      insufficientItems.push({ name: item.herbName, need: item.quantity, have: 0, reason: '药材不存在' });
+    } else if (inventory && inventory.quantity < item.quantity) {
+      insufficientItems.push({ name: item.herbName, need: item.quantity, have: inventory.quantity, reason: '库存统计表不足' });
+    } else if (!inventory && herbStock < item.quantity) {
+      insufficientItems.push({ name: item.herbName, need: item.quantity, have: herbStock, reason: '药材库存不足' });
+    }
+  }
+  
+  // 如果有库存不足的药材，抛出错误
+  if (insufficientItems.length > 0) {
+    const messages = insufficientItems.map(i => `${i.name}(需${i.need}g, 现${i.have}g, ${i.reason})`);
+    throw new Error(`以下药材库存不足：${messages.join('、')}`);
+  }
+  
+  // 库存检查通过，执行扣减
+  for (const item of items) {
     // 更新药材表的库存
     let herb = await Herb.findOne({ where: { name: item.herbName } });
     if (herb) {
@@ -917,13 +935,16 @@ async function settleOutOrder(id) {
       console.log(`[settleOutOrder] 扣减药材库存: ${item.herbName}, 旧库存: ${oldStock}, 新库存: ${newStock}`);
     }
     
-    // 更新库存统计表
-    const newQuantity = inventory.quantity - item.quantity;
-    await StockInventory.update({ 
-      quantity: newQuantity, 
-      updatedAt: getNow() 
-    }, { where: { id: inventory.id } });
-    console.log(`[settleOutOrder] 扣减库存统计: ${item.herbName}, 旧数量: ${inventory.quantity}, 新数量: ${newQuantity}`);
+    // 更新库存统计表（如果有记录）
+    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
+    if (inventory) {
+      const newQuantity = inventory.quantity - item.quantity;
+      await StockInventory.update({ 
+        quantity: newQuantity, 
+        updatedAt: getNow() 
+      }, { where: { id: inventory.id } });
+      console.log(`[settleOutOrder] 扣减库存统计: ${item.herbName}, 旧数量: ${inventory.quantity}, 新数量: ${newQuantity}`);
+    }
     
     // 添加日志
     await addStockLog('stock_out', `ZD-${id}`, item.herbName, -item.quantity, 'admin');

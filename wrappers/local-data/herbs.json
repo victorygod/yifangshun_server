@@ -5,10 +5,10 @@
     "unit": "克",
     "minValue": "0",
     "salePrice": "21",
-    "stock": 500,
+    "stock": 494,
     "isActive": true,
     "createdAt": "2026-03-21T19:15:51.920Z",
-    "updatedAt": "2026-03-21T19:26:10.462Z",
+    "updatedAt": "2026-03-21T19:34:44.709Z",
     "id": 1,
     "cabinetNo": "A2",
     "remark": ""
@@ -19,10 +19,10 @@
     "unit": "克",
     "minValue": "0",
     "salePrice": "2",
-    "stock": 500,
+    "stock": 494,
     "isActive": true,
     "createdAt": "2026-03-21T19:15:51.922Z",
-    "updatedAt": "2026-03-21T19:26:10.464Z",
+    "updatedAt": "2026-03-21T19:34:44.711Z",
     "id": 2,
     "cabinetNo": "A11",
     "remark": ""
@@ -33,10 +33,10 @@
     "unit": "克",
     "minValue": "0",
     "salePrice": "2",
-    "stock": 600,
+    "stock": 590,
     "isActive": true,
     "createdAt": "2026-03-21T19:15:51.923Z",
-    "updatedAt": "2026-03-21T19:26:10.465Z",
+    "updatedAt": "2026-03-21T19:34:44.714Z",
     "id": 3,
     "cabinetNo": "A10",
     "remark": ""
@@ -68,5 +68,19 @@
     "id": 5,
     "cabinetNo": "B32",
     "remark": ""
+  },
+  {
+    "name": "测试药材_1774094558090",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "cabinetNo": "B-01",
+    "salePrice": 0.06,
+    "remark": "测试备注",
+    "isActive": true,
+    "createdAt": "2026-03-21T20:02:40.209Z",
+    "updatedAt": "2026-03-21T20:02:40.270Z",
+    "id": 6,
+    "stock": 500
   }
 ]
