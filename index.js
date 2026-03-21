@@ -611,6 +611,30 @@ app.delete("/api/admin/table/:name", requireRole(['super_admin']), async (req, r
   }
 });
 
+// 获取指定表的单条记录
+app.get("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { name, id } = req.params;
+    
+    const model = TABLE_MODELS[name];
+    if (!model) {
+      return res.status(404).json({ code: 1, message: "表不存在" });
+    }
+    
+    const record = await model.findOne({ where: { id } });
+    if (!record) {
+      return res.status(404).json({ code: 1, message: "记录不存在" });
+    }
+    
+    // 处理Sequelize实例
+    const data = record.toJSON ? record.toJSON() : record;
+    res.json({ code: 0, data });
+  } catch (error) {
+    console.error("获取记录失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "获取记录失败" });
+  }
+});
+
 // 初始化指定表（如果不存在）
 app.post("/api/admin/table/:name/init", requireRole(['super_admin']), async (req, res) => {
   try {

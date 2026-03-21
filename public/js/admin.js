@@ -7,6 +7,7 @@
 // 菜单配置
 const menuConfig = [
   { id: 'dashboard', icon: '📊', label: '总览', type: 'page' },
+  { id: 'users', icon: '👥', label: '用户管理', type: 'table', tableName: 'users' },
   {
     id: 'stock',
     icon: '📦',

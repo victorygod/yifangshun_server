@@ -1,106 +1,5 @@
 [
   {
-    "orderId": 1,
-    "herbName": "白芷",
-    "quantity": 6,
-    "unitPrice": "21",
-    "totalPrice": 126,
-    "createdAt": "2026-03-21T19:14:08.127Z",
-    "id": 1,
-    "updatedAt": "2026-03-21T19:28:18.561Z"
-  },
-  {
-    "orderId": 1,
-    "herbName": "车前花",
-    "quantity": 6,
-    "unitPrice": "2",
-    "totalPrice": 12,
-    "createdAt": "2026-03-21T19:14:08.128Z",
-    "id": 2,
-    "updatedAt": "2026-03-21T19:42:11.595Z",
-    "cabinetNo": "A11"
-  },
-  {
-    "orderId": 1,
-    "herbName": "续断",
-    "quantity": 10,
-    "unitPrice": "2",
-    "totalPrice": 20,
-    "createdAt": "2026-03-21T19:14:08.128Z",
-    "id": 3,
-    "updatedAt": "2026-03-21T19:28:18.562Z"
-  },
-  {
-    "orderId": 1,
-    "herbName": "防风",
-    "quantity": 10,
-    "unitPrice": 0,
-    "totalPrice": 0,
-    "createdAt": "2026-03-21T19:14:08.129Z",
-    "id": 4,
-    "updatedAt": "2026-03-21T19:14:08.129Z"
-  },
-  {
-    "orderId": 1,
-    "herbName": "金樱子",
-    "quantity": 10,
-    "unitPrice": 0,
-    "totalPrice": 0,
-    "createdAt": "2026-03-21T19:14:08.129Z",
-    "id": 5,
-    "updatedAt": "2026-03-21T19:14:08.129Z"
-  },
-  {
-    "orderId": 1,
-    "herbName": "北芪",
-    "quantity": 15,
-    "unitPrice": 0,
-    "totalPrice": 0,
-    "createdAt": "2026-03-21T19:14:08.130Z",
-    "id": 6,
-    "updatedAt": "2026-03-21T19:14:08.130Z"
-  },
-  {
-    "orderId": 1,
-    "herbName": "蕙半仁",
-    "quantity": 15,
-    "unitPrice": 0,
-    "totalPrice": 0,
-    "createdAt": "2026-03-21T19:14:08.130Z",
-    "id": 7,
-    "updatedAt": "2026-03-21T19:14:08.130Z"
-  },
-  {
-    "orderId": 1,
-    "herbName": "玄胡",
-    "quantity": 10,
-    "unitPrice": "1",
-    "totalPrice": 10,
-    "createdAt": "2026-03-21T19:14:08.131Z",
-    "id": 8,
-    "updatedAt": "2026-03-21T19:28:18.564Z"
-  },
-  {
-    "orderId": 1,
-    "herbName": "太子参",
-    "quantity": 8,
-    "unitPrice": 0,
-    "totalPrice": 0,
-    "createdAt": "2026-03-21T19:14:08.131Z",
-    "id": 9,
-    "updatedAt": "2026-03-21T19:14:08.131Z"
-  },
-  {
-    "orderId": 1,
-    "herbName": "石斛",
-    "quantity": 10,
-    "unitPrice": 0,
-    "totalPrice": 0,
-    "createdAt": "2026-03-21T19:14:08.131Z",
-    "id": 10,
-    "updatedAt": "2026-03-21T19:14:08.131Z"
-  },
-  {
     "orderId": 2,
     "herbName": "当归",
     "quantity": 15,
@@ -221,5 +120,105 @@
     "createdAt": "2026-03-21T20:43:58.472Z",
     "id": 26,
     "updatedAt": "2026-03-21T20:43:58.472Z"
+  },
+  {
+    "orderId": 18,
+    "herbName": "白芷",
+    "quantity": 180,
+    "unitPrice": "21",
+    "totalPrice": 3780,
+    "createdAt": "2026-03-21T22:44:58.237Z",
+    "id": 27,
+    "updatedAt": "2026-03-21T22:44:58.237Z"
+  },
+  {
+    "orderId": 18,
+    "herbName": "车前花",
+    "quantity": 18,
+    "unitPrice": "2",
+    "totalPrice": 36,
+    "createdAt": "2026-03-21T22:44:58.238Z",
+    "id": 28,
+    "updatedAt": "2026-03-21T22:44:58.238Z"
+  },
+  {
+    "orderId": 18,
+    "herbName": "续断",
+    "quantity": 30,
+    "unitPrice": "2",
+    "totalPrice": 60,
+    "createdAt": "2026-03-21T22:44:58.239Z",
+    "id": 29,
+    "updatedAt": "2026-03-21T22:44:58.239Z"
+  },
+  {
+    "orderId": 18,
+    "herbName": "防风",
+    "quantity": 30,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-21T22:44:58.239Z",
+    "id": 30,
+    "updatedAt": "2026-03-21T22:44:58.239Z"
+  },
+  {
+    "orderId": 18,
+    "herbName": "金樱子",
+    "quantity": 30,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-21T22:44:58.240Z",
+    "id": 31,
+    "updatedAt": "2026-03-21T22:44:58.240Z"
+  },
+  {
+    "orderId": 18,
+    "herbName": "北芪",
+    "quantity": 45,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-21T22:44:58.240Z",
+    "id": 32,
+    "updatedAt": "2026-03-21T22:44:58.240Z"
+  },
+  {
+    "orderId": 18,
+    "herbName": "蕙半仁",
+    "quantity": 45,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-21T22:44:58.241Z",
+    "id": 33,
+    "updatedAt": "2026-03-21T22:44:58.241Z"
+  },
+  {
+    "orderId": 18,
+    "herbName": "玄胡",
+    "quantity": 30,
+    "unitPrice": "1",
+    "totalPrice": 30,
+    "createdAt": "2026-03-21T22:44:58.242Z",
+    "id": 34,
+    "updatedAt": "2026-03-21T22:44:58.242Z"
+  },
+  {
+    "orderId": 18,
+    "herbName": "太子参",
+    "quantity": 24,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-21T22:44:58.243Z",
+    "id": 35,
+    "updatedAt": "2026-03-21T22:44:58.243Z"
+  },
+  {
+    "orderId": 18,
+    "herbName": "石斛",
+    "quantity": 30,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-21T22:44:58.243Z",
+    "id": 36,
+    "updatedAt": "2026-03-21T22:44:58.243Z"
   }
 ]

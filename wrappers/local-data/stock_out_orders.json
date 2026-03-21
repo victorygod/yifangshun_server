@@ -1,17 +1,5 @@
 [
   {
-    "prescriptionId": "0052152",
-    "prescriptionTime": "2026-03-21",
-    "pharmacist": "",
-    "reviewer": "wolf",
-    "status": "pending",
-    "remark": "处方审核通过自动生成",
-    "totalAmount": 168,
-    "createdAt": "2026-03-21T19:14:08.127Z",
-    "updatedAt": "2026-03-21T19:42:11.587Z",
-    "id": 1
-  },
-  {
     "prescriptionId": "APPROVE_TEST_1774092254370",
     "prescriptionTime": "2026-03-15",
     "pharmacist": "",
@@ -146,5 +134,17 @@
     "createdAt": "2026-03-21T20:43:58.471Z",
     "updatedAt": "2026-03-21T20:43:58.471Z",
     "id": 17
+  },
+  {
+    "prescriptionId": "0052152",
+    "prescriptionTime": "2026-03-21",
+    "pharmacist": "",
+    "reviewer": "wolf",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T22:44:58.236Z",
+    "updatedAt": "2026-03-21T22:44:58.236Z",
+    "id": 18
   }
 ]
