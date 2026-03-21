@@ -1,36 +1,70 @@
 [
   {
-    "prescriptionId": "APPROVE_TEST_1774114701207",
+    "prescriptionId": "APPROVE_TEST_1774115378870",
     "prescriptionTime": "2026-03-15",
     "pharmacist": "",
     "reviewer": "管理员",
     "status": "pending",
     "remark": "处方审核通过自动生成",
     "totalAmount": 0,
-    "createdAt": "2026-03-22T01:38:21.211Z",
-    "updatedAt": "2026-03-22T01:38:21.211Z",
+    "createdAt": "2026-03-22T01:49:38.875Z",
+    "updatedAt": "2026-03-22T01:49:38.875Z",
     "id": 1
   },
   {
-    "prescriptionId": "CONFIRM_APPROVE_1774114701212",
+    "prescriptionId": "CONFIRM_APPROVE_1774115378875",
     "prescriptionTime": "2026-03-15",
     "pharmacist": "",
     "reviewer": "管理员",
     "status": "pending",
     "remark": "处方审核通过自动生成",
     "totalAmount": 0,
-    "createdAt": "2026-03-22T01:38:21.216Z",
-    "updatedAt": "2026-03-22T01:38:21.216Z",
+    "createdAt": "2026-03-22T01:49:38.880Z",
+    "updatedAt": "2026-03-22T01:49:38.880Z",
     "id": 2
   },
   {
-    "prescriptionId": "DUPLICATE_TEST_1774114702352",
-    "prescriptionTime": "2026-03-21T17:38:22.352Z",
+    "prescriptionId": "DUPLICATE_TEST_1774115380966",
+    "prescriptionTime": "2026-03-21T17:49:40.968Z",
     "pharmacist": "测试药师",
     "status": "pending",
     "totalAmount": 6,
-    "createdAt": "2026-03-22T01:38:22.352Z",
-    "updatedAt": "2026-03-22T01:38:22.352Z",
+    "createdAt": "2026-03-22T01:49:40.969Z",
+    "updatedAt": "2026-03-22T01:49:40.969Z",
     "id": 4
+  },
+  {
+    "prescriptionId": "APPROVE_TEST_1774116064821",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-22T02:01:04.824Z",
+    "updatedAt": "2026-03-22T02:01:04.824Z",
+    "id": 5
+  },
+  {
+    "prescriptionId": "CONFIRM_APPROVE_1774116064827",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-22T02:01:04.832Z",
+    "updatedAt": "2026-03-22T02:01:04.832Z",
+    "id": 6
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774116066298",
+    "prescriptionTime": "2026-03-21T18:01:06.298Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-22T02:01:06.298Z",
+    "updatedAt": "2026-03-22T02:01:06.298Z",
+    "id": 8
   }
 ]

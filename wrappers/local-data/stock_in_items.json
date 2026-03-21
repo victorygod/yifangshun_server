@@ -1,12 +1,22 @@
 [
   {
     "orderId": "1",
-    "herbName": "测试药材_1774114701111",
+    "herbName": "测试药材_1774115378780",
     "quantity": 600,
     "unitPrice": 0.06,
     "totalPrice": 36,
     "id": 1,
-    "createdAt": "2026-03-22T01:38:22.338Z",
-    "updatedAt": "2026-03-22T01:38:22.338Z"
+    "createdAt": "2026-03-22T01:49:40.955Z",
+    "updatedAt": "2026-03-22T01:49:40.955Z"
+  },
+  {
+    "orderId": "2",
+    "herbName": "测试药材_1774116064733",
+    "quantity": 600,
+    "unitPrice": 0.06,
+    "totalPrice": 36,
+    "id": 2,
+    "createdAt": "2026-03-22T02:01:06.284Z",
+    "updatedAt": "2026-03-22T02:01:06.284Z"
   }
 ]

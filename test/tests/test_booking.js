@@ -259,7 +259,7 @@ async function runBookingTests(testUsers) {
     assertEquals(data.code, 0, '取消成功');
   });
   
-  // ==================== 新增测试（按场次预约）====================
+  // ==================== 新增测试（场次配置管理）====================
   
   // 场次配置管理测试
   await test('GET /api/schedule/config - 获取场次配置（管理员权限）', async () => {
@@ -267,8 +267,11 @@ async function runBookingTests(testUsers) {
       'x-openid': testUsers.adminUser.openid
     });
     
-    // 改造前应该返回404（接口不存在）
-    assertEquals(response.statusCode, 404, '接口不存在');
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '返回成功');
+    assert(data.data.defaults, '包含默认配置');
+    assert(Array.isArray(data.data.defaults), '默认配置是数组');
+    assert(Array.isArray(data.data.overrides), '临时调整是数组');
   });
   
   await test('POST /api/schedule/config/default - 设置默认场次配置（管理员权限）', async () => {
@@ -280,8 +283,8 @@ async function runBookingTests(testUsers) {
       'x-openid': testUsers.adminUser.openid
     });
     
-    // 改造前应该返回404（接口不存在）
-    assertEquals(response.statusCode, 404, '接口不存在');
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '配置已保存');
   });
   
   await test('POST /api/schedule/config/override - 设置临时调整（管理员权限）', async () => {
@@ -298,8 +301,8 @@ async function runBookingTests(testUsers) {
       'x-openid': testUsers.adminUser.openid
     });
     
-    // 改造前应该返回404（接口不存在）
-    assertEquals(response.statusCode, 404, '接口不存在');
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '调整已保存');
   });
   
   // 场次预约测试（改造后才能通过）

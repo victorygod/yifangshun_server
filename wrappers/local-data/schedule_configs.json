@@ -6,8 +6,8 @@
     "isOpen": false,
     "maxBookings": 2,
     "id": 1,
-    "createdAt": "2026-03-22T01:38:21.174Z",
-    "updatedAt": "2026-03-22T01:38:21.182Z"
+    "createdAt": "2026-03-22T01:49:38.840Z",
+    "updatedAt": "2026-03-22T02:01:04.795Z"
   },
   {
     "type": "default",
@@ -16,8 +16,8 @@
     "isOpen": true,
     "maxBookings": 4,
     "id": 2,
-    "createdAt": "2026-03-22T01:38:21.174Z",
-    "updatedAt": "2026-03-22T01:38:21.174Z"
+    "createdAt": "2026-03-22T01:49:38.841Z",
+    "updatedAt": "2026-03-22T01:49:38.841Z"
   },
   {
     "type": "default",
@@ -26,8 +26,8 @@
     "isOpen": true,
     "maxBookings": 2,
     "id": 3,
-    "createdAt": "2026-03-22T01:38:21.174Z",
-    "updatedAt": "2026-03-22T01:38:21.174Z"
+    "createdAt": "2026-03-22T01:49:38.841Z",
+    "updatedAt": "2026-03-22T01:49:38.841Z"
   },
   {
     "type": "default",
@@ -36,8 +36,8 @@
     "isOpen": false,
     "maxBookings": 2,
     "id": 4,
-    "createdAt": "2026-03-22T01:38:21.174Z",
-    "updatedAt": "2026-03-22T01:38:21.174Z"
+    "createdAt": "2026-03-22T01:49:38.841Z",
+    "updatedAt": "2026-03-22T01:49:38.841Z"
   },
   {
     "type": "default",
@@ -46,8 +46,8 @@
     "isOpen": true,
     "maxBookings": 4,
     "id": 5,
-    "createdAt": "2026-03-22T01:38:21.175Z",
-    "updatedAt": "2026-03-22T01:38:21.175Z"
+    "createdAt": "2026-03-22T01:49:38.841Z",
+    "updatedAt": "2026-03-22T01:49:38.841Z"
   },
   {
     "type": "default",
@@ -56,8 +56,8 @@
     "isOpen": true,
     "maxBookings": 2,
     "id": 6,
-    "createdAt": "2026-03-22T01:38:21.175Z",
-    "updatedAt": "2026-03-22T01:38:21.175Z"
+    "createdAt": "2026-03-22T01:49:38.842Z",
+    "updatedAt": "2026-03-22T01:49:38.842Z"
   },
   {
     "type": "default",
@@ -66,8 +66,8 @@
     "isOpen": false,
     "maxBookings": 2,
     "id": 7,
-    "createdAt": "2026-03-22T01:38:21.175Z",
-    "updatedAt": "2026-03-22T01:38:21.175Z"
+    "createdAt": "2026-03-22T01:49:38.842Z",
+    "updatedAt": "2026-03-22T01:49:38.842Z"
   },
   {
     "type": "default",
@@ -76,8 +76,8 @@
     "isOpen": false,
     "maxBookings": 4,
     "id": 8,
-    "createdAt": "2026-03-22T01:38:21.175Z",
-    "updatedAt": "2026-03-22T01:38:21.175Z"
+    "createdAt": "2026-03-22T01:49:38.842Z",
+    "updatedAt": "2026-03-22T01:49:38.842Z"
   },
   {
     "type": "default",
@@ -86,8 +86,8 @@
     "isOpen": false,
     "maxBookings": 2,
     "id": 9,
-    "createdAt": "2026-03-22T01:38:21.176Z",
-    "updatedAt": "2026-03-22T01:38:21.176Z"
+    "createdAt": "2026-03-22T01:49:38.842Z",
+    "updatedAt": "2026-03-22T01:49:38.842Z"
   },
   {
     "type": "default",
@@ -96,8 +96,8 @@
     "isOpen": false,
     "maxBookings": 2,
     "id": 10,
-    "createdAt": "2026-03-22T01:38:21.176Z",
-    "updatedAt": "2026-03-22T01:38:21.176Z"
+    "createdAt": "2026-03-22T01:49:38.842Z",
+    "updatedAt": "2026-03-22T01:49:38.843Z"
   },
   {
     "type": "default",
@@ -106,8 +106,8 @@
     "isOpen": true,
     "maxBookings": 4,
     "id": 11,
-    "createdAt": "2026-03-22T01:38:21.176Z",
-    "updatedAt": "2026-03-22T01:38:21.176Z"
+    "createdAt": "2026-03-22T01:49:38.843Z",
+    "updatedAt": "2026-03-22T01:49:38.843Z"
   },
   {
     "type": "default",
@@ -116,8 +116,8 @@
     "isOpen": true,
     "maxBookings": 2,
     "id": 12,
-    "createdAt": "2026-03-22T01:38:21.177Z",
-    "updatedAt": "2026-03-22T01:38:21.177Z"
+    "createdAt": "2026-03-22T01:49:38.843Z",
+    "updatedAt": "2026-03-22T01:49:38.843Z"
   },
   {
     "type": "default",
@@ -126,8 +126,8 @@
     "isOpen": true,
     "maxBookings": 2,
     "id": 13,
-    "createdAt": "2026-03-22T01:38:21.177Z",
-    "updatedAt": "2026-03-22T01:38:21.177Z"
+    "createdAt": "2026-03-22T01:49:38.843Z",
+    "updatedAt": "2026-03-22T01:49:38.843Z"
   },
   {
     "type": "default",
@@ -136,8 +136,8 @@
     "isOpen": false,
     "maxBookings": 4,
     "id": 14,
-    "createdAt": "2026-03-22T01:38:21.177Z",
-    "updatedAt": "2026-03-22T01:38:21.177Z"
+    "createdAt": "2026-03-22T01:49:38.843Z",
+    "updatedAt": "2026-03-22T01:49:38.843Z"
   },
   {
     "type": "default",
@@ -146,8 +146,8 @@
     "isOpen": true,
     "maxBookings": 2,
     "id": 15,
-    "createdAt": "2026-03-22T01:38:21.177Z",
-    "updatedAt": "2026-03-22T01:38:21.177Z"
+    "createdAt": "2026-03-22T01:49:38.844Z",
+    "updatedAt": "2026-03-22T01:49:38.844Z"
   },
   {
     "type": "default",
@@ -156,8 +156,8 @@
     "isOpen": false,
     "maxBookings": 2,
     "id": 16,
-    "createdAt": "2026-03-22T01:38:21.178Z",
-    "updatedAt": "2026-03-22T01:38:21.178Z"
+    "createdAt": "2026-03-22T01:49:38.844Z",
+    "updatedAt": "2026-03-22T01:49:38.844Z"
   },
   {
     "type": "default",
@@ -166,8 +166,8 @@
     "isOpen": true,
     "maxBookings": 4,
     "id": 17,
-    "createdAt": "2026-03-22T01:38:21.178Z",
-    "updatedAt": "2026-03-22T01:38:21.178Z"
+    "createdAt": "2026-03-22T01:49:38.844Z",
+    "updatedAt": "2026-03-22T01:49:38.844Z"
   },
   {
     "type": "default",
@@ -176,8 +176,8 @@
     "isOpen": true,
     "maxBookings": 2,
     "id": 18,
-    "createdAt": "2026-03-22T01:38:21.178Z",
-    "updatedAt": "2026-03-22T01:38:21.178Z"
+    "createdAt": "2026-03-22T01:49:38.844Z",
+    "updatedAt": "2026-03-22T01:49:38.844Z"
   },
   {
     "type": "default",
@@ -186,8 +186,8 @@
     "isOpen": false,
     "maxBookings": 2,
     "id": 19,
-    "createdAt": "2026-03-22T01:38:21.178Z",
-    "updatedAt": "2026-03-22T01:38:21.178Z"
+    "createdAt": "2026-03-22T01:49:38.845Z",
+    "updatedAt": "2026-03-22T01:49:38.845Z"
   },
   {
     "type": "default",
@@ -196,8 +196,8 @@
     "isOpen": true,
     "maxBookings": 4,
     "id": 20,
-    "createdAt": "2026-03-22T01:38:21.179Z",
-    "updatedAt": "2026-03-22T01:38:21.179Z"
+    "createdAt": "2026-03-22T01:49:38.845Z",
+    "updatedAt": "2026-03-22T01:49:38.845Z"
   },
   {
     "type": "default",
@@ -206,8 +206,8 @@
     "isOpen": true,
     "maxBookings": 2,
     "id": 21,
-    "createdAt": "2026-03-22T01:38:21.179Z",
-    "updatedAt": "2026-03-22T01:38:21.179Z"
+    "createdAt": "2026-03-22T01:49:38.845Z",
+    "updatedAt": "2026-03-22T01:49:38.845Z"
   },
   {
     "type": "override",
@@ -216,7 +216,7 @@
     "isOpen": false,
     "reason": "临时停诊测试",
     "id": 22,
-    "createdAt": "2026-03-22T01:38:21.184Z",
-    "updatedAt": "2026-03-22T01:38:21.184Z"
+    "createdAt": "2026-03-22T01:49:38.849Z",
+    "updatedAt": "2026-03-22T02:01:04.797Z"
   }
 ]

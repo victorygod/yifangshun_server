@@ -112,7 +112,14 @@ async function generateAvailableSlots(startDate, openid) {
     slots.push({
       date: dateStr,
       dayOfWeek,
-      sessions
+      sessions,
+      // 兼容旧接口：顶级 status 反映该天的综合状态
+      // 全天停诊(周二) → 'full'，用户已预约任意场次 → 'booked'，否则 'available'
+      status: Object.values(sessions).every(s => s.status === 'closed' || s.status === 'full')
+        ? 'full'
+        : Object.values(sessions).some(s => s.status === 'booked')
+          ? 'booked'
+          : 'available'
     });
   }
   
