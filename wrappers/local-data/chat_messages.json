@@ -30,5 +30,21 @@
     "id": 4,
     "createdAt": "2026-03-21T20:02:40.146Z",
     "updatedAt": "2026-03-21T20:02:40.146Z"
+  },
+  {
+    "openid": "user_kyyrpkpxhjs",
+    "content": "你好",
+    "type": "user",
+    "id": 5,
+    "createdAt": "2026-03-21T20:08:39.326Z",
+    "updatedAt": "2026-03-21T20:08:39.326Z"
+  },
+  {
+    "openid": "user_kyyrpkpxhjs",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 6,
+    "createdAt": "2026-03-21T20:08:39.326Z",
+    "updatedAt": "2026-03-21T20:08:39.326Z"
   }
 ]

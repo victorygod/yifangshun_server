@@ -1464,12 +1464,16 @@ async function settleOutOrder(orderId) {
       const res = await homeFetch(`/api/stock/out/orders/${orderId}/settle`, {
         method: 'POST'
       });
-      if (res.code !== 0) throw new Error(res.message);
+      if (res.code !== 0) {
+        // 库存不足等错误信息弹窗显示
+        showAlert('结算失败', res.message);
+        return;
+      }
       showToast('结算成功', 'success');
       loadTableData();
       loadStats();
     } catch (err) {
-      showToast('结算失败: ' + err.message, 'error');
+      showAlert('结算失败', err.message);
     }
   });
 }
@@ -1676,6 +1680,34 @@ function showConfirm(title, message, onConfirm) {
 
 function closeConfirm() {
   document.getElementById('confirmModal').classList.remove('show');
+}
+
+// 显示警告弹窗
+function showAlert(title, message) {
+  document.getElementById('confirmTitle').textContent = title;
+  // 将顿号分隔的药材信息转为换行显示
+  // 格式：以下药材库存不足：当归(...)、白芷(...)
+  const colonIndex = message.indexOf('：');
+  let lines;
+  if (colonIndex !== -1) {
+    const prefix = message.substring(0, colonIndex + 1);
+    const items = message.substring(colonIndex + 1);
+    lines = prefix + '<br>' + items.split('、').join('<br>');
+  } else {
+    lines = message.split('、').join('<br>');
+  }
+  document.getElementById('confirmMessage').innerHTML = lines;
+  // 隐藏取消按钮
+  const cancelBtn = document.querySelector('#confirmModal .modal-footer button:first-child');
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  document.getElementById('confirmBtn').textContent = '确定';
+  document.getElementById('confirmBtn').onclick = () => {
+    closeConfirm();
+    document.getElementById('confirmBtn').textContent = '确定';
+    // 恢复取消按钮显示
+    if (cancelBtn) cancelBtn.style.display = '';
+  };
+  document.getElementById('confirmModal').classList.add('show');
 }
 
 // ==================== 放大展示执药单明细 ====================
