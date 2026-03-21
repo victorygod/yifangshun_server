@@ -2,7 +2,7 @@
  * 预约管理API测试
  */
 
-const { Booking } = require('../../wrappers/db-wrapper');
+const { Booking, ScheduleConfig } = require('../../wrappers/db-wrapper');
 const BASE_URL = process.env.CLOUD_TEST_URL || 'http://localhost:80';
 
 // 测试统计
@@ -126,7 +126,29 @@ async function cleanupTestData() {
  */
 async function cleanupScheduleConfigData() {
   try {
-    // TODO: 清理场次配置数据（改造后实现）
+    // 删除所有 override
+    await ScheduleConfig.destroy({ where: { type: 'override' } });
+    
+    // 重置所有 default 为初始状态（按硬编码规则）
+    const DEFAULT_CLOSED_SESSIONS = {
+      0: { morning: true, afternoon: false, evening: false },  // 周日
+      1: { morning: true, afternoon: false, evening: false },  // 周一
+      2: { morning: true, afternoon: true, evening: true },    // 周二
+      3: { morning: true, afternoon: false, evening: false },  // 周三
+      4: { morning: false, afternoon: true, evening: false },  // 周四
+      5: { morning: true, afternoon: false, evening: false },  // 周五
+      6: { morning: true, afternoon: false, evening: false }   // 周六
+    };
+    
+    for (let day = 0; day <= 6; day++) {
+      for (const session of ['morning', 'afternoon', 'evening']) {
+        await ScheduleConfig.update(
+          { isOpen: !DEFAULT_CLOSED_SESSIONS[day][session] },
+          { where: { type: 'default', dayOfWeek: day, session } }
+        );
+      }
+    }
+    
     console.log('✅ 场次配置测试数据清理完成');
   } catch (error) {
     console.log('⚠️  清理场次配置测试数据失败:', error.message);
