@@ -112,5 +112,39 @@
     "createdAt": "2026-03-21T20:08:39.431Z",
     "updatedAt": "2026-03-21T20:08:39.431Z",
     "id": 13
+  },
+  {
+    "prescriptionId": "APPROVE_TEST_1774097036456",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T20:43:56.462Z",
+    "updatedAt": "2026-03-21T20:43:56.462Z",
+    "id": 14
+  },
+  {
+    "prescriptionId": "CONFIRM_APPROVE_1774097036461",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-21T20:43:56.468Z",
+    "updatedAt": "2026-03-21T20:43:56.468Z",
+    "id": 15
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774097038469",
+    "prescriptionTime": "2026-03-21T12:43:58.471Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-21T20:43:58.471Z",
+    "updatedAt": "2026-03-21T20:43:58.471Z",
+    "id": 17
   }
 ]

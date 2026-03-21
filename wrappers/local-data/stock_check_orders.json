@@ -25,5 +25,14 @@
     "createdAt": "2026-03-21T20:08:39.440Z",
     "id": 3,
     "updatedAt": "2026-03-21T20:08:39.442Z"
+  },
+  {
+    "checkNo": "PD-20260321-375",
+    "checkDate": "2026-03-21",
+    "checker": "测试盘点人",
+    "status": "confirmed",
+    "createdAt": "2026-03-21T20:43:58.481Z",
+    "id": 4,
+    "updatedAt": "2026-03-21T20:43:58.484Z"
   }
 ]

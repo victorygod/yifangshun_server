@@ -625,47 +625,211 @@ function renderPrescriptionDetail(row) {
 
   // 药材列表
   const medicines = prescriptionData.medicines || prescriptionData['药方'] || [];
-  const dosage = prescriptionData.dosage || prescriptionData['剂数'] || '-';
+  const dosage = prescriptionData.dosage || prescriptionData['剂数'] || '';
+  const name = prescriptionData.name || prescriptionData['姓名'] || '';
+  const age = prescriptionData.age || prescriptionData['年龄'] || '';
+  const date = prescriptionData.date || prescriptionData['日期'] || row.prescriptionDate || '';
+  const doctor = prescriptionData.doctor || prescriptionData['医师'] || '';
+  const administrationMethod = prescriptionData.administrationMethod || prescriptionData['服用方式'] || '';
+  const rp = prescriptionData.rp || prescriptionData['Rp'] || '';
+  
+  // 已结算状态不可编辑
+  const isSettled = row.status === '已结算';
+  const disabledAttr = isSettled ? ' disabled' : '';
 
   let html = `<tr class="detail-row prescription-detail-row" data-parent-id="${row.id}">`;
   html += `<td colspan="${columns.length + 2}" class="detail-cell">`;
   html += `<div class="detail-content prescription-detail">`;
 
-  // 处方基本信息
+  // 缩略图
+  if (row.thumbnail) {
+    html += `<div class="prescription-thumbnail">`;
+    html += `<img src="${row.thumbnail}" class="prescription-thumbnail-img" onclick="showImagePreview('${row.thumbnail}')" />`;
+    html += `</div>`;
+  }
+
+  // 处方基本信息（可编辑）
   html += `<div class="prescription-info-grid">`;
-  html += `<div class="info-item"><span class="info-label">处方号：</span><span class="info-value">${row.prescriptionId || '-'}</span></div>`;
+  html += `<div class="info-item"><span class="info-label">处方号：</span><input class="info-input" data-field="prescriptionId" value="${escapeHtml(row.prescriptionId || '')}"${disabledAttr} /></div>`;
+  html += `<div class="info-item"><span class="info-label">姓名：</span><input class="info-input" data-field="name" value="${escapeHtml(name)}"${disabledAttr} /></div>`;
+  html += `<div class="info-item"><span class="info-label">年龄：</span><input class="info-input" data-field="age" value="${escapeHtml(String(age))}"${disabledAttr} /></div>`;
+  html += `<div class="info-item"><span class="info-label">日期：</span><input class="info-input" data-field="date" value="${escapeHtml(date)}"${disabledAttr} /></div>`;
+  html += `<div class="info-item"><span class="info-label">剂数：</span><input class="info-input" data-field="dosage" value="${escapeHtml(String(dosage))}"${disabledAttr} /></div>`;
+  html += `<div class="info-item"><span class="info-label">服用方式：</span><input class="info-input" data-field="administrationMethod" value="${escapeHtml(administrationMethod)}"${disabledAttr} /></div>`;
+  html += `<div class="info-item"><span class="info-label">医师：</span><input class="info-input" data-field="doctor" value="${escapeHtml(doctor)}"${disabledAttr} /></div>`;
   html += `<div class="info-item"><span class="info-label">状态：</span><span class="info-value">${row.status || '-'}</span></div>`;
   html += `<div class="info-item"><span class="info-label">审核人：</span><span class="info-value">${row.reviewer || '-'}</span></div>`;
-  html += `<div class="info-item"><span class="info-label">处方日期：</span><span class="info-value">${row.prescriptionDate || '-'}</span></div>`;
-  html += `<div class="info-item"><span class="info-label">剂数：</span><span class="info-value">${dosage}</span></div>`;
   html += `</div>`;
 
-  // 药材列表
-  if (medicines.length > 0) {
-    html += `<div class="medicines-section">`;
-    html += `<div class="medicines-title">药方 (${medicines.length}味)</div>`;
-    html += `<table class="medicines-table">`;
-    html += `<thead><tr><th>序号</th><th>药名</th><th>剂量</th><th>备注</th></tr></thead>`;
-    html += `<tbody>`;
-    medicines.forEach((med, index) => {
-      const name = med.name || med['药名'] || '-';
-      const quantity = med.quantity || med['数量'] || '-';
-      const note = med.note || med['备注'] || '-';
-      html += `<tr>
-        <td>${index + 1}</td>
-        <td>${escapeHtml(name)}</td>
-        <td>${escapeHtml(String(quantity))}</td>
-        <td>${escapeHtml(note)}</td>
-      </tr>`;
-    });
-    html += `</tbody></table>`;
+  // Rp
+  html += `<div class="prescription-rp-section">`;
+  html += `<div class="info-label">Rp：</div>`;
+  html += `<textarea class="info-textarea" data-field="rp"${disabledAttr}>${escapeHtml(rp)}</textarea>`;
+  html += `</div>`;
+
+  // 药材列表（可编辑）
+  html += `<div class="medicines-section">`;
+  html += `<div class="medicines-title">药方 (${medicines.length}味)</div>`;
+  html += `<table class="medicines-table">`;
+  html += `<thead><tr><th>序号</th><th>药名</th><th>剂量</th><th>备注</th>${!isSettled ? '<th>操作</th>' : ''}</tr></thead>`;
+  html += `<tbody id="medicines-body-${row.id}">`;
+  medicines.forEach((med, index) => {
+    const medName = med.name || med['药名'] || '';
+    const medQuantity = med.quantity || med['数量'] || '';
+    const medNote = med.note || med['备注'] || '';
+    html += `<tr data-med-index="${index}">
+      <td>${index + 1}</td>
+      <td><input class="med-input" data-med-field="name" data-med-index="${index}" value="${escapeHtml(medName)}"${disabledAttr} /></td>
+      <td><input class="med-input" data-med-field="quantity" data-med-index="${index}" value="${escapeHtml(String(medQuantity))}"${disabledAttr} /></td>
+      <td><input class="med-input" data-med-field="note" data-med-index="${index}" value="${escapeHtml(medNote)}"${disabledAttr} /></td>
+      ${!isSettled ? `<td><button class="action-btn action-btn-delete" onclick="removeMedicine(${row.id}, ${index})">删除</button></td>` : ''}
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  
+  // 添加药材按钮（待审核状态）
+  if (!isSettled) {
+    html += `<button class="action-btn" onclick="addMedicine(${row.id})">+ 添加药材</button>`;
+  }
+  
+  html += `</div>`;
+
+  // 保存按钮（待审核状态）
+  if (!isSettled) {
+    html += `<div class="prescription-actions">`;
+    html += `<button class="btn btn-primary" onclick="savePrescriptionDetail(${row.id})">保存修改</button>`;
     html += `</div>`;
-  } else {
-    html += `<div class="no-medicines">暂无药材信息</div>`;
   }
 
   html += `</div></td></tr>`;
   return html;
+}
+
+// 添加药材
+function addMedicine(rowId) {
+  const tbody = document.getElementById(`medicines-body-${rowId}`);
+  if (!tbody) return;
+  
+  const newIndex = tbody.children.length;
+  const tr = document.createElement('tr');
+  tr.setAttribute('data-med-index', newIndex);
+  tr.innerHTML = `
+    <td>${newIndex + 1}</td>
+    <td><input class="med-input" data-med-field="name" data-med-index="${newIndex}" value="" /></td>
+    <td><input class="med-input" data-med-field="quantity" data-med-index="${newIndex}" value="" /></td>
+    <td><input class="med-input" data-med-field="note" data-med-index="${newIndex}" value="" /></td>
+    <td><button class="action-btn action-btn-delete" onclick="removeMedicine(${rowId}, ${newIndex})">删除</button></td>
+  `;
+  tbody.appendChild(tr);
+}
+
+// 删除药材
+function removeMedicine(rowId, index) {
+  const tbody = document.getElementById(`medicines-body-${rowId}`);
+  if (!tbody) return;
+  
+  const row = tbody.querySelector(`tr[data-med-index="${index}"]`);
+  if (row) {
+    row.remove();
+    // 重新编号
+    Array.from(tbody.children).forEach((tr, i) => {
+      tr.querySelector('td:first-child').textContent = i + 1;
+    });
+  }
+}
+
+// 保存处方详情修改
+async function savePrescriptionDetail(rowId) {
+  const detailRow = document.querySelector(`tr.detail-row[data-parent-id="${rowId}"]`);
+  if (!detailRow) return;
+
+  // 收集表单数据
+  const fields = ['prescriptionId', 'name', 'age', 'date', 'dosage', 'administrationMethod', 'doctor', 'rp'];
+  const data = {};
+  
+  fields.forEach(field => {
+    const input = detailRow.querySelector(`[data-field="${field}"]`);
+    if (input) {
+      data[field] = input.value;
+    }
+  });
+
+  // 收集药材数据
+  const medicines = [];
+  const tbody = document.getElementById(`medicines-body-${rowId}`);
+  if (tbody) {
+    Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+      const nameInput = tr.querySelector('[data-med-field="name"]');
+      const quantityInput = tr.querySelector('[data-med-field="quantity"]');
+      const noteInput = tr.querySelector('[data-med-field="note"]');
+      if (nameInput && quantityInput) {
+        medicines.push({
+          name: nameInput.value,
+          quantity: quantityInput.value,
+          note: noteInput ? noteInput.value : ''
+        });
+      }
+    });
+  }
+  data.medicines = medicines;
+
+  try {
+    // 先获取当前记录
+    const getRes = await homeFetch(`/api/admin/table/prescriptions/${rowId}`);
+    if (getRes.code !== 0) throw new Error(getRes.message);
+    
+    const currentRecord = getRes.data;
+    let currentData = {};
+    try {
+      currentData = typeof currentRecord.data === 'string' ? JSON.parse(currentRecord.data) : (currentRecord.data || {});
+    } catch (e) {}
+
+    // 合并数据
+    const mergedData = { ...currentData, ...data };
+
+    // 更新处方
+    const updateData = {
+      prescriptionId: data.prescriptionId || currentRecord.prescriptionId,
+      data: JSON.stringify(mergedData)
+    };
+
+    const res = await homeFetch(`/api/admin/table/prescriptions/${rowId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData)
+    });
+    
+    if (res.code !== 0) throw new Error(res.message);
+    showToast('保存成功', 'success');
+    loadTableData();
+  } catch (err) {
+    showAlert('保存失败', err.message);
+  }
+}
+
+// 图片预览
+function showImagePreview(src) {
+  let modal = document.getElementById('imagePreviewModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'imagePreviewModal';
+    modal.className = 'image-preview-modal';
+    modal.innerHTML = `
+      <div class="image-preview-content">
+        <img id="previewImage" src="" />
+        <div class="image-preview-close" onclick="closeImagePreview()">&times;</div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  document.getElementById('previewImage').src = src;
+  modal.classList.add('show');
+}
+
+function closeImagePreview() {
+  const modal = document.getElementById('imagePreviewModal');
+  if (modal) {
+    modal.classList.remove('show');
+  }
 }
 
 // 渲染入库单/执药单详情
@@ -696,7 +860,10 @@ function renderOrderDetail(row, config, detailTable) {
   html += `<tbody>`;
 
   // 已结算状态的执药单，明细只读
+  // 已入库状态的入库单，明细只读
   const isSettled = currentTable === 'stock_out_orders' && row.status === 'settled';
+  const isStocked = currentTable === 'stock_in_orders' && row.status === 'stocked';
+  const isDetailReadonly = isSettled || isStocked;
 
   // 已有明细
   items.forEach(item => {
@@ -706,7 +873,7 @@ function renderOrderDetail(row, config, detailTable) {
       const isReadonly = col.readonly;
       const isDisabled = col.disabled;
 
-      if (isSettled || isReadonly) {
+      if (isDetailReadonly || isReadonly) {
         html += `<td><span class="cell-readonly">${value || '-'}</span></td>`;
       } else {
         let dataAttrs = ` data-detail-id="${item.id}" data-order-id="${row.id}"`;
@@ -730,7 +897,7 @@ function renderOrderDetail(row, config, detailTable) {
       }
     });
 
-    if (isSettled) {
+    if (isDetailReadonly) {
       html += `<td class="col-action"><span class="cell-readonly">-</span></td>`;
     } else {
       html += `<td class="col-action">
@@ -741,8 +908,8 @@ function renderOrderDetail(row, config, detailTable) {
     html += `</tr>`;
   });
 
-  // 空行用于新增（已结算状态不显示新增行）
-  if (!isSettled) {
+  // 空行用于新增（已结算/已入库状态不显示新增行）
+  if (!isDetailReadonly) {
     html += `<tr class="detail-new-row" data-order-id="${row.id}">`;
     detailColumns.forEach(col => {
       const isReadonly = col.readonly;
