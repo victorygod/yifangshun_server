@@ -320,5 +320,16 @@
     "createdAt": "2026-03-21T18:04:48.141Z",
     "updatedAt": "2026-03-21T18:04:48.155Z",
     "id": 34
+  },
+  {
+    "orderNo": "RK-20260321-239",
+    "orderDate": "2026-03-21",
+    "supplierName": "更新后的供应商",
+    "supplierPhone": "13800138000",
+    "status": "stocked",
+    "totalAmount": 36,
+    "createdAt": "2026-03-21T19:05:11.438Z",
+    "updatedAt": "2026-03-21T19:05:11.449Z",
+    "id": 35
   }
 ]

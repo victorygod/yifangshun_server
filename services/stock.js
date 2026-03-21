@@ -20,6 +20,17 @@ const {
 // 工具函数
 // ========================================
 
+// 将Sequelize实例或普通对象转换为纯对象
+function toPlainObject(obj) {
+  if (!obj) return obj;
+  // Sequelize实例有toJSON方法
+  if (typeof obj.toJSON === 'function') {
+    return obj.toJSON();
+  }
+  // 普通对象直接返回
+  return obj;
+}
+
 // 生成单号
 function generateOrderNo(prefix) {
   const date = new Date();
@@ -236,7 +247,7 @@ async function getInOrders(options = {}) {
   const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
     const items = allItems.filter(item => item.orderId == order.id);
     return {
-      ...order,
+      ...toPlainObject(order),
       items
     };
   }));
@@ -265,7 +276,7 @@ async function getInOrderById(id) {
   return {
     code: 0,
     data: {
-      ...order,
+      ...toPlainObject(order),
       items
     }
   };
@@ -684,7 +695,7 @@ async function getOutOrders(options = {}) {
   const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
     const items = allItems.filter(item => item.orderId == order.id);
     return {
-      ...order,
+      ...toPlainObject(order),
       items
     };
   }));
@@ -776,7 +787,7 @@ async function getOutOrderById(id) {
   const items = await StockOutItem.findAll({ where: { orderId: id } });
   
   return {
-    ...order,
+    ...toPlainObject(order),
     items
   };
 }
@@ -1117,7 +1128,7 @@ async function getCheckOrders(options = {}) {
   const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
     const items = await StockCheckItem.findAll({ where: { checkId: order.id } });
     return {
-      ...order,
+      ...toPlainObject(order),
       items
     };
   }));
@@ -1187,7 +1198,7 @@ async function getCheckOrderById(id) {
   const items = await StockCheckItem.findAll({ where: { checkId: id } });
   
   return {
-    ...order,
+    ...toPlainObject(order),
     items
   };
 }

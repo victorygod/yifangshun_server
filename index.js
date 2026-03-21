@@ -782,7 +782,7 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
                 prescriptionId: targetPrescriptionId,
                 prescriptionTime: record.prescriptionDate || now,
                 pharmacist: '',
-                reviewer: '',
+                reviewer: record.reviewer || '',  // 从处方记录获取审核人
                 status: 'pending',
                 remark: '处方审核通过自动生成',
                 totalAmount: 0,
@@ -790,10 +790,14 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
                 updatedAt: now
               });
               
+              // 获取剂数
+              const dosage = parseInt(prescriptionData.dosage) || 1;
+              
               // 创建执药明细
               for (const med of medicines) {
                 const herbName = med.name || med['药名'] || '';
-                const quantity = parseFloat(med.quantity || med['数量'] || 0);
+                const singleDose = parseFloat(med.quantity || med['数量'] || 0);
+                const quantity = singleDose * dosage;  // 总克数 = 单剂量 × 剂数
                 
                 if (herbName && quantity > 0) {
                   // 获取药材售价

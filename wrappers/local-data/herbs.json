@@ -640,5 +640,19 @@
     "updatedAt": "2026-03-21T18:04:48.221Z",
     "id": 48,
     "stock": 500
+  },
+  {
+    "name": "测试药材_1774091110112",
+    "alias": "更新后的别名",
+    "unit": "克",
+    "minValue": 500,
+    "cabinetNo": "B-01",
+    "salePrice": 0.06,
+    "remark": "测试备注",
+    "isActive": true,
+    "createdAt": "2026-03-21T19:05:11.432Z",
+    "updatedAt": "2026-03-21T19:05:11.512Z",
+    "id": 49,
+    "stock": 500
   }
 ]
