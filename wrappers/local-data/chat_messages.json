@@ -1350,5 +1350,21 @@
     "id": 156,
     "createdAt": "2026-03-21T02:29:35.776Z",
     "updatedAt": "2026-03-21T02:29:35.776Z"
+  },
+  {
+    "openid": "user_i3l0c32mgnl",
+    "content": "你好",
+    "type": "user",
+    "id": 157,
+    "createdAt": "2026-03-21T18:04:48.072Z",
+    "updatedAt": "2026-03-21T18:04:48.072Z"
+  },
+  {
+    "openid": "user_i3l0c32mgnl",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 158,
+    "createdAt": "2026-03-21T18:04:48.073Z",
+    "updatedAt": "2026-03-21T18:04:48.073Z"
   }
 ]

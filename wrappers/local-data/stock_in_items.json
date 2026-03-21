@@ -367,5 +367,15 @@
     "id": 52,
     "createdAt": "2026-03-21T02:29:35.841Z",
     "updatedAt": "2026-03-21T02:29:35.841Z"
+  },
+  {
+    "orderId": "34",
+    "herbName": "测试药材_1774087486438",
+    "quantity": 600,
+    "unitPrice": 0.06,
+    "totalPrice": 36,
+    "id": 53,
+    "createdAt": "2026-03-21T18:04:48.147Z",
+    "updatedAt": "2026-03-21T18:04:48.147Z"
   }
 ]

@@ -901,6 +901,14 @@ app.delete("/api/admin/table/:name/:id", requireRole(['super_admin'], true), asy
       }
     }
     
+    // 级联删除：删除盘点单时同步删除盘点明细
+    if (name === 'stock_check_orders') {
+      const detailCount = await StockCheckItem.count({ where: { checkId: id } });
+      if (detailCount > 0) {
+        await StockCheckItem.destroy({ where: { checkId: id } });
+      }
+    }
+    
     // 记录orderId用于更新总价
     const orderId = record.orderId;
     
@@ -948,6 +956,10 @@ app.post("/api/admin/table/:name/batch-delete", requireRole(['super_admin']), as
       // 级联删除：删除执药单时同步删除执药明细
       if (name === 'stock_out_orders') {
         await StockOutItem.destroy({ where: { orderId: id } });
+      }
+      // 级联删除：删除盘点单时同步删除盘点明细
+      if (name === 'stock_check_orders') {
+        await StockCheckItem.destroy({ where: { checkId: id } });
       }
       
       const count = await model.destroy({ where: { id } });

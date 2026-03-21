@@ -584,5 +584,16 @@
     "id": 54,
     "createdAt": "2026-03-21T02:29:35.831Z",
     "lastStockInDate": "2026-03-20"
+  },
+  {
+    "herbName": "测试药材_1774087486438",
+    "herbAlias": "更新后的别名",
+    "quantity": 480,
+    "avgPrice": 0.05705882352941176,
+    "minValue": 500,
+    "updatedAt": "2026-03-21T18:04:48.222Z",
+    "id": 55,
+    "createdAt": "2026-03-21T18:04:48.134Z",
+    "lastStockInDate": "2026-03-21"
   }
 ]
