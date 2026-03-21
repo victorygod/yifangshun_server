@@ -1,5 +1,23 @@
 const { Booking, Op } = require('../wrappers/db-wrapper');
 
+// 场次配置
+const SESSION_CONFIG = {
+  morning: { name: '上午', timeRange: '08:00-12:00', maxBookings: 2 },
+  afternoon: { name: '下午', timeRange: '14:00-18:00', maxBookings: 4 },
+  evening: { name: '晚上', timeRange: '19:00-21:00', maxBookings: 2 }
+};
+
+// 默认停诊规则
+const DEFAULT_CLOSED_SESSIONS = {
+  0: { morning: true, afternoon: false, evening: false },  // 周日
+  1: { morning: true, afternoon: false, evening: false },  // 周一
+  2: { morning: true, afternoon: true, evening: true },    // 周二
+  3: { morning: true, afternoon: false, evening: false },  // 周三
+  4: { morning: false, afternoon: true, evening: false },  // 周四
+  5: { morning: true, afternoon: false, evening: false },  // 周五
+  6: { morning: true, afternoon: false, evening: false }   // 周六
+};
+
 // 生成随机 ID
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -11,7 +29,7 @@ function getLocalDateString(date) {
   return `${year}-${month}-${day}`;
 }
 
-// 生成可预约日期（内部函数）
+// 生成可预约日期（内部函数）- 支持场次
 async function generateAvailableSlots(startDate, openid) {
   const start = new Date(startDate);
   const end = new Date(start);
@@ -19,63 +37,85 @@ async function generateAvailableSlots(startDate, openid) {
 
   const slots = [];
 
-  // 获取所有有效预约的日期（confirmed 和 checked_in 都算有效预约）
-  // confirmed: 待签到, checked_in: 已签到
+  // 获取所有有效预约（confirmed 和 checked_in）
   const bookings = await Booking.findAll({
     where: { 
       status: { [Op.in]: ["confirmed", "checked_in"] }
     }
   });
 
-  // 统计每个日期的预约数量
+  // 按日期和场次统计预约数量
   const bookingCountMap = {};
   bookings.forEach((booking) => {
     const date = booking.date;
-    if (!bookingCountMap[date]) {
-      bookingCountMap[date] = { count: 0, users: new Set() };
+    const session = booking.session || 'afternoon'; // 兼容旧数据，默认下午
+    const personCount = booking.personCount || 1;   // 兼容旧数据，默认1人
+    
+    const key = `${date}_${session}`;
+    if (!bookingCountMap[key]) {
+      bookingCountMap[key] = { count: 0, users: new Set() };
     }
-    bookingCountMap[date].count++;
-    bookingCountMap[date].users.add(booking.openid);
+    bookingCountMap[key].count += personCount;
+    bookingCountMap[key].users.add(booking.openid);
   });
 
   const today = new Date();
   const todayStr = getLocalDateString(today);
-  const maxBookingsPerDay = 10; // 每日最多10个预约
 
   for (let i = 0; i < 14; i++) {
     const date = new Date(start);
     date.setDate(date.getDate() + i);
 
     const dateStr = getLocalDateString(date);
-    const dayOfWeek = date.getDay(); // 0是周日，1是周一，...，6是周六
+    const dayOfWeek = date.getDay();
 
-    const bookingInfo = bookingCountMap[dateStr] || { count: 0, users: new Set() };
-    const bookingCount = bookingInfo.count;
+    // 构建该日期的场次信息
+    const sessions = {};
+    
+    for (const sessionKey of ['morning', 'afternoon', 'evening']) {
+      const sessionConfig = SESSION_CONFIG[sessionKey];
+      const key = `${dateStr}_${sessionKey}`;
+      const bookingInfo = bookingCountMap[key] || { count: 0, users: new Set() };
+      
+      // 判断场次状态
+      let status, statusText;
+      
+      // 1. 停诊检查（根据默认规则）
+      if (DEFAULT_CLOSED_SESSIONS[dayOfWeek][sessionKey]) {
+        status = 'closed';
+        statusText = '停诊';
+      }
+      // 2. 当前用户已预约该场次
+      else if (openid && bookingInfo.users.has(openid)) {
+        status = 'booked';
+        statusText = '已预约';
+      }
+      // 3. 场次已约满
+      else if (bookingInfo.count >= sessionConfig.maxBookings) {
+        status = 'full';
+        statusText = '已约满';
+      }
+      // 4. 可预约
+      else {
+        status = 'available';
+        statusText = '可预约';
+      }
+      
+      sessions[sessionKey] = {
+        status,
+        statusText,
+        remaining: Math.max(0, sessionConfig.maxBookings - bookingInfo.count),
+        maxBookings: sessionConfig.maxBookings
+      };
+    }
 
-    let status;
-    // 预约规则检查
-    // 规则1: 不支持当日预约（今天不能预约今天）
-    if (dateStr === todayStr) {
-      status = "full";
-    }
-    // 规则2: 每周二都不可预约（dayOfWeek === 2）
-    else if (dayOfWeek === 2) {
-      status = "full";
-    }
-    // 规则3: 检查当前用户是否已经预约了这天
-    else if (openid && bookingInfo.users.has(openid)) {
-      status = "booked";
-    }
-    // 规则4: 根据当日余号判断
-    else if (bookingCount >= maxBookingsPerDay) {
-      status = "full";
-    }
-    else {
-      status = "available";
-    }
-
-    slots.push({ date: dateStr, status });
+    slots.push({
+      date: dateStr,
+      dayOfWeek,
+      sessions
+    });
   }
+  
   return slots;
 }
 
@@ -87,75 +127,96 @@ async function getAvailableSlots(startDate, openid) {
   return { code: 0, data: slots };
 }
 
-// 创建预约
-async function createBooking(date, openid) {
-  if (!date || !openid) {
+// 创建预约 - 支持场次和人数
+async function createBooking(date, session, personCount, openid) {
+  if (!date || !session || !personCount || !openid) {
     throw new Error("缺少必要参数");
   }
 
-  // 计算今天的日期（使用本地时间）
+  // 验证场次
+  if (!SESSION_CONFIG[session]) {
+    throw new Error("无效的场次");
+  }
+
+  // 验证人数（1-3人）
+  if (personCount < 1 || personCount > 3) {
+    throw new Error("预约人数必须为1-3人");
+  }
+
   const today = new Date();
   const todayStr = getLocalDateString(today);
-  
-  // 计算明天的日期（使用本地时间）
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = getLocalDateString(tomorrow);
 
-  console.log(`预约检查 - 今天: ${todayStr}, 明天: ${tomorrowStr}, 预约日期: ${date}`);
+  console.log(`预约检查 - 今天: ${todayStr}, 明天: ${tomorrowStr}, 预约日期: ${date}, 场次: ${session}, 人数: ${personCount}`);
 
-  // 检查用户是否已有预约（一个用户最多同时预约一天）
-  // confirmed 和 checked_in 都算有效预约
+  // 检查用户是否已有预约（一个用户最多同时预约一个场次）
   const existingBooking = await Booking.findOne({
     where: { 
       openid, 
       status: { [Op.in]: ["confirmed", "checked_in"] },
       date: {
-        [Op.gte]: tomorrowStr  // 大于等于明天（明天及以后的所有日期）
+        [Op.gte]: tomorrowStr
       }
     },
   });
 
   if (existingBooking) {
-    console.log(`找到已有预约: ${existingBooking.date}`);
-    // 格式化日期为月日格式
+    console.log(`找到已有预约: ${existingBooking.date} ${existingBooking.session || 'afternoon'}`);
     const dateObj = new Date(existingBooking.date);
     const month = dateObj.getMonth() + 1;
     const day = dateObj.getDate();
     const formattedDate = `${month}月${day}日`;
-
-    throw new Error(`您已预约${formattedDate}，最多同时预约一天`);
+    const sessionName = SESSION_CONFIG[existingBooking.session || 'afternoon']?.name || '下午';
+    
+    throw new Error(`您已预约${formattedDate}${sessionName}场次，最多同时预约一个场次`);
   }
 
-  // 检查该日期的预约数量是否已达上限
-  // confirmed 和 checked_in 都算有效预约
+  // 检查该场次的预约人数是否已达上限
   const allBookings = await Booking.findAll({
     where: { 
       date, 
+      session,  // 按场次查询
       status: { [Op.in]: ["confirmed", "checked_in"] }
     },
   });
   
-  const dateBookingsCount = allBookings.length;
+  // 统计该场次已预约总人数
+  const sessionBookingsCount = allBookings.reduce((total, booking) => {
+    return total + (booking.personCount || 1);
+  }, 0);
 
-  const maxBookingsPerDay = 10; // 每日最多10个预约
-  if (dateBookingsCount >= maxBookingsPerDay) {
-    throw new Error("该日期预约已满");
+  const sessionConfig = SESSION_CONFIG[session];
+  const maxBookings = sessionConfig.maxBookings;
+  
+  if (sessionBookingsCount + personCount > maxBookings) {
+    const remaining = maxBookings - sessionBookingsCount;
+    throw new Error(`该场次只剩${remaining}个名额，无法预约${personCount}人`);
   }
 
   // 检查预约规则
   const bookingDate = new Date(date);
+  const dayOfWeek = bookingDate.getDay();
 
   // 不支持当日预约
   if (date === todayStr) {
     throw new Error("不支持当日预约");
   }
 
+  // 检查场次是否停诊（根据默认规则）
+  if (DEFAULT_CLOSED_SESSIONS[dayOfWeek][session]) {
+    throw new Error(`${SESSION_CONFIG[session].name}场次今日停诊`);
+  }
+
+  // 创建预约
   const booking = await Booking.create({
     openid,
     date,
+    session,           // 新增字段
+    personCount,       // 新增字段
     status: "confirmed",
-    time: "14:00",
+    time: "14:00",     // 保留兼容性
   });
 
   return {
@@ -163,6 +224,10 @@ async function createBooking(date, openid) {
     data: {
       id: booking.id,
       date: booking.date,
+      session: booking.session,
+      sessionName: SESSION_CONFIG[booking.session]?.name,
+      timeRange: SESSION_CONFIG[booking.session]?.timeRange,
+      personCount: booking.personCount,
       status: booking.status,
     },
   };
@@ -215,7 +280,7 @@ async function cancelBooking(id, openid) {
   return { code: 0, message: "预约已取消" };
 }
 
-// 获取我的预约
+// 获取我的预约 - 返回场次信息
 async function getMyBookings(openid) {
   if (!openid) {
     throw new Error("缺少用户标识");
@@ -230,13 +295,22 @@ async function getMyBookings(openid) {
     order: [["date", "ASC"]],
   });
 
-  const bookingList = bookings.map((booking) => ({
-    id: booking.id,
-    date: booking.date,
-    time: booking.time,
-    status: booking.status,
-    createTime: booking.createTime,
-  }));
+  const bookingList = bookings.map((booking) => {
+    const session = booking.session || 'afternoon'; // 兼容旧数据
+    const sessionConfig = SESSION_CONFIG[session];
+    
+    return {
+      id: booking.id,
+      date: booking.date,
+      session: booking.session,
+      sessionName: sessionConfig?.name || '下午',
+      timeRange: sessionConfig?.timeRange || '14:00-18:00',
+      personCount: booking.personCount || 1,
+      time: booking.time,
+      status: booking.status,
+      createTime: booking.createTime,
+    };
+  });
 
   return { code: 0, data: bookingList };
 }

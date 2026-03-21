@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const { init: initDB, User, Booking, ChatMessage, Prescription, sequelize, Op,
   Herb, StockInOrder, StockInItem, StockOutOrder, StockOutItem,
-  StockInventory, StockLog
+  StockInventory, StockLog, ScheduleConfig  // 新增
 } = require("./wrappers/db-wrapper");
 
 // 导入 service 模块
@@ -18,6 +18,7 @@ const booking = require("./services/booking");
 const prescription = require("./services/prescription");
 const chat = require("./services/chat");
 const stock = require("./services/stock");
+const schedule = require("./services/schedule");  // 新增
 
 // 导入权限中间件
 const { requireRole } = require("./middlewares/auth");
@@ -189,11 +190,11 @@ app.get("/api/available-slots", async (req, res) => {
   }
 });
 
-// 创建预约
+// 创建预约 - 支持场次和人数
 app.post("/api/booking", async (req, res) => {
   try {
-    const { date, openid } = req.body;
-    const result = await booking.createBooking(date, openid);
+    const { date, session, personCount, openid } = req.body;
+    const result = await booking.createBooking(date, session, personCount, openid);
     res.json(result);
   } catch (error) {
     console.error("创建预约失败:", error);
@@ -1228,6 +1229,63 @@ app.get("/api/stock/inventory/:herbName/history", requireRole(['admin', 'super_a
   }
 });
 
+// ==================== 场次配置管理接口 ====================
+
+// 获取场次配置
+app.get("/api/schedule/config", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const defaults = await schedule.getDefaultConfig();
+    const overrides = await schedule.getOverrides();
+    
+    res.json({
+      code: 0,
+      data: {
+        defaults,
+        overrides
+      }
+    });
+  } catch (error) {
+    console.error("获取场次配置失败:", error);
+    return res.status(500).json({ code: 1, message: error.message || "获取场次配置失败" });
+  }
+});
+
+// 设置默认场次配置
+app.post("/api/schedule/config/default", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { dayOfWeek, session, isOpen, maxBookings } = req.body;
+    const result = await schedule.setDefaultConfig(dayOfWeek, session, isOpen, maxBookings);
+    res.json(result);
+  } catch (error) {
+    console.error("设置默认配置失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "设置默认配置失败" });
+  }
+});
+
+// 设置临时调整
+app.post("/api/schedule/config/override", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { date, session, isOpen, reason } = req.body;
+    const result = await schedule.setOverride(date, session, isOpen, reason);
+    res.json(result);
+  } catch (error) {
+    console.error("设置临时调整失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "设置临时调整失败" });
+  }
+});
+
+// 删除临时调整
+app.delete("/api/schedule/config/override/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await schedule.deleteOverride(id);
+    res.json(result);
+  } catch (error) {
+    console.error("删除临时调整失败:", error);
+    return res.status(400).json({ code: 1, message: error.message || "删除临时调整失败" });
+  }
+});
+
 // ==================== 健康检查和日志接口 ====================
 
 // 健康检查
@@ -1284,6 +1342,10 @@ async function bootstrap() {
     console.log("POST   /api/prescription/confirm-overwrite");
     console.log("GET    /api/prescription/list");
     console.log("POST   /api/chat");
+    console.log("GET    /api/schedule/config");
+    console.log("POST   /api/schedule/config/default");
+    console.log("POST   /api/schedule/config/override");
+    console.log("DELETE /api/schedule/config/override/:id");
     console.log("GET    /health");
     console.log("POST   /api/log");
     console.log("=================================\n");

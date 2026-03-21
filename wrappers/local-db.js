@@ -412,6 +412,9 @@ const sequelize = {
   }
 };
 
+// 场次配置模型
+const ScheduleConfig = new Model('schedule_configs', 'id');
+
 // 导出
 module.exports = {
   init,
@@ -427,6 +430,8 @@ module.exports = {
   StockOutItem,
   StockInventory,
   StockLog,
+  // 场次配置模型
+  ScheduleConfig,
   sequelize,
   Op
 };

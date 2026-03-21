@@ -14,4 +14,8 @@ if (config.isLocalMode) {
   dbImplementation = require('../db');
 }
 
-module.exports = dbImplementation;
+// 导出模型和操作符
+module.exports = {
+  ...dbImplementation,
+  // 如果需要额外导出的东西可以在这里添加
+};

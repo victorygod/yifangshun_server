@@ -61,7 +61,7 @@ const User = sequelize.define("User", {
   },
 });
 
-// 预约模型
+// 预约模型 - 支持场次
 const Booking = sequelize.define("Booking", {
   id: {
     type: DataTypes.INTEGER,
@@ -75,6 +75,15 @@ const Booking = sequelize.define("Booking", {
   date: {
     type: DataTypes.DATEONLY,
     allowNull: false,
+  },
+  session: {  // 新增：场次
+    type: DataTypes.ENUM("morning", "afternoon", "evening"),
+    allowNull: true,
+  },
+  personCount: {  // 新增：预约人数
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    defaultValue: 1,
   },
   time: {
     type: DataTypes.STRING,
@@ -504,6 +513,7 @@ async function init() {
   await StockOutItem.sync(syncOption);
   await StockInventory.sync(syncOption);
   await StockLog.sync(syncOption);
+  await ScheduleConfig.sync(syncOption);  // 新增场次配置表
   
   console.log('数据库表同步完成');
 }
@@ -522,6 +532,7 @@ module.exports = {
   StockOutItem,
   StockInventory,
   StockLog,
+  ScheduleConfig,  // 新增
   sequelize,
   Op,
 };

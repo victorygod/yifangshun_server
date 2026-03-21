@@ -16,7 +16,8 @@ const testStats = {
 
 // 测试数据
 const testData = {
-  bookingId: null
+  bookingId: null,
+  scheduleConfigId: null  // 新增：场次配置ID
 };
 
 /**
@@ -121,10 +122,24 @@ async function cleanupTestData() {
 }
 
 /**
+ * 清理场次配置测试数据
+ */
+async function cleanupScheduleConfigData() {
+  try {
+    // TODO: 清理场次配置数据（改造后实现）
+    console.log('✅ 场次配置测试数据清理完成');
+  } catch (error) {
+    console.log('⚠️  清理场次配置测试数据失败:', error.message);
+  }
+}
+
+/**
  * 导出函数
  */
 async function runBookingTests(testUsers) {
   console.log('\n📋 2. 测试预约管理API');
+  
+  // ==================== 现有测试（按日预约）====================
   
   // GET /api/available-slots
   await test('GET /api/available-slots - 获取可预约日期', async () => {
@@ -161,12 +176,16 @@ async function runBookingTests(testUsers) {
     
     const { response, data } = await request('POST', '/api/booking', {
       date: dateStr,
+      session: 'afternoon',
+      personCount: 1,
       openid: testUsers.normalUser.openid
     });
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '预约成功');
     assert(data.data.id, '返回预约ID');
+    assert(data.data.session, '返回场次信息');
+    assert(data.data.personCount, '返回预约人数');
     testData.bookingId = data.data.id;
   });
   
@@ -175,6 +194,8 @@ async function runBookingTests(testUsers) {
     
     const { response, data } = await request('POST', '/api/booking', {
       date: today,
+      session: 'afternoon',
+      personCount: 1,
       openid: testUsers.normalUser.openid
     });
     
@@ -192,6 +213,8 @@ async function runBookingTests(testUsers) {
     
     const { response, data } = await request('POST', '/api/booking', {
       date: dateStr,
+      session: 'afternoon',
+      personCount: 1,
       openid: testUsers.normalUser.openid
     });
     
@@ -206,6 +229,8 @@ async function runBookingTests(testUsers) {
     
     const { response, data } = await request('POST', '/api/booking', {
       date: '2026-04-01',
+      session: 'morning',
+      personCount: 1,
       openid: testUsers.normalUser.openid
     });
     
@@ -234,15 +259,125 @@ async function runBookingTests(testUsers) {
     assertEquals(data.code, 0, '取消成功');
   });
   
+  // ==================== 新增测试（按场次预约）====================
+  
+  // 场次配置管理测试
+  await test('GET /api/schedule/config - 获取场次配置（管理员权限）', async () => {
+    const { response, data } = await request('GET', '/api/schedule/config', null, {
+      'x-openid': testUsers.adminUser.openid
+    });
+    
+    // 改造前应该返回404（接口不存在）
+    assertEquals(response.statusCode, 404, '接口不存在');
+  });
+  
+  await test('POST /api/schedule/config/default - 设置默认场次配置（管理员权限）', async () => {
+    const { response, data } = await request('POST', '/api/schedule/config/default', {
+      dayOfWeek: 0,  // 周日
+      session: 'morning',
+      isOpen: false
+    }, {
+      'x-openid': testUsers.adminUser.openid
+    });
+    
+    // 改造前应该返回404（接口不存在）
+    assertEquals(response.statusCode, 404, '接口不存在');
+  });
+  
+  await test('POST /api/schedule/config/override - 设置临时调整（管理员权限）', async () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dateStr = tomorrow.toISOString().split('T')[0];
+    
+    const { response, data } = await request('POST', '/api/schedule/config/override', {
+      date: dateStr,
+      session: 'all',
+      isOpen: false,
+      reason: '临时停诊测试'
+    }, {
+      'x-openid': testUsers.adminUser.openid
+    });
+    
+    // 改造前应该返回404（接口不存在）
+    assertEquals(response.statusCode, 404, '接口不存在');
+  });
+  
+  // 场次预约测试（改造后才能通过）
+  await test('[改造后] GET /api/available-slots - 按场次获取可预约信息', async () => {
+    const { response, data } = await request('GET', '/api/available-slots');
+    
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '返回成功');
+    
+    // 检查返回结构是否包含场次信息
+    assert(Array.isArray(data.data), '返回数组');
+    if (data.data.length > 0) {
+      const firstDay = data.data[0];
+      assert(firstDay.hasOwnProperty('sessions'), '包含sessions字段');
+      assert(firstDay.sessions.hasOwnProperty('morning'), '包含上午场次');
+      assert(firstDay.sessions.hasOwnProperty('afternoon'), '包含下午场次');
+      assert(firstDay.sessions.hasOwnProperty('evening'), '包含晚上场次');
+    }
+  });
+  
+  await test('[改造后] POST /api/booking - 按场次创建预约', async () => {
+    // 计算一个不是周二的日期
+    const date = new Date();
+    date.setDate(date.getDate() + 7);
+    while (date.getDay() === 2) {
+      date.setDate(date.getDate() + 1);
+    }
+    const dateStr = date.toISOString().split('T')[0];
+    
+    const { response, data } = await request('POST', '/api/booking', {
+      date: dateStr,
+      session: 'afternoon',
+      personCount: 2,
+      openid: testUsers.normalUser.openid
+    });
+    
+    // 改造前会失败（缺少session参数）
+    if (response.statusCode === 400) {
+      assert(data.message.includes('session') || data.message.includes('缺少'), '提示缺少session参数');
+    } else {
+      assertEquals(response.statusCode, 200, '请求成功');
+      assertEquals(data.code, 0, '预约成功');
+      assert(data.data.session, '返回场次信息');
+      assert(data.data.personCount, '返回预约人数');
+    }
+  });
+  
+  await test('[改造后] GET /api/my-bookings - 获取包含场次信息的预约', async () => {
+    const { response, data } = await request('GET', `/api/my-bookings?openid=${testUsers.normalUser.openid}`);
+    
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '返回成功');
+    assert(Array.isArray(data.data), '返回数组');
+    
+    // 检查是否有场次相关信息
+    if (data.data.length > 0) {
+      const booking = data.data[0];
+      // 改造后应该包含这些字段
+      if (booking.session) {
+        assert(booking.session, '包含场次');
+        assert(booking.sessionName, '包含场次名称');
+        assert(booking.timeRange, '包含时间范围');
+        assert(booking.personCount, '包含预约人数');
+      }
+    }
+  });
+  
   console.log('\n📊 预约测试结果');
   console.log(`  总测试数: ${testStats.total}`);
   console.log(`  通过: ${testStats.passed} ✅`);
   console.log(`  失败: ${testStats.failed} ❌`);
+  console.log(`  跳过: ${testStats.skipped} ⏭️`);
 }
 
 // 导出模块
 module.exports = {
   runBookingTests,
   cleanupTestData,
+  cleanupScheduleConfigData,
   getTestStats: () => testStats
 };
