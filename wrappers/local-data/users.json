@@ -1,48 +1,13 @@
 [
   {
-    "openid": "test_openid_1773948665998",
-    "code": "test_code",
-    "name": "测试用户",
-    "phone": "13800138000",
-    "isNewUser": false,
-    "role": "user",
-    "id": 1,
-    "createdAt": "2026-03-20T03:31:05.998Z",
-    "updatedAt": "2026-03-20T20:19:55.452Z"
-  },
-  {
     "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "code": "0d1j4Ekl2iYboh44Igml2t75dX0j4Ekd",
+    "code": "0e17BKFa1GTYoL0EIrFa1Fanna07BKFZ",
     "role": "admin",
     "isNewUser": false,
-    "id": 2,
-    "createdAt": "2026-03-20T20:28:54.990Z",
-    "updatedAt": "2026-03-20T22:11:25.728Z",
+    "id": 1,
+    "createdAt": "2026-03-21T19:12:24.084Z",
+    "updatedAt": "2026-03-21T19:13:53.431Z",
     "phone": "15201927053",
     "name": "wolf"
-  },
-  {
-    "openid": "op_or_test_1",
-    "name": "张三",
-    "phone": "13800138001",
-    "id": 6,
-    "createdAt": "2026-03-21T00:07:07.638Z",
-    "updatedAt": "2026-03-21T00:07:07.638Z"
-  },
-  {
-    "openid": "op_or_test_2",
-    "name": "李四",
-    "phone": "13900139002",
-    "id": 7,
-    "createdAt": "2026-03-21T00:07:07.639Z",
-    "updatedAt": "2026-03-21T00:07:07.639Z"
-  },
-  {
-    "openid": "op_or_test_3",
-    "name": "王五",
-    "phone": "13700137003",
-    "id": 8,
-    "createdAt": "2026-03-21T00:07:07.640Z",
-    "updatedAt": "2026-03-21T00:07:07.640Z"
   }
 ]

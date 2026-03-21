@@ -693,10 +693,28 @@ async function getOutOrders(options = {}) {
   // 获取每个订单的明细（使用宽松比较匹配orderId）
   const allItems = await StockOutItem.findAll();
   const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
-    const items = allItems.filter(item => item.orderId == order.id);
+    let items = allItems.filter(item => item.orderId == order.id);
+    
+    // 待执药状态：自动同步药材单价
+    if (order.status === 'pending' && items.length > 0) {
+      for (const item of items) {
+        const herb = await Herb.findOne({ where: { name: item.herbName } });
+        if (herb && herb.salePrice && herb.salePrice !== item.unitPrice) {
+          const newUnitPrice = herb.salePrice;
+          const newTotalPrice = item.quantity * newUnitPrice;
+          await StockOutItem.update(
+            { unitPrice: newUnitPrice, totalPrice: newTotalPrice, updatedAt: new Date().toISOString() },
+            { where: { id: item.id } }
+          );
+          item.unitPrice = newUnitPrice;
+          item.totalPrice = newTotalPrice;
+        }
+      }
+    }
+    
     return {
       ...toPlainObject(order),
-      items
+      items: items.map(toPlainObject)
     };
   }));
   
@@ -786,9 +804,27 @@ async function getOutOrderById(id) {
   
   const items = await StockOutItem.findAll({ where: { orderId: id } });
   
+  // 待执药状态：自动同步药材单价
+  if (order.status === 'pending' && items.length > 0) {
+    for (const item of items) {
+      const herb = await Herb.findOne({ where: { name: item.herbName } });
+      if (herb && herb.salePrice && herb.salePrice !== item.unitPrice) {
+        const newUnitPrice = herb.salePrice;
+        const newTotalPrice = item.quantity * newUnitPrice;
+        await StockOutItem.update(
+          { unitPrice: newUnitPrice, totalPrice: newTotalPrice, updatedAt: new Date().toISOString() },
+          { where: { id: item.id } }
+        );
+        item.unitPrice = newUnitPrice;
+        item.totalPrice = newTotalPrice;
+        console.log(`[getOutOrderById] 同步药材单价: ${item.herbName}, ${item.unitPrice} -> ${newUnitPrice}`);
+      }
+    }
+  }
+  
   return {
     ...toPlainObject(order),
-    items
+    items: items.map(toPlainObject)
   };
 }
 

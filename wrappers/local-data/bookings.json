@@ -1,26 +1,11 @@
 [
   {
     "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "date": "2026-03-21",
-    "status": "checked_in",
+    "date": "2026-03-23",
+    "status": "confirmed",
     "time": "14:00",
     "id": 1,
-    "createTime": "2026-03-20T20:29:08.482Z"
-  },
-  {
-    "openid": "user_0wafa1z76y8d",
-    "date": "2026-03-27",
-    "status": "confirmed",
-    "time": "14:00",
-    "id": 2,
-    "createTime": "2026-03-20T21:14:11.425Z"
-  },
-  {
-    "openid": "test_user",
-    "date": "2026-03-28",
-    "status": "confirmed",
-    "time": "14:00",
-    "id": 3,
-    "createTime": "2026-03-20T21:14:26.335Z"
+    "createdAt": "2026-03-21T19:12:58.351Z",
+    "updatedAt": "2026-03-21T19:12:58.351Z"
   }
 ]
