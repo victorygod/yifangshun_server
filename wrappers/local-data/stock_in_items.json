@@ -18,5 +18,37 @@
     "id": 2,
     "createdAt": "2026-03-22T02:01:06.284Z",
     "updatedAt": "2026-03-22T02:01:06.284Z"
+  },
+  {
+    "orderId": "1",
+    "herbName": "金樱子",
+    "supplierName": "金樱子",
+    "quantity": 512,
+    "unitPrice": 3,
+    "totalPrice": 1536,
+    "id": 3,
+    "createdAt": "2026-03-22T02:06:33.127Z",
+    "updatedAt": "2026-03-22T02:06:33.127Z"
+  },
+  {
+    "orderId": "1",
+    "herbName": "当归",
+    "supplierName": "当归",
+    "quantity": 32223,
+    "unitPrice": 1,
+    "totalPrice": 32223,
+    "id": 4,
+    "createdAt": "2026-03-22T02:11:28.784Z",
+    "updatedAt": "2026-03-22T02:11:28.784Z"
+  },
+  {
+    "orderId": "3",
+    "herbName": "测试药材_1774116777903",
+    "quantity": 600,
+    "unitPrice": 0.06,
+    "totalPrice": 36,
+    "id": 5,
+    "createdAt": "2026-03-22T02:12:59.770Z",
+    "updatedAt": "2026-03-22T02:12:59.770Z"
   }
 ]

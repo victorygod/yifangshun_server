@@ -1,12 +1,13 @@
 [
   {
     "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "code": "0e1AVWZv3gfjJ63EmT0w3UYBK33AVWZp",
-    "role": "user",
+    "code": "0f1TZVkl27sSoh4IUwml2plKOz1TZVkq",
+    "role": "admin",
     "isNewUser": false,
     "id": 1,
     "createdAt": "2026-03-22T01:53:06.143Z",
-    "updatedAt": "2026-03-22T02:01:56.744Z",
-    "phone": "15201927053"
+    "updatedAt": "2026-03-22T02:23:34.982Z",
+    "phone": "15201927053",
+    "name": "wolf"
   }
 ]

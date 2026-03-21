@@ -7,7 +7,7 @@
     "maxBookings": 2,
     "id": 1,
     "createdAt": "2026-03-22T01:49:38.840Z",
-    "updatedAt": "2026-03-22T02:01:04.795Z"
+    "updatedAt": "2026-03-22T02:12:57.965Z"
   },
   {
     "type": "default",
@@ -137,7 +137,7 @@
     "maxBookings": 4,
     "id": 14,
     "createdAt": "2026-03-22T01:49:38.843Z",
-    "updatedAt": "2026-03-22T01:49:38.843Z"
+    "updatedAt": "2026-03-22T02:20:24.597Z"
   },
   {
     "type": "default",
@@ -197,7 +197,7 @@
     "maxBookings": 4,
     "id": 20,
     "createdAt": "2026-03-22T01:49:38.845Z",
-    "updatedAt": "2026-03-22T01:49:38.845Z"
+    "updatedAt": "2026-03-22T02:20:30.905Z"
   },
   {
     "type": "default",
@@ -211,12 +211,22 @@
   },
   {
     "type": "override",
-    "date": "2026-03-22",
-    "session": "all",
-    "isOpen": false,
-    "reason": "临时停诊测试",
+    "date": "2026-03-25",
+    "session": "morning",
+    "isOpen": true,
+    "reason": "",
     "id": 22,
-    "createdAt": "2026-03-22T01:49:38.849Z",
-    "updatedAt": "2026-03-22T02:01:04.797Z"
+    "createdAt": "2026-03-22T02:22:48.092Z",
+    "updatedAt": "2026-03-22T02:22:48.092Z"
+  },
+  {
+    "type": "override",
+    "date": "2026-03-25",
+    "session": "afternoon",
+    "isOpen": false,
+    "reason": "",
+    "id": 23,
+    "createdAt": "2026-03-22T02:23:12.969Z",
+    "updatedAt": "2026-03-22T02:23:12.969Z"
   }
 ]

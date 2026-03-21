@@ -19,6 +19,7 @@ const menuConfig = [
       { id: 'stock_out_orders', icon: '📤', label: '执药管理', type: 'table', tableName: 'stock_out_orders' }
     ]
   },
+  { id: 'schedule', icon: '🗓️', label: '出诊管理', type: 'page' },
   {
     id: 'data',
     icon: '🗄️',
@@ -285,6 +286,8 @@ async function switchPage(id) {
 
   if (id === 'dashboard') {
     renderDashboard();
+  } else if (id === 'schedule') {
+    renderSchedulePage();
   } else {
     const menuItem = findMenuItem(id);
     if (menuItem && menuItem.tableName) {
@@ -1909,5 +1912,205 @@ function closeZoomModal() {
   const zoomModal = document.getElementById('zoomModal');
   if (zoomModal) {
     zoomModal.classList.remove('show');
+  }
+}
+
+// ==================== 出诊管理 ====================
+
+const WEEK_NAMES = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+const SESSION_LABELS = { morning: '上午', afternoon: '下午', evening: '晚上' };
+
+async function renderSchedulePage() {
+  const main = document.getElementById('main');
+  main.innerHTML = `<div class="loading">加载中...</div>`;
+
+  try {
+    const res = await homeFetch('/api/schedule/config');
+    if (res.code !== 0) throw new Error(res.message);
+
+    const { defaults, overrides } = res.data;
+
+    // 将 defaults 转为 map: dayOfWeek -> session -> record
+    const defaultMap = {};
+    defaults.forEach(d => {
+      if (!defaultMap[d.dayOfWeek]) defaultMap[d.dayOfWeek] = {};
+      defaultMap[d.dayOfWeek][d.session] = d;
+    });
+
+    main.innerHTML = `
+      <div class="page-header">
+        <div class="page-title">🗓️ 出诊管理</div>
+      </div>
+
+      <!-- 默认规则 -->
+      <div class="schedule-section">
+        <div class="schedule-section-title">默认出诊规则</div>
+        <div class="schedule-section-desc">配置每周各场次的默认出诊状态</div>
+        <div class="schedule-grid" id="defaultGrid">
+          ${buildDefaultGrid(defaultMap)}
+        </div>
+      </div>
+
+      <!-- 临时调整 -->
+      <div class="schedule-section">
+        <div class="schedule-section-title">临时调整</div>
+        <div class="schedule-section-desc">为特定日期设置一次性的出诊/停诊覆盖</div>
+
+        <!-- 添加新调整 -->
+        <div class="override-form" id="overrideForm">
+          <input type="date" id="overrideDate" class="schedule-input" min="${getTodayStr()}">
+          <select id="overrideSession" class="schedule-select">
+            <option value="morning">上午</option>
+            <option value="afternoon">下午</option>
+            <option value="evening">晚上</option>
+            <option value="all">全天</option>
+          </select>
+          <select id="overrideIsOpen" class="schedule-select">
+            <option value="open">出诊</option>
+            <option value="closed">停诊</option>
+          </select>
+          <input type="text" id="overrideReason" class="schedule-input" placeholder="备注（可选）">
+          <button class="btn btn-primary" onclick="addOverride()">添加</button>
+        </div>
+
+        <!-- 调整列表 -->
+        <div id="overrideList">
+          ${buildOverrideList(overrides)}
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    main.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><p>${err.message}</p></div>`;
+  }
+}
+
+function buildDefaultGrid(defaultMap) {
+  let html = '';
+  for (let day = 0; day <= 6; day++) {
+    html += `<div class="schedule-day-card">`;
+    html += `<div class="schedule-day-name">${WEEK_NAMES[day]}</div>`;
+    for (const session of ['morning', 'afternoon', 'evening']) {
+      const rec = defaultMap[day] && defaultMap[day][session];
+      const isOpen = rec ? rec.isOpen : false;
+      html += `
+        <div class="schedule-session-row">
+          <span class="schedule-session-label">${SESSION_LABELS[session]}</span>
+          <button
+            class="schedule-toggle-btn ${isOpen ? 'open' : 'closed'}"
+            onclick="toggleDefaultSession(${day}, '${session}', this)"
+            data-day="${day}"
+            data-session="${session}"
+            data-open="${isOpen ? '1' : '0'}"
+          >${isOpen ? '出诊' : '停诊'}</button>
+        </div>
+      `;
+    }
+    html += `</div>`;
+  }
+  return html;
+}
+
+function buildOverrideList(overrides) {
+  if (!overrides || overrides.length === 0) {
+    return `<div class="schedule-empty">暂无临时调整</div>`;
+  }
+  let html = `<table class="schedule-override-table"><thead><tr>
+    <th>日期</th><th>场次</th><th>状态</th><th>备注</th><th>操作</th>
+  </tr></thead><tbody>`;
+  overrides.forEach(o => {
+    const sessionLabel = o.session === 'all' ? '全天' : (SESSION_LABELS[o.session] || o.session);
+    html += `<tr data-override-id="${o.id}">
+      <td>${o.date}</td>
+      <td>${sessionLabel}</td>
+      <td><span class="schedule-badge ${o.isOpen ? 'open' : 'closed'}">${o.isOpen ? '出诊' : '停诊'}</span></td>
+      <td>${escapeHtml(o.reason || '-')}</td>
+      <td><button class="action-btn action-btn-delete" onclick="deleteOverride(${o.id})">删除</button></td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  return html;
+}
+
+function getTodayStr() {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+
+async function toggleDefaultSession(day, session, btn) {
+  const currentOpen = btn.dataset.open === '1';
+  const newOpen = !currentOpen;
+
+  btn.disabled = true;
+  try {
+    const res = await homeFetch('/api/schedule/config/default', {
+      method: 'POST',
+      body: JSON.stringify({ dayOfWeek: day, session, isOpen: newOpen })
+    });
+    if (res.code !== 0) throw new Error(res.message);
+
+    btn.dataset.open = newOpen ? '1' : '0';
+    btn.className = `schedule-toggle-btn ${newOpen ? 'open' : 'closed'}`;
+    btn.textContent = newOpen ? '出诊' : '停诊';
+    showToast(`${WEEK_NAMES[day]} ${SESSION_LABELS[session]} 已设为「${newOpen ? '出诊' : '停诊'}」`, 'success');
+  } catch (err) {
+    showToast('保存失败: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function addOverride() {
+  const date = document.getElementById('overrideDate').value;
+  const session = document.getElementById('overrideSession').value;
+  const isOpen = document.getElementById('overrideIsOpen').value === 'open';
+  const reason = document.getElementById('overrideReason').value.trim();
+
+  if (!date) {
+    showToast('请选择日期', 'error');
+    return;
+  }
+
+  try {
+    const res = await homeFetch('/api/schedule/config/override', {
+      method: 'POST',
+      body: JSON.stringify({ date, session, isOpen, reason })
+    });
+    if (res.code !== 0) throw new Error(res.message);
+    showToast('临时调整已保存', 'success');
+
+    // 清空表单
+    document.getElementById('overrideDate').value = '';
+    document.getElementById('overrideReason').value = '';
+
+    // 刷新列表
+    reloadOverrideList();
+  } catch (err) {
+    showToast('保存失败: ' + err.message, 'error');
+  }
+}
+
+async function deleteOverride(id) {
+  showConfirm('确认删除', '确定要删除这条临时调整吗？', async () => {
+    try {
+      const res = await homeFetch(`/api/schedule/config/override/${id}`, { method: 'DELETE' });
+      if (res.code !== 0) throw new Error(res.message);
+      showToast('已删除', 'success');
+      reloadOverrideList();
+    } catch (err) {
+      showToast('删除失败: ' + err.message, 'error');
+    }
+  });
+}
+
+async function reloadOverrideList() {
+  const listEl = document.getElementById('overrideList');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="loading">加载中...</div>';
+  try {
+    const res = await homeFetch('/api/schedule/config');
+    if (res.code !== 0) throw new Error(res.message);
+    listEl.innerHTML = buildOverrideList(res.data.overrides);
+  } catch (err) {
+    listEl.innerHTML = `<div class="schedule-empty">加载失败: ${err.message}</div>`;
   }
 }

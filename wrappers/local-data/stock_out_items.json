@@ -3,21 +3,21 @@
     "orderId": 1,
     "herbName": "当归",
     "quantity": 15,
-    "unitPrice": 0,
-    "totalPrice": 0,
+    "unitPrice": "1",
+    "totalPrice": 15,
     "createdAt": "2026-03-22T01:49:38.876Z",
     "id": 1,
-    "updatedAt": "2026-03-22T01:49:38.876Z"
+    "updatedAt": "2026-03-22T02:11:11.763Z"
   },
   {
     "orderId": 2,
     "herbName": "当归",
     "quantity": 15,
-    "unitPrice": 0,
-    "totalPrice": 0,
+    "unitPrice": "1",
+    "totalPrice": 15,
     "createdAt": "2026-03-22T01:49:38.880Z",
     "id": 2,
-    "updatedAt": "2026-03-22T01:49:38.880Z"
+    "updatedAt": "2026-03-22T02:11:11.764Z"
   },
   {
     "orderId": 4,
@@ -33,21 +33,21 @@
     "orderId": 5,
     "herbName": "当归",
     "quantity": 15,
-    "unitPrice": 0,
-    "totalPrice": 0,
+    "unitPrice": "1",
+    "totalPrice": 15,
     "createdAt": "2026-03-22T02:01:04.825Z",
     "id": 5,
-    "updatedAt": "2026-03-22T02:01:04.825Z"
+    "updatedAt": "2026-03-22T02:11:11.764Z"
   },
   {
     "orderId": 6,
     "herbName": "当归",
     "quantity": 15,
-    "unitPrice": 0,
-    "totalPrice": 0,
+    "unitPrice": "1",
+    "totalPrice": 15,
     "createdAt": "2026-03-22T02:01:04.832Z",
     "id": 6,
-    "updatedAt": "2026-03-22T02:01:04.832Z"
+    "updatedAt": "2026-03-22T02:11:11.764Z"
   },
   {
     "orderId": 8,
@@ -58,5 +58,135 @@
     "createdAt": "2026-03-22T02:01:06.298Z",
     "id": 8,
     "updatedAt": "2026-03-22T02:01:06.298Z"
+  },
+  {
+    "orderId": 9,
+    "herbName": "白芷",
+    "quantity": 6,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-22T02:05:57.939Z",
+    "id": 9,
+    "updatedAt": "2026-03-22T02:05:57.939Z"
+  },
+  {
+    "orderId": 9,
+    "herbName": "车前花",
+    "quantity": 6,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-22T02:05:57.939Z",
+    "id": 10,
+    "updatedAt": "2026-03-22T02:05:57.939Z"
+  },
+  {
+    "orderId": 9,
+    "herbName": "续断",
+    "quantity": 10,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-22T02:05:57.939Z",
+    "id": 11,
+    "updatedAt": "2026-03-22T02:05:57.939Z"
+  },
+  {
+    "orderId": 9,
+    "herbName": "防风",
+    "quantity": 10,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-22T02:05:57.940Z",
+    "id": 12,
+    "updatedAt": "2026-03-22T02:05:57.940Z"
+  },
+  {
+    "orderId": 9,
+    "herbName": "金樱子",
+    "quantity": 10,
+    "unitPrice": "3",
+    "totalPrice": 30,
+    "createdAt": "2026-03-22T02:05:57.940Z",
+    "id": 13,
+    "updatedAt": "2026-03-22T02:06:50.175Z"
+  },
+  {
+    "orderId": 9,
+    "herbName": "北芪",
+    "quantity": 15,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-22T02:05:57.941Z",
+    "id": 14,
+    "updatedAt": "2026-03-22T02:05:57.941Z"
+  },
+  {
+    "orderId": 9,
+    "herbName": "蔓荆仁",
+    "quantity": 15,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-22T02:05:57.941Z",
+    "id": 15,
+    "updatedAt": "2026-03-22T02:05:57.941Z"
+  },
+  {
+    "orderId": 9,
+    "herbName": "玄胡",
+    "quantity": 10,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-22T02:05:57.942Z",
+    "id": 16,
+    "updatedAt": "2026-03-22T02:05:57.942Z"
+  },
+  {
+    "orderId": 9,
+    "herbName": "太子参",
+    "quantity": 8,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-22T02:05:57.942Z",
+    "id": 17,
+    "updatedAt": "2026-03-22T02:05:57.942Z"
+  },
+  {
+    "orderId": 9,
+    "herbName": "石菖蒲",
+    "quantity": 10,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-22T02:05:57.943Z",
+    "id": 18,
+    "updatedAt": "2026-03-22T02:05:57.943Z"
+  },
+  {
+    "orderId": 10,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": "1",
+    "totalPrice": 15,
+    "createdAt": "2026-03-22T02:12:57.998Z",
+    "id": 19,
+    "updatedAt": "2026-03-22T02:12:57.998Z"
+  },
+  {
+    "orderId": 11,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": "1",
+    "totalPrice": 15,
+    "createdAt": "2026-03-22T02:12:58.004Z",
+    "id": 20,
+    "updatedAt": "2026-03-22T02:12:58.004Z"
+  },
+  {
+    "orderId": 13,
+    "herbName": "测试药材_1774116777903",
+    "quantity": 100,
+    "unitPrice": 0.06,
+    "totalPrice": 6,
+    "createdAt": "2026-03-22T02:12:59.787Z",
+    "id": 22,
+    "updatedAt": "2026-03-22T02:12:59.787Z"
   }
 ]

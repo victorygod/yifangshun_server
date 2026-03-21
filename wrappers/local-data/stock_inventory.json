@@ -2,10 +2,10 @@
   {
     "herbName": "测试药材_1774115378780",
     "herbAlias": "更新后的别名",
-    "quantity": 500,
-    "avgPrice": 0.05714285714285714,
+    "quantity": 600,
+    "avgPrice": 0.06,
     "minValue": 500,
-    "updatedAt": "2026-03-22T01:49:40.993Z",
+    "updatedAt": "2026-03-22T02:11:30.750Z",
     "id": 1,
     "createdAt": "2026-03-22T01:49:40.947Z",
     "lastStockInDate": "2026-03-21"
@@ -19,6 +19,39 @@
     "updatedAt": "2026-03-22T02:01:06.326Z",
     "id": 2,
     "createdAt": "2026-03-22T02:01:06.276Z",
+    "lastStockInDate": "2026-03-21"
+  },
+  {
+    "herbName": "金樱子",
+    "herbAlias": "",
+    "quantity": 512,
+    "avgPrice": 3,
+    "minValue": 0,
+    "lastStockInDate": "2026-03-21",
+    "updatedAt": "2026-03-22T02:11:30.751Z",
+    "id": 3,
+    "createdAt": "2026-03-22T02:06:37.987Z"
+  },
+  {
+    "herbName": "当归",
+    "herbAlias": "",
+    "quantity": 32208,
+    "avgPrice": 1,
+    "minValue": 0,
+    "lastStockInDate": "2026-03-21",
+    "updatedAt": "2026-03-22T02:11:38.026Z",
+    "id": 4,
+    "createdAt": "2026-03-22T02:11:30.753Z"
+  },
+  {
+    "herbName": "测试药材_1774116777903",
+    "herbAlias": "更新后的别名",
+    "quantity": 500,
+    "avgPrice": 0.05714285714285714,
+    "minValue": 500,
+    "updatedAt": "2026-03-22T02:12:59.813Z",
+    "id": 5,
+    "createdAt": "2026-03-22T02:12:59.762Z",
     "lastStockInDate": "2026-03-21"
   }
 ]
