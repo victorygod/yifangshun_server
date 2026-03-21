@@ -1,38 +1,11 @@
 [
   {
-    "checkNo": "PD-20260321-725",
+    "checkNo": "PD-20260321-060",
     "checkDate": "2026-03-21",
     "checker": "测试盘点人",
     "status": "confirmed",
-    "createdAt": "2026-03-21T19:24:16.232Z",
+    "createdAt": "2026-03-21T23:05:22.174Z",
     "id": 1,
-    "updatedAt": "2026-03-21T19:24:16.236Z"
-  },
-  {
-    "checkNo": "PD-20260321-862",
-    "checkDate": "2026-03-21",
-    "checker": "测试盘点人",
-    "status": "confirmed",
-    "createdAt": "2026-03-21T20:02:40.246Z",
-    "id": 2,
-    "updatedAt": "2026-03-21T20:02:40.249Z"
-  },
-  {
-    "checkNo": "PD-20260321-310",
-    "checkDate": "2026-03-21",
-    "checker": "测试盘点人",
-    "status": "confirmed",
-    "createdAt": "2026-03-21T20:08:39.440Z",
-    "id": 3,
-    "updatedAt": "2026-03-21T20:08:39.442Z"
-  },
-  {
-    "checkNo": "PD-20260321-375",
-    "checkDate": "2026-03-21",
-    "checker": "测试盘点人",
-    "status": "confirmed",
-    "createdAt": "2026-03-21T20:43:58.481Z",
-    "id": 4,
-    "updatedAt": "2026-03-21T20:43:58.484Z"
+    "updatedAt": "2026-03-21T23:05:22.177Z"
   }
 ]

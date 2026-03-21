@@ -371,8 +371,6 @@ const StockInItem = new Model('stock_in_items', 'id');
 const StockOutOrder = new Model('stock_out_orders', 'id');
 const StockOutItem = new Model('stock_out_items', 'id');
 const StockInventory = new Model('stock_inventory', 'id');
-const StockCheckOrder = new Model('stock_check_orders', 'id');
-const StockCheckItem = new Model('stock_check_items', 'id');
 const StockLog = new Model('stock_logs', 'id');
 
 // 数据库初始化方法
@@ -382,8 +380,7 @@ async function init() {
     'users', 'bookings', 'chat_messages', 'prescriptions',
     'herbs', 'stock_in_orders', 'stock_in_items', 
     'stock_out_orders', 'stock_out_items', 
-    'stock_inventory', 'stock_check_orders', 
-    'stock_check_items', 'stock_logs'
+    'stock_inventory', 'stock_logs'
   ];
   tables.forEach(table => {
     const filePath = path.join(dataDir, `${table}.json`);
@@ -429,8 +426,6 @@ module.exports = {
   StockOutOrder,
   StockOutItem,
   StockInventory,
-  StockCheckOrder,
-  StockCheckItem,
   StockLog,
   sequelize,
   Op

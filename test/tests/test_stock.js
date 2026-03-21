@@ -6,7 +6,6 @@
  * - 入库单管理
  * - 出库单管理
  * - 库存统计与预警
- * - 盘点管理
  * 
  * 注意：此测试文件需在 API 实现后运行
  */
@@ -29,9 +28,7 @@ const testData = {
   inOrderId: null,
   inOrderNo: null,
   outOrderId: null,
-  outOrderNo: null,
-  checkOrderId: null,
-  checkOrderNo: null
+  outOrderNo: null
 };
 
 // 测试用户
@@ -415,54 +412,6 @@ async function runStockTests(users) {
     assertEquals(herb.quantity, 500, '库存数量减少到500');
   });
   
-  // ========== 盘点管理 ==========
-  console.log('\n--- 盘点管理 ---');
-  
-  await test('GET /api/stock/check/orders - 获取盘点单列表', async () => {
-    const { response, data } = await adminRequest('GET', '/api/stock/check/orders');
-    
-    assertEquals(response.statusCode, 200, '请求成功');
-    assertEquals(data.code, 0, '返回成功');
-    assert(Array.isArray(data.data), '返回数组');
-  });
-  
-  await test('POST /api/stock/check/orders - 创建盘点单', async () => {
-    const { response, data } = await adminRequest('POST', '/api/stock/check/orders', {
-      checkDate: new Date().toISOString().split('T')[0],
-      checker: '测试盘点人',
-      items: [
-        {
-          herbName: testData.herbName,
-          actualQuantity: 480 // 假设实际盘点比系统少20
-        }
-      ]
-    });
-    
-    assertEquals(response.statusCode, 200, '请求成功');
-    assertEquals(data.code, 0, '返回成功');
-    assert(data.data.id, '返回盘点单ID');
-    assert(data.data.checkNo, '返回盘点单号');
-    testData.checkOrderId = data.data.id;
-    testData.checkOrderNo = data.data.checkNo;
-  });
-  
-  await test('POST /api/stock/check/orders/:id/confirm - 确认盘点', async () => {
-    if (!testData.checkOrderId) return 'skipped';
-    
-    const { response, data } = await adminRequest('POST', `/api/stock/check/orders/${testData.checkOrderId}/confirm`);
-    
-    assertEquals(response.statusCode, 200, '请求成功');
-    assertEquals(data.code, 0, '返回成功');
-  });
-  
-  await test('GET /api/stock/inventory - 验证盘点后库存调整', async () => {
-    const { response, data } = await adminRequest('GET', '/api/stock/inventory');
-    
-    const herb = data.data.find(h => h.herbName === testData.herbName);
-    assert(herb, '找到测试药材');
-    assertEquals(herb.quantity, 480, '库存调整为盘点数量480');
-  });
-  
   // ========== 入库单状态回滚测试 ==========
   console.log('\n--- 入库单状态回滚 ---');
   
@@ -513,8 +462,8 @@ async function runStockTests(users) {
     
     const herb = data.data.find(h => h.herbName === testData.herbName);
     assert(herb, '找到测试药材');
-    // 原库存480 + 新入库200 = 680
-    assertEquals(herb.quantity, 680, '库存数量应为680');
+    // 原库存500（出库后）+ 新入库200 = 700
+    assertEquals(herb.quantity, 700, '库存数量应为700');
   });
   
   await test('PUT /api/admin/table/stock_in_orders/:id - 已入库单变为草稿状态应回滚库存', async () => {
@@ -533,8 +482,8 @@ async function runStockTests(users) {
     
     const herb = data.data.find(h => h.herbName === testData.herbName);
     assert(herb, '找到测试药材');
-    // 680 - 200 = 480
-    assertEquals(herb.quantity, 480, '库存数量应恢复为480');
+    // 700 - 200 = 500
+    assertEquals(herb.quantity, 500, '库存数量应恢复为500');
   });
   
   // 清理回滚测试数据
@@ -573,7 +522,7 @@ async function runStockTests(users) {
     const herb = data.data.find(h => h.herbName === testData.herbName);
     assert(herb, '找到测试药材');
     // 待执药状态不应扣减库存
-    assertEquals(herb.quantity, 480, '库存数量仍为480');
+    assertEquals(herb.quantity, 500, '库存数量仍为500');
   });
   
   await test('POST /api/stock/out/orders/:id/settle - 结算执药单', async () => {
@@ -590,8 +539,8 @@ async function runStockTests(users) {
     
     const herb = data.data.find(h => h.herbName === testData.herbName);
     assert(herb, '找到测试药材');
-    // 480 - 50 = 430
-    assertEquals(herb.quantity, 430, '库存数量应为430');
+    // 500 - 50 = 450
+    assertEquals(herb.quantity, 450, '库存数量应为450');
   });
   
   await test('POST /api/stock/out/orders/:id/revoke - 撤销已结算执药单', async () => {
@@ -608,8 +557,8 @@ async function runStockTests(users) {
     
     const herb = data.data.find(h => h.herbName === testData.herbName);
     assert(herb, '找到测试药材');
-    // 430 + 50 = 480
-    assertEquals(herb.quantity, 480, '库存数量应恢复为480');
+    // 450 + 50 = 500
+    assertEquals(herb.quantity, 500, '库存数量应恢复为500');
   });
   
   // 清理状态测试数据
@@ -739,11 +688,6 @@ async function cleanupTestData() {
     // 删除测试出库单
     if (testData.outOrderId) {
       await adminRequest('DELETE', `/api/stock/out/orders/${testData.outOrderId}`);
-    }
-    
-    // 删除测试盘点单
-    if (testData.checkOrderId) {
-      await adminRequest('DELETE', `/api/stock/check/orders/${testData.checkOrderId}`);
     }
     
     console.log('✅ 库存测试数据清理完成');

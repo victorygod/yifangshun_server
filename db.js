@@ -440,84 +440,6 @@ const StockInventory = sequelize.define("StockInventory", {
   },
 });
 
-// 盘点单模型
-const StockCheckOrder = sequelize.define("StockCheckOrder", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  checkNo: {
-    type: DataTypes.STRING(50),
-    allowNull: true,
-  },
-  checkDate: {
-    type: DataTypes.DATEONLY,
-    allowNull: true,
-  },
-  operator: {
-    type: DataTypes.STRING(50),
-    allowNull: true,
-  },
-  status: {
-    type: DataTypes.ENUM('draft', 'completed'),
-    defaultValue: 'draft',
-  },
-  remark: {
-    type: DataTypes.STRING(500),
-    allowNull: true,
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-});
-
-// 盘点明细模型
-const StockCheckItem = sequelize.define("StockCheckItem", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-  orderId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  herbName: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-  },
-  systemQuantity: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: true,
-  },
-  actualQuantity: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: true,
-  },
-  difference: {
-    type: DataTypes.DECIMAL(10, 2),
-    allowNull: true,
-  },
-  remark: {
-    type: DataTypes.STRING(500),
-    allowNull: true,
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-});
-
 // 操作日志模型
 const StockLog = sequelize.define("StockLog", {
   id: {
@@ -581,8 +503,6 @@ async function init() {
   await StockOutOrder.sync(syncOption);
   await StockOutItem.sync(syncOption);
   await StockInventory.sync(syncOption);
-  await StockCheckOrder.sync(syncOption);
-  await StockCheckItem.sync(syncOption);
   await StockLog.sync(syncOption);
   
   console.log('数据库表同步完成');
@@ -601,8 +521,6 @@ module.exports = {
   StockOutOrder,
   StockOutItem,
   StockInventory,
-  StockCheckOrder,
-  StockCheckItem,
   StockLog,
   sequelize,
   Op,

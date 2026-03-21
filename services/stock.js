@@ -9,8 +9,6 @@ const {
   StockOutOrder,
   StockOutItem,
   StockInventory,
-  StockCheckOrder,
-  StockCheckItem,
   StockLog,
   Prescription,
   Op
@@ -1158,149 +1156,6 @@ async function getHerbHistory(herbName, options = {}) {
 }
 
 // ========================================
-// 盘点管理
-// ========================================
-
-// 获取盘点单列表
-async function getCheckOrders(options = {}) {
-  const { status = 'all', page = 1, pageSize = 20 } = options;
-  
-  let where = {};
-  if (status !== 'all') {
-    where.status = status;
-  }
-  
-  const orders = await StockCheckOrder.findAll({
-    where,
-    order: [['createdAt', 'DESC']]
-  });
-  
-  // 分页
-  const totalCount = orders.length;
-  const totalPages = Math.ceil(totalCount / pageSize);
-  const start = (page - 1) * pageSize;
-  const pagedOrders = orders.slice(start, start + pageSize);
-  
-  // 获取每个订单的明细
-  const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
-    const items = await StockCheckItem.findAll({ where: { checkId: order.id } });
-    return {
-      ...toPlainObject(order),
-      items
-    };
-  }));
-  
-  return {
-    code: 0,
-    data: ordersWithItems,
-    pagination: {
-      page,
-      pageSize,
-      totalCount,
-      totalPages
-    }
-  };
-}
-
-// 创建盘点单
-async function createCheckOrder(data) {
-  const { checkDate, checker, remark, items = [] } = data;
-  
-  if (!checkDate || !checker || items.length === 0) {
-    throw new Error('盘点日期、盘点人和明细不能为空');
-  }
-  
-  const checkNo = generateOrderNo('PD');
-  
-  const order = await StockCheckOrder.create({
-    checkNo,
-    checkDate,
-    checker,
-    status: 'draft',
-    remark,
-    createdAt: getNow()
-  });
-  
-  // 创建明细
-  for (const item of items) {
-    // 获取系统库存
-    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
-    const systemQuantity = inventory ? inventory.quantity : 0;
-    const actualQuantity = item.actualQuantity || 0;
-    
-    await StockCheckItem.create({
-      checkId: order.id,
-      herbName: item.herbName,
-      systemQuantity,
-      actualQuantity,
-      difference: actualQuantity - systemQuantity
-    });
-  }
-  
-  const created = await getCheckOrderById(order.id);
-  return {
-    code: 0,
-    message: '创建成功',
-    data: created
-  };
-}
-
-// 获取盘点单详情
-async function getCheckOrderById(id) {
-  const order = await StockCheckOrder.findOne({ where: { id } });
-  if (!order) {
-    throw new Error('盘点单不存在');
-  }
-  
-  const items = await StockCheckItem.findAll({ where: { checkId: id } });
-  
-  return {
-    ...toPlainObject(order),
-    items
-  };
-}
-
-// 确认盘点（调整库存）
-async function confirmCheckOrder(id, operator = 'system') {
-  const order = await StockCheckOrder.findOne({ where: { id } });
-  if (!order) {
-    throw new Error('盘点单不存在');
-  }
-  
-  if (order.status !== 'draft') {
-    throw new Error('只有草稿状态可以确认');
-  }
-  
-  // 获取明细
-  const items = await StockCheckItem.findAll({ where: { checkId: id } });
-  
-  // 调整库存
-  for (const item of items) {
-    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
-    
-    if (inventory) {
-      await StockInventory.update({
-        quantity: item.actualQuantity,
-        updatedAt: getNow()
-      }, { where: { id: inventory.id } });
-      
-      // 添加日志
-      await addStockLog('check', order.checkNo, item.herbName, item.difference, operator);
-    }
-  }
-  
-  // 更新状态
-  await StockCheckOrder.update({ status: 'confirmed', updatedAt: getNow() }, { where: { id } });
-  
-  const updated = await getCheckOrderById(id);
-  return {
-    code: 0,
-    message: '盘点确认成功',
-    data: updated
-  };
-}
-
-// ========================================
 // 导出
 // ========================================
 
@@ -1336,11 +1191,5 @@ module.exports = {
   getInventory,
   getInventoryAlert,
   setHerbMinValue,
-  getHerbHistory,
-  
-  // 盘点管理
-  getCheckOrders,
-  getCheckOrderById,
-  createCheckOrder,
-  confirmCheckOrder
+  getHerbHistory
 };

@@ -159,22 +159,6 @@ const tableConfigs = {
     ],
     searchFields: ['herbName', 'herbAlias']
   },
-  stock_check_orders: {
-    displayName: '盘点管理',
-    columns: [
-      { key: 'id', label: 'ID', readonly: true },
-      { key: 'checkNo', label: '盘点单号', readonly: true },
-      { key: 'checkDate', label: '盘点日期', editable: true, type: 'date' },
-      { key: 'checker', label: '盘点人', editable: true },
-      {
-        key: 'status', label: '状态', type: 'select', options: [
-          { value: 'draft', label: '草稿', badge: 'badge-draft' },
-          { value: 'confirmed', label: '已确认', badge: 'badge-stocked' }
-        ]
-      }
-    ],
-    searchFields: ['checkNo', 'checker']
-  },
   stock_in_items: {
     displayName: '入库明细',
     columns: [
@@ -198,18 +182,6 @@ const tableConfigs = {
       { key: 'quantity', label: '克数', editable: true, type: 'number' },
       { key: 'unitPrice', label: '单价', editable: true, disabled: true, type: 'number' },
       { key: 'totalPrice', label: '本药总价', editable: true, type: 'number' }
-    ],
-    searchFields: ['herbName']
-  },
-  stock_check_items: {
-    displayName: '盘点明细',
-    columns: [
-      { key: 'id', label: 'ID', readonly: true },
-      { key: 'checkId', label: '盘点单ID', readonly: true },
-      { key: 'herbName', label: '药材名称', editable: true },
-      { key: 'systemQuantity', label: '系统库存', editable: true, type: 'number' },
-      { key: 'actualQuantity', label: '实际库存', editable: true, type: 'number' },
-      { key: 'difference', label: '差异', readonly: true, type: 'number' }
     ],
     searchFields: ['herbName']
   },

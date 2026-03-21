@@ -9,7 +9,7 @@ const fs = require("fs");
 const path = require("path");
 const { init: initDB, User, Booking, ChatMessage, Prescription, sequelize, Op,
   Herb, StockInOrder, StockInItem, StockOutOrder, StockOutItem,
-  StockInventory, StockCheckOrder, StockCheckItem, StockLog
+  StockInventory, StockLog
 } = require("./wrappers/db-wrapper");
 
 // 导入 service 模块
@@ -448,8 +448,6 @@ const TABLE_MODELS = {
   'stock_out_orders': StockOutOrder,
   'stock_out_items': StockOutItem,
   'stock_inventory': StockInventory,
-  'stock_check_orders': StockCheckOrder,
-  'stock_check_items': StockCheckItem,
   'stock_logs': StockLog
 };
 
@@ -466,8 +464,6 @@ const TABLE_NAMES = {
   'stock_out_orders': '执药单表',
   'stock_out_items': '执药明细表',
   'stock_inventory': '库存表',
-  'stock_check_orders': '盘点单表',
-  'stock_check_items': '盘点明细表',
   'stock_logs': '操作日志表'
 };
 
@@ -930,13 +926,6 @@ app.delete("/api/admin/table/:name/:id", requireRole(['super_admin'], true), asy
     }
     
     // 级联删除：删除盘点单时同步删除盘点明细
-    if (name === 'stock_check_orders') {
-      const detailCount = await StockCheckItem.count({ where: { checkId: id } });
-      if (detailCount > 0) {
-        await StockCheckItem.destroy({ where: { checkId: id } });
-      }
-    }
-    
     // 记录orderId用于更新总价
     const orderId = record.orderId;
     
@@ -984,10 +973,6 @@ app.post("/api/admin/table/:name/batch-delete", requireRole(['super_admin']), as
       // 级联删除：删除执药单时同步删除执药明细
       if (name === 'stock_out_orders') {
         await StockOutItem.destroy({ where: { orderId: id } });
-      }
-      // 级联删除：删除盘点单时同步删除盘点明细
-      if (name === 'stock_check_orders') {
-        await StockCheckItem.destroy({ where: { checkId: id } });
       }
       
       const count = await model.destroy({ where: { id } });
@@ -1237,35 +1222,6 @@ app.get("/api/stock/inventory/:herbName/history", requireRole(['admin', 'super_a
   try {
     const herbName = decodeURIComponent(req.params.herbName);
     const result = await stock.getHerbHistory(herbName, req.query);
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ code: 1, message: error.message });
-  }
-});
-
-// 盘点管理
-app.get("/api/stock/check/orders", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const result = await stock.getCheckOrders(req.query);
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ code: 1, message: error.message });
-  }
-});
-
-app.post("/api/stock/check/orders", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const result = await stock.createCheckOrder(req.body);
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ code: 1, message: error.message });
-  }
-});
-
-app.post("/api/stock/check/orders/:id/confirm", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const operator = req.user?.openid || 'system';
-    const result = await stock.confirmCheckOrder(req.params.id, operator);
     res.json(result);
   } catch (error) {
     res.status(400).json({ code: 1, message: error.message });
