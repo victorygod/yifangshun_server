@@ -1,0 +1,13 @@
+[
+  {
+    "orderNo": "RK-20260322-090",
+    "orderDate": "2026-03-22",
+    "supplierName": "34123",
+    "supplierPhone": "213213",
+    "status": "stocked",
+    "totalAmount": 1515483,
+    "createdAt": "2026-03-22T18:51:57.082Z",
+    "updatedAt": "2026-03-22T18:52:05.701Z",
+    "id": 1
+  }
+]

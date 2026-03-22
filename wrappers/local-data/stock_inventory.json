@@ -1,0 +1,13 @@
+[
+  {
+    "herbName": "21321",
+    "herbAlias": "",
+    "quantity": 12321,
+    "avgPrice": 123,
+    "minValue": 0,
+    "lastStockInDate": "2026-03-22",
+    "updatedAt": "2026-03-22T18:52:05.700Z",
+    "id": 1,
+    "createdAt": "2026-03-22T18:52:05.700Z"
+  }
+]

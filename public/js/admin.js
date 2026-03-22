@@ -112,8 +112,8 @@ const tableConfigs = {
     columns: [
       { key: 'id', label: 'ID', readonly: true },
       { key: 'orderDate', label: '入库日期', editable: true, type: 'date', defaultValue: 'today' },
-      { key: 'supplier', label: '供应商', editable: true },
-      { key: 'phone', label: '电话', editable: true },
+      { key: 'supplierName', label: '供应商', editable: true, required: true },
+      { key: 'supplierPhone', label: '电话', editable: true },
       { key: 'totalAmount', label: '总价', readonly: true, type: 'number' },
       {
         key: 'status', label: '状态', type: 'select', readonly: true, options: [
@@ -122,7 +122,7 @@ const tableConfigs = {
         ]
       }
     ],
-    searchFields: ['supplier'],
+    searchFields: ['supplierName'],
     hasDetail: true,
     detailTable: 'stock_in_items'
   },
@@ -1448,8 +1448,6 @@ async function saveNewRow() {
       showToast('请填写供应商名称', 'error');
       return;
     }
-    // 新增入库单默认为草稿状态
-    data.status = 'draft';
   }
 
   if (Object.keys(data).length === 0) {
@@ -1458,7 +1456,12 @@ async function saveNewRow() {
   }
 
   try {
-    const res = await homeFetch(`/api/admin/table/${currentTable}`, {
+    // 入库单使用专用 API（会自动生成 orderNo 和设置默认状态）
+    const apiUrl = currentTable === 'stock_in_orders' 
+      ? '/api/stock/in/orders' 
+      : `/api/admin/table/${currentTable}`;
+    
+    const res = await homeFetch(apiUrl, {
       method: 'POST',
       body: JSON.stringify(data)
     });
