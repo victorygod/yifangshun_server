@@ -208,13 +208,14 @@ async function handlePrescriptionOCR(image, openid, thumbnail) {
 }
 
 // 获取处方历史
-async function getPrescriptionHistory(openid) {
-  if (!openid) {
+// 【手机号改造】参数改为 phone（从 req.user.phone 传入）
+async function getPrescriptionHistory(phone) {
+  if (!phone) {
     throw new Error("缺少用户标识");
   }
 
   const prescriptions = await Prescription.findAll({
-    where: { openid },
+    where: { phone },  // 【手机号改造】使用 phone 查询
     order: [["updatedAt", "DESC"]],
   });
 
@@ -280,7 +281,7 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
 
   // 普通用户上传时实时判断今日待审核处方数
   if (user.role === 'user') {
-    const todayPendingCount = await checkTodayPendingPrescriptions(openid);
+    const todayPendingCount = await checkTodayPendingPrescriptions(user.openid);
     if (todayPendingCount >= 10) {
       throw new Error("今日待审核处方已达上限（10个），请明天再试");
     }
@@ -416,6 +417,7 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
   const newPrescription = await Prescription.create({
     prescriptionId: prescriptionId,
     openid,
+    phone: user.phone,  // 【手机号改造】保存手机号
     status: status,
     data: JSON.stringify(convertedData),
     thumbnail: thumbnail || '',
@@ -514,12 +516,12 @@ async function updatePrescription(prescriptionId, status, prescriptionData, thum
 }
 
 // 删除处方
-async function deletePrescription(prescriptionId, status, openid) {
+async function deletePrescription(prescriptionId, status, userInfo) {
   if (!prescriptionId || !status) {
     throw new Error("缺少处方ID或状态");
   }
 
-  if (!openid) {
+  if (!userInfo || !userInfo.openid) {
     throw new Error("缺少用户标识");
   }
 
@@ -538,16 +540,12 @@ async function deletePrescription(prescriptionId, status, openid) {
     throw new Error("处方不存在");
   }
 
-  // 获取用户信息
-  const { User } = require('../wrappers/db-wrapper');
-  const user = await User.findOne({ where: { openid } });
-  if (!user) {
-    throw new Error("用户不存在");
-  }
+  // 【手机号改造】直接使用 userInfo，无需查询数据库
+  const user = { openid: userInfo.openid, phone: userInfo.phone, role: userInfo.role };
 
   console.log('删除处方 - 权限检查:');
   console.log('  处方openid:', prescription.openid);
-  console.log('  用户openid:', openid);
+  console.log('  用户openid:', user.openid);
   console.log('  用户role:', user.role);
   console.log('  处方状态:', prescription.status);
 
@@ -556,7 +554,7 @@ async function deletePrescription(prescriptionId, status, openid) {
     if (prescription.status !== '待审核') {
       throw new Error("只能删除待审核状态的处方");
     }
-    if (prescription.openid !== openid) {
+    if (prescription.openid !== user.openid) {
       throw new Error("权限不足，只能删除自己的处方");
     }
   }

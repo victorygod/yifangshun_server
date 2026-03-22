@@ -42,7 +42,7 @@ app.use((req, res, next) => {
 });
 
 // 首页 - 返回用户列表数据（前端通过AJAX获取）
-app.get("/api/home/users", requireRole(['super_admin']), async (req, res) => {
+app.get("/api/home/users", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 10;
@@ -97,15 +97,21 @@ app.get("/api/home/users", requireRole(['super_admin']), async (req, res) => {
   }
 });
 
-// 设置用户角色（仅超级管理员可调用）
-app.post("/api/user/set-role", requireRole(['super_admin']), async (req, res) => {
+// 设置用户角色（admin 可以设置除 super_admin 外的角色，super_admin 无限制）
+app.post("/api/user/set-role", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { openid: targetOpenid, role: newRole } = req.body;
     const operatorOpenid = req.user.openid || 'system';
-    // 如果是 home_super_admin，跳过操作者验证
+    // 如果是 home_super_admin 或 super_admin，跳过操作者验证
     const isHomeSuperAdmin = req.user.phone === 'home_super_admin';
+    const isSuperAdmin = req.user.role === 'super_admin';
     
-    const result = await auth.setUserRole(targetOpenid, newRole, operatorOpenid, isHomeSuperAdmin);
+    // admin 不能设置用户为 super_admin
+    if (req.user.role === 'admin' && newRole === 'super_admin') {
+      return res.status(403).json({ code: 1, message: '管理员无权设置超级管理员' });
+    }
+    
+    const result = await auth.setUserRole(targetOpenid, newRole, operatorOpenid, isHomeSuperAdmin || isSuperAdmin, req.user.role);
     res.json(result);
   } catch (error) {
     console.error("设置用户角色失败:", error);
@@ -113,8 +119,8 @@ app.post("/api/user/set-role", requireRole(['super_admin']), async (req, res) =>
   }
 });
 
-// 更新用户信息（姓名、手机号）- 仅超级管理员
-app.put("/api/user/:openid", requireRole(['super_admin']), async (req, res) => {
+// 更新用户信息（姓名、手机号）- admin 和 super_admin 都可以
+app.put("/api/user/:openid", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { openid } = req.params;
     const { name, phone } = req.body;
@@ -322,10 +328,10 @@ app.post("/api/prescription/ocr", async (req, res) => {
 });
 
 // 获取处方历史
-app.get("/api/prescription/user-history", async (req, res) => {
+app.get("/api/prescription/user-history", requireRole(['user', 'admin', 'super_admin']), async (req, res) => {
   try {
-    const { openid } = req.query;
-    const result = await prescription.getPrescriptionHistory(openid);
+    // 【手机号改造】使用 req.user.phone 而非 openid
+    const result = await prescription.getPrescriptionHistory(req.user.phone);
     res.json(result);
   } catch (error) {
     console.error("获取处方历史失败:", error);
@@ -365,6 +371,7 @@ app.post("/api/prescription/update", requireRole(['admin', 'super_admin']), asyn
 // 删除处方 - 双键 URL（需要登录）
 app.delete("/api/prescription/:prescriptionId/:status", requireRole(['user', 'admin', 'super_admin']), async (req, res) => {
   try {
+    console.log("删除处方路由 - req.user:", req.user);
     const { prescriptionId, status } = req.params;
     // 【手机号改造】使用 req.user 而非 openid
     const result = await prescription.deletePrescription(prescriptionId, status, req.user);
@@ -542,7 +549,7 @@ const TABLE_NAMES = {
 };
 
 // 获取所有表的状态
-app.get("/api/admin/tables", requireRole(['super_admin']), async (req, res) => {
+app.get("/api/admin/tables", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const tables = [];
     
@@ -575,7 +582,7 @@ app.get("/api/admin/tables", requireRole(['super_admin']), async (req, res) => {
 });
 
 // 获取指定表的数据（分页 + 多维度搜索）
-app.get("/api/admin/table/:name", requireRole(['super_admin']), async (req, res) => {
+app.get("/api/admin/table/:name", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { name } = req.params;
     const page = parseInt(req.query.page) || 1;
@@ -655,7 +662,7 @@ app.get("/api/admin/table/:name", requireRole(['super_admin']), async (req, res)
 });
 
 // 清空指定表
-app.delete("/api/admin/table/:name", requireRole(['super_admin']), async (req, res) => {
+app.delete("/api/admin/table/:name", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { name } = req.params;
     const confirm = req.query.confirm === 'true';
@@ -682,7 +689,7 @@ app.delete("/api/admin/table/:name", requireRole(['super_admin']), async (req, r
 });
 
 // 获取指定表的单条记录
-app.get("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, res) => {
+app.get("/api/admin/table/:name/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { name, id } = req.params;
     
@@ -706,7 +713,7 @@ app.get("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
 });
 
 // 初始化指定表（如果不存在）
-app.post("/api/admin/table/:name/init", requireRole(['super_admin']), async (req, res) => {
+app.post("/api/admin/table/:name/init", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { name } = req.params;
     
@@ -726,7 +733,7 @@ app.post("/api/admin/table/:name/init", requireRole(['super_admin']), async (req
 });
 
 // 新增记录
-app.post("/api/admin/table/:name", requireRole(['super_admin'], true), async (req, res) => {
+app.post("/api/admin/table/:name", requireRole(['admin', 'super_admin'], true), async (req, res) => {
   try {
     const { name } = req.params;
     const recordData = req.body;
@@ -760,7 +767,7 @@ app.post("/api/admin/table/:name", requireRole(['super_admin'], true), async (re
 });
 
 // 更新记录
-app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, res) => {
+app.put("/api/admin/table/:name/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { name, id } = req.params;
     const updates = req.body;
@@ -960,7 +967,7 @@ app.put("/api/admin/table/:name/:id", requireRole(['super_admin']), async (req, 
 });
 
 // 删除记录
-app.delete("/api/admin/table/:name/:id", requireRole(['super_admin'], true), async (req, res) => {
+app.delete("/api/admin/table/:name/:id", requireRole(['admin', 'super_admin'], true), async (req, res) => {
   try {
     const { name, id } = req.params;
     
@@ -1023,7 +1030,7 @@ app.delete("/api/admin/table/:name/:id", requireRole(['super_admin'], true), asy
 });
 
 // 批量删除记录
-app.post("/api/admin/table/:name/batch-delete", requireRole(['super_admin']), async (req, res) => {
+app.post("/api/admin/table/:name/batch-delete", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { name } = req.params;
     const { ids } = req.body;

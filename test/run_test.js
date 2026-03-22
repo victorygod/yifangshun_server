@@ -116,8 +116,8 @@ async function startServer() {
     // 保存进程引用，用于后续停止
     global.serverProcess = process;
     
-    // 等待服务器启动
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // 等待服务器启动（增加到 5 秒）
+    await new Promise(resolve => setTimeout(resolve, 5000));
     
     console.log('✅ 服务器运行在', BASE_URL);
     

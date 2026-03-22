@@ -163,6 +163,13 @@ async function runBookingTests(testUsers) {
   
   // ==================== 现有测试（按日预约）====================
   
+  // 清理 ScheduleConfig 脏数据，重置为正确的默认配置
+  const { ScheduleConfig } = require('../../wrappers/db-wrapper');
+  await ScheduleConfig.destroy({ where: {} });
+  await ScheduleConfig.create({ type: 'default', dayOfWeek: 2, session: 'morning', isOpen: false, maxBookings: 2 });
+  await ScheduleConfig.create({ type: 'default', dayOfWeek: 2, session: 'afternoon', isOpen: false, maxBookings: 4 });
+  await ScheduleConfig.create({ type: 'default', dayOfWeek: 2, session: 'evening', isOpen: false, maxBookings: 2 });
+  
   // GET /api/available-slots
   await test('GET /api/available-slots - 获取可预约日期', async () => {
     const { response, data } = await request('GET', '/api/available-slots');

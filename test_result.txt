@@ -1,0 +1,84 @@
+========================================
+易方顺诊所助手 - API测试
+========================================
+
+🔍 检查80端口占用情况...
+✅ 80端口未被占用
+🚀 启动服务器...
+✅ 服务器启动成功
+✅ 服务器运行在 http://localhost:80
+
+🧪 开始运行测试...
+服务器错误: 创建预约失败: Error: 您已预约3月29日下午场次，最多同时预约一个场次
+    at Object.createBooking (D:\code\wx_program_src\yifangshun_server\services\booking.js:237:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:275:20
+
+服务器错误: 创建预约失败: Error: 您已预约3月29日下午场次，最多同时预约一个场次
+    at Object.createBooking (D:\code\wx_program_src\yifangshun_server\services\booking.js:237:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:275:20
+
+服务器错误: 创建预约失败: Error: 您已预约3月29日下午场次，最多同时预约一个场次
+    at Object.createBooking (D:\code\wx_program_src\yifangshun_server\services\booking.js:237:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:275:20
+
+服务器错误: 保存处方失败: Error: 处方ID "NORMAL_1774158107531" 已存在待审核状态，请勿重复上传
+    at Object.savePrescription (D:\code\wx_program_src\yifangshun_server\services\prescription.js:383:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:340:20
+
+服务器错误: 保存处方失败: Error: 缺少处方ID
+    at Object.savePrescription (D:\code\wx_program_src\yifangshun_server\services\prescription.js:304:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:340:20
+
+服务器错误: 删除处方失败: Error: 处方不存在
+    at Object.deletePrescription (D:\code\wx_program_src\yifangshun_server\services\prescription.js:538:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:370:20
+
+服务器错误: 保存处方失败: Error: 处方ID "UNIQUE_TEST_1774158107650" 已存在待审核状态，请勿重复上传
+    at Object.savePrescription (D:\code\wx_program_src\yifangshun_server\services\prescription.js:383:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:340:20
+
+服务器错误: 删除处方失败: Error: 处方不存在
+    at Object.deletePrescription (D:\code\wx_program_src\yifangshun_server\services\prescription.js:538:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:370:20
+
+服务器错误: 删除处方失败: Error: 处方不存在
+    at Object.deletePrescription (D:\code\wx_program_src\yifangshun_server\services\prescription.js:538:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:370:20
+
+服务器错误: 删除处方失败: Error: 处方不存在
+    at Object.deletePrescription (D:\code\wx_program_src\yifangshun_server\services\prescription.js:538:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:370:20
+
+服务器错误: 更新用户信息失败: Error: 用户不存在
+    at Object.updateUserInfo (D:\code\wx_program_src\yifangshun_server\services\auth.js:440:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:122:20
+
+服务器错误: 更新用户信息失败: Error: 手机号格式不正确
+    at Object.updateUserInfo (D:\code\wx_program_src\yifangshun_server\services\auth.js:453:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:122:20
+
+服务器错误: 更新用户信息失败: Error: 用户不存在
+    at Object.updateUserInfo (D:\code\wx_program_src\yifangshun_server\services\auth.js:440:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async D:\code\wx_program_src\yifangshun_server\index.js:122:20
+
+
+❌ 测试流程失败: Command failed: node test/comprehensive_api_test.js
+
+🛑 停止服务器...
+🔍 检查80端口占用情况...
+🔧 发现进程占用80端口 (PID: 12964)，正在清理...
+✅ 端口清理完成
+✅ 服务器已停止

@@ -158,6 +158,11 @@ async function cleanupTestData() {
 async function runLoginTests() {
   console.log('\n📋 1. 测试登录相关API');
   
+  // 清理可能存在的脏数据（使用测试手机号的用户）
+  await User.destroy({ where: { phone: '13800138001' } });
+  await User.destroy({ where: { phone: '13800138002' } });
+  await User.destroy({ where: { phone: '13800138003' } });
+  
   // 创建测试用户
   await test('创建测试用户', async () => {
     const normalUser = {

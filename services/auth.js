@@ -336,7 +336,8 @@ async function getUserInfo(openid) {
 }
 
 // 设置用户角色
-async function setUserRole(targetOpenid, newRole, operatorOpenid, isHomePage = false) {
+// 【手机号改造】新增 operatorRole 参数，用于权限控制
+async function setUserRole(targetOpenid, newRole, operatorOpenid, isHomePage = false, operatorRole = 'super_admin') {
   if (!targetOpenid || !newRole) {
     throw new Error("缺少必要参数");
   }
@@ -354,9 +355,14 @@ async function setUserRole(targetOpenid, newRole, operatorOpenid, isHomePage = f
       throw new Error("操作者不存在");
     }
 
-    // 只有超级管理员可以设置角色
-    if (operator.role !== 'super_admin') {
-      throw new Error("权限不足，只有超级管理员可以设置角色");
+    // admin 不能设置 super_admin 角色
+    if (operatorRole === 'admin' && newRole === 'super_admin') {
+      throw new Error("权限不足，管理员无权设置超级管理员");
+    }
+    
+    // 只有 super_admin 可以设置其他角色，admin 只能设置 user 和 admin
+    if (operator.role !== 'super_admin' && operator.role !== 'admin') {
+      throw new Error("权限不足，只有管理员可以设置角色");
     }
   }
 

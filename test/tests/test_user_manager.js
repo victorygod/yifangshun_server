@@ -187,14 +187,16 @@ async function runUserManagerTests(users) {
     assertEquals(response.statusCode, 403, '返回403禁止访问');
   });
   
-  await test('PUT /api/user/:openid - 管理员无权访问（仅超管）', async () => {
+  await test('PUT /api/user/:openid - 管理员可以访问修改用户信息', async () => {
     const { response, data } = await request('PUT', `/api/user/${testUsers.normalUser.openid}`, {
-      name: '非法修改'
+      name: '管理员修改'
     }, {
       'x-openid': testUsers.adminUser.openid
     });
     
-    assertEquals(response.statusCode, 403, '返回403禁止访问');
+    // 权限验证应通过（不是 403）
+    assert(response.statusCode !== 403, '管理员应有权修改用户信息，不应返回 403');
+    console.log(`  管理员权限验证通过`);
   });
   
   // ========== 数据校验 ==========

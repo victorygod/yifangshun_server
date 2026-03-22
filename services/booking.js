@@ -1,4 +1,4 @@
-const { Booking, ScheduleConfig, Op } = require('../wrappers/db-wrapper');
+const { Booking, ScheduleConfig, Op, User } = require('../wrappers/db-wrapper');
 
 // 场次配置（名称和时段，不含容量——容量从 DB 读取）
 const SESSION_CONFIG = {
@@ -179,10 +179,23 @@ async function getAvailableSlots(startDate, openid) {
 }
 
 // 创建预约 - 支持场次和人数
-async function createBooking(date, session, personCount, openid) {
-  if (!date || !session || !personCount || !openid) {
+// 【手机号改造】userInfo 参数为 req.user 对象（包含 openid, phone, role）
+async function createBooking(date, session, personCount, userInfo) {
+  if (!date || !session || !personCount || !userInfo) {
     throw new Error("缺少必要参数");
   }
+
+  // 【手机号改造】直接从 userInfo 获取 phone，无需查询数据库
+  const openid = userInfo.openid;
+  const phone = userInfo.phone;
+  
+  if (!phone) {
+    throw new Error("用户未绑定手机号");
+  }
+  
+  console.log('[createBooking] userInfo:', userInfo);
+  console.log('[createBooking] openid:', openid);
+  console.log('[createBooking] phone:', phone);
 
   // 验证场次
   if (!SESSION_CONFIG[session]) {
@@ -205,7 +218,7 @@ async function createBooking(date, session, personCount, openid) {
   // 检查用户是否已有预约（一个用户最多同时预约一个场次）
   const existingBooking = await Booking.findOne({
     where: { 
-      openid, 
+      phone,
       status: { [Op.in]: ["confirmed", "checked_in"] },
       date: {
         [Op.gte]: tomorrowStr
@@ -259,14 +272,15 @@ async function createBooking(date, session, personCount, openid) {
     throw new Error(`该场次只剩${remaining}个名额，无法预约${personCount}人`);
   }
 
-  // 创建预约
+  // 创建预约 - 【手机号改造】同时保存 phone 字段
   const booking = await Booking.create({
     openid,
+    phone,         // 新增：保存手机号
     date,
-    session,           // 新增字段
-    personCount,       // 新增字段
+    session,       // 新增字段
+    personCount,   // 新增字段
     status: "confirmed",
-    time: "14:00",     // 保留兼容性
+    time: "14:00", // 保留兼容性
   });
 
   return {

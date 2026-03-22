@@ -217,6 +217,17 @@ let tableData = [];
 // ==================== 初始化 ====================
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // 检查登录状态
+  const urlParams = new URLSearchParams(window.location.search);
+  const phoneNumber = urlParams.get('phone_number');
+  const openid = localStorage.getItem('user_openid');
+  
+  // 如果没有 phone_number 参数或没有 openid，跳转到登录页
+  if (!phoneNumber || !openid) {
+    window.location.href = '/login.html';
+    return;
+  }
+  
   renderSidebar();
   await loadStats();
   switchPage('dashboard');
@@ -229,16 +240,32 @@ async function homeFetch(url, options = {}) {
   const urlParams = new URLSearchParams(window.location.search);
   const phoneNumber = urlParams.get('phone_number');
   
+  // 从 localStorage 获取 openid（登录时保存）
+  const openid = localStorage.getItem('user_openid');
+  
   const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       // 如果有 phone_number 参数，添加到 header 中用于权限验证
       ...(phoneNumber ? { 'x-phone': phoneNumber } : {}),
+      // 如果有 openid，也添加到 header 中
+      ...(openid ? { 'x-openid': openid } : {}),
       ...options.headers
     }
   });
-  return res.json();
+  
+  const data = await res.json();
+  
+  // 如果返回错误提示需要重新登录，跳转到登录页
+  if (data.code === 1 && (data.message?.includes('openid') || data.message?.includes('未授权'))) {
+    localStorage.removeItem('user_openid');
+    localStorage.removeItem('user_phone');
+    window.location.href = '/login.html';
+    return data;
+  }
+  
+  return data;
 }
 
 // ==================== 侧边栏 ====================

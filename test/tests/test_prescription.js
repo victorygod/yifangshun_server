@@ -232,10 +232,12 @@ async function runPrescriptionTests(testUsers) {
   
   // GET /api/prescription/user-history
   await test('GET /api/prescription/user-history - 获取用户处方历史', async () => {
-    const { response, data } = await request('GET', `/api/prescription/user-history$`, null, {
+    const { response, data } = await request('GET', `/api/prescription/user-history`, null, {
       'x-openid': testUsers.normalUser.openid
     });
     
+    console.log(`  响应状态码：${response.statusCode}, data.code: ${data.code}`);
+    console.log(`  响应数据：`, JSON.stringify(data).substring(0, 200));
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
     assert(Array.isArray(data.data), '返回数组');
@@ -243,7 +245,7 @@ async function runPrescriptionTests(testUsers) {
   
   // GET /api/prescription/list
   await test('GET /api/prescription/list - 获取所有处方列表（管理员）', async () => {
-    const { response, data } = await request('GET', `/api/prescription/list$`, null, {
+    const { response, data } = await request('GET', `/api/prescription/list`, null, {
       'x-openid': testUsers.adminUser.openid
     });
     
@@ -309,10 +311,11 @@ async function runPrescriptionTests(testUsers) {
     });
     
     // 使用双键URL删除
-    const { response, data } = await request('DELETE', `/api/prescription/${encodeURIComponent(prescriptionId)}/待审核$`, null, {
+    const { response, data } = await request('DELETE', `/api/prescription/${encodeURIComponent(prescriptionId)}/待审核`, null, {
       'x-openid': testUsers.normalUser.openid
     });
     
+    console.log(`  删除响应：statusCode=${response.statusCode}, code=${data.code}, message=${data.message}`);
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '删除成功');
     console.log(`  双键URL: DELETE /api/prescription/${prescriptionId}/待审核`);
@@ -499,7 +502,7 @@ async function runPrescriptionTests(testUsers) {
     // 批量删除（使用双键URL）
     let deleteCount = 0;
     for (const item of items) {
-      const { response, data } = await request('DELETE', `/api/prescription/${encodeURIComponent(item.prescriptionId)}/${encodeURIComponent(item.status)}$`, null, {
+      const { response, data } = await request('DELETE', `/api/prescription/${encodeURIComponent(item.prescriptionId)}/${encodeURIComponent(item.status)}`, null, {
       'x-openid': testUsers.normalUser.openid
     });
       if (response.statusCode === 200 && data.code === 0) {

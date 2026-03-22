@@ -208,7 +208,11 @@
         const result = await response.json();
         
         if (result.code === 0) {
-          // 登录成功，跳转到首页并带上 phone_number 参数
+          // 登录成功，保存用户信息到 localStorage
+          localStorage.setItem('user_phone', phone);
+          localStorage.setItem('user_openid', result.data.openid);
+          
+          // 跳转到首页并带上 phone_number 参数
           const redirectUrl = window.location.pathname + '?phone_number=' + encodeURIComponent(phone);
           window.location.href = redirectUrl;
         } else {
