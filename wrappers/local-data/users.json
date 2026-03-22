@@ -1,12 +1,13 @@
 [
   {
     "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "code": "0c1palGa1E52oL0PrAFa10EOJ62palG-",
-    "role": "user",
+    "code": "0d1iNUGa1UAmnL0wFAFa1hihL84iNUG3",
+    "role": "admin",
     "isNewUser": false,
     "id": 1,
     "createdAt": "2026-03-22T18:52:16.891Z",
-    "updatedAt": "2026-03-22T19:12:30.735Z",
-    "phone": "15201927053"
+    "updatedAt": "2026-03-22T19:37:35.876Z",
+    "phone": "15201927053",
+    "name": ""
   }
 ]

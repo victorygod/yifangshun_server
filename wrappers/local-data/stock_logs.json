@@ -78,5 +78,65 @@
     "createdAt": "2026-03-22T19:02:03.634Z",
     "id": 8,
     "updatedAt": "2026-03-22T19:02:03.634Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-1",
+    "herbName": "白芷",
+    "quantity": 18,
+    "operator": "system",
+    "createdAt": "2026-03-22T19:35:48.474Z",
+    "id": 9,
+    "updatedAt": "2026-03-22T19:35:48.474Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-1",
+    "herbName": "车前花",
+    "quantity": 18,
+    "operator": "system",
+    "createdAt": "2026-03-22T19:35:48.476Z",
+    "id": 10,
+    "updatedAt": "2026-03-22T19:35:48.476Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-1",
+    "herbName": "防风",
+    "quantity": 30,
+    "operator": "system",
+    "createdAt": "2026-03-22T19:35:48.478Z",
+    "id": 11,
+    "updatedAt": "2026-03-22T19:35:48.478Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-1",
+    "herbName": "白芷",
+    "quantity": -18,
+    "operator": "admin",
+    "createdAt": "2026-03-22T19:37:10.412Z",
+    "id": 12,
+    "updatedAt": "2026-03-22T19:37:10.412Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-1",
+    "herbName": "车前花",
+    "quantity": -18,
+    "operator": "admin",
+    "createdAt": "2026-03-22T19:37:10.414Z",
+    "id": 13,
+    "updatedAt": "2026-03-22T19:37:10.414Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-1",
+    "herbName": "防风",
+    "quantity": -30,
+    "operator": "admin",
+    "createdAt": "2026-03-22T19:37:10.415Z",
+    "id": 14,
+    "updatedAt": "2026-03-22T19:37:10.415Z"
   }
 ]

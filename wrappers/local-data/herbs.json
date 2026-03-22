@@ -20,7 +20,7 @@
     "stock": 12291,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.894Z",
-    "updatedAt": "2026-03-22T19:02:03.631Z",
+    "updatedAt": "2026-03-22T19:37:10.414Z",
     "id": 2
   },
   {
@@ -32,7 +32,7 @@
     "stock": 3214,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.896Z",
-    "updatedAt": "2026-03-22T19:02:03.627Z",
+    "updatedAt": "2026-03-22T19:37:10.410Z",
     "id": 3
   },
   {
@@ -44,7 +44,7 @@
     "stock": 215,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.897Z",
-    "updatedAt": "2026-03-22T19:02:03.629Z",
+    "updatedAt": "2026-03-22T19:37:10.412Z",
     "id": 4
   }
 ]

@@ -452,6 +452,9 @@ async function executeStockIn(id, operator = 'system') {
   
   // 更新库存
   for (const item of items) {
+    const itemQuantity = parseFloat(item.quantity) || 0;
+    const itemUnitPrice = parseFloat(item.unitPrice) || 0;
+    
     // 先检查药材是否存在，不存在则创建
     let herb = await Herb.findOne({ where: { name: item.herbName } });
     if (!herb) {
@@ -461,17 +464,17 @@ async function executeStockIn(id, operator = 'system') {
         alias: '',
         unit: '克',
         minValue: 0,
-        salePrice: item.unitPrice, // 默认使用进货单价作为售价
-        stock: item.quantity, // 初始库存
+        salePrice: itemUnitPrice, // 默认使用进货单价作为售价
+        stock: itemQuantity, // 初始库存
         isActive: true,
         createdAt: getNow(),
         updatedAt: getNow()
       });
-      console.log(`[executeStockIn] 自动创建药材: ${item.herbName}, 初始库存: ${item.quantity}`);
+      console.log(`[executeStockIn] 自动创建药材: ${item.herbName}, 初始库存: ${itemQuantity}`);
     } else {
       // 更新药材表的库存
-      const oldStock = herb.stock || 0;
-      const newStock = oldStock + item.quantity;
+      const oldStock = parseFloat(herb.stock) || 0;
+      const newStock = oldStock + itemQuantity;
       await Herb.update({ stock: newStock, updatedAt: getNow() }, { where: { id: herb.id } });
       console.log(`[executeStockIn] 更新药材库存: ${item.herbName}, 旧库存: ${oldStock}, 新库存: ${newStock}`);
     }
@@ -483,20 +486,20 @@ async function executeStockIn(id, operator = 'system') {
       inventory = await StockInventory.create({
         herbName: item.herbName,
         herbAlias: item.herbAlias || '',
-        quantity: item.quantity,
-        avgPrice: item.unitPrice,
+        quantity: itemQuantity,
+        avgPrice: itemUnitPrice,
         minValue: 0,
         lastStockInDate: order.orderDate,
         updatedAt: getNow()
       });
-      console.log(`[executeStockIn] 创建库存记录: ${item.herbName}, 数量: ${item.quantity}`);
+      console.log(`[executeStockIn] 创建库存记录: ${item.herbName}, 数量: ${itemQuantity}`);
     } else {
       // 更新库存（加权平均价格）
-      const oldQuantity = inventory.quantity || 0;
-      const oldAvgPrice = inventory.avgPrice || 0;
-      const newQuantity = oldQuantity + item.quantity;
+      const oldQuantity = parseFloat(inventory.quantity) || 0;
+      const oldAvgPrice = parseFloat(inventory.avgPrice) || 0;
+      const newQuantity = oldQuantity + itemQuantity;
       const newAvgPrice = newQuantity > 0 
-        ? ((oldQuantity * oldAvgPrice) + (item.quantity * item.unitPrice)) / newQuantity 
+        ? ((oldQuantity * oldAvgPrice) + (itemQuantity * itemUnitPrice)) / newQuantity 
         : 0;
       
       await StockInventory.update({
@@ -509,7 +512,7 @@ async function executeStockIn(id, operator = 'system') {
     }
     
     // 添加日志
-    await addStockLog('stock_in', order.orderNo || `RK-${id}`, item.herbName, item.quantity, operator);
+    await addStockLog('stock_in', order.orderNo || `RK-${id}`, item.herbName, itemQuantity, operator);
   }
   
   // 更新订单状态
@@ -538,11 +541,13 @@ async function revertStockIn(id, operator = 'system') {
   
   // 回退库存
   for (const item of items) {
+    const itemQuantity = parseFloat(item.quantity) || 0;
+    
     // 更新药材表的库存
     let herb = await Herb.findOne({ where: { name: item.herbName } });
     if (herb) {
-      const oldStock = herb.stock || 0;
-      const newStock = Math.max(0, oldStock - item.quantity);
+      const oldStock = parseFloat(herb.stock) || 0;
+      const newStock = Math.max(0, oldStock - itemQuantity);
       await Herb.update({ stock: newStock, updatedAt: getNow() }, { where: { id: herb.id } });
       console.log(`[revertStockIn] 回退药材库存: ${item.herbName}, 旧库存: ${oldStock}, 新库存: ${newStock}`);
     }
@@ -550,8 +555,8 @@ async function revertStockIn(id, operator = 'system') {
     // 更新库存统计表
     let inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
     if (inventory) {
-      const oldQuantity = inventory.quantity || 0;
-      const newQuantity = Math.max(0, oldQuantity - item.quantity);
+      const oldQuantity = parseFloat(inventory.quantity) || 0;
+      const newQuantity = Math.max(0, oldQuantity - itemQuantity);
       await StockInventory.update({
         quantity: newQuantity,
         updatedAt: getNow()
@@ -560,7 +565,7 @@ async function revertStockIn(id, operator = 'system') {
     }
     
     // 添加日志
-    await addStockLog('revert_in', order.orderNo || `RK-${id}`, item.herbName, -item.quantity, operator);
+    await addStockLog('revert_in', order.orderNo || `RK-${id}`, item.herbName, -itemQuantity, operator);
   }
   
   return {
@@ -584,11 +589,13 @@ async function executeStockOut(id, operator = 'system') {
   
   // 扣减库存
   for (const item of items) {
+    const itemQuantity = parseFloat(item.quantity) || 0;
+    
     // 更新药材表的库存
     let herb = await Herb.findOne({ where: { name: item.herbName } });
     if (herb) {
-      const oldStock = herb.stock || 0;
-      const newStock = Math.max(0, oldStock - item.quantity);
+      const oldStock = parseFloat(herb.stock) || 0;
+      const newStock = Math.max(0, oldStock - itemQuantity);
       await Herb.update({ stock: newStock, updatedAt: getNow() }, { where: { id: herb.id } });
       console.log(`[executeStockOut] 扣减药材库存: ${item.herbName}, 旧库存: ${oldStock}, 新库存: ${newStock}`);
     }
@@ -596,8 +603,8 @@ async function executeStockOut(id, operator = 'system') {
     // 更新库存统计表
     let inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
     if (inventory) {
-      const oldQuantity = inventory.quantity || 0;
-      const newQuantity = Math.max(0, oldQuantity - item.quantity);
+      const oldQuantity = parseFloat(inventory.quantity) || 0;
+      const newQuantity = Math.max(0, oldQuantity - itemQuantity);
       await StockInventory.update({
         quantity: newQuantity,
         updatedAt: getNow()
@@ -606,7 +613,7 @@ async function executeStockOut(id, operator = 'system') {
     }
     
     // 添加日志
-    await addStockLog('stock_out', `ZD-${id}`, item.herbName, -item.quantity, operator);
+    await addStockLog('stock_out', `ZD-${id}`, item.herbName, -itemQuantity, operator);
   }
   
   return {
@@ -630,11 +637,13 @@ async function revertStockOut(id, operator = 'system') {
   
   // 恢复库存
   for (const item of items) {
+    const itemQuantity = parseFloat(item.quantity) || 0;
+    
     // 更新药材表的库存
     let herb = await Herb.findOne({ where: { name: item.herbName } });
     if (herb) {
-      const oldStock = herb.stock || 0;
-      const newStock = oldStock + item.quantity;
+      const oldStock = parseFloat(herb.stock) || 0;
+      const newStock = oldStock + itemQuantity;
       await Herb.update({ stock: newStock, updatedAt: getNow() }, { where: { id: herb.id } });
       console.log(`[revertStockOut] 恢复药材库存: ${item.herbName}, 旧库存: ${oldStock}, 新库存: ${newStock}`);
     }
@@ -642,8 +651,8 @@ async function revertStockOut(id, operator = 'system') {
     // 更新库存统计表
     let inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
     if (inventory) {
-      const oldQuantity = inventory.quantity || 0;
-      const newQuantity = oldQuantity + item.quantity;
+      const oldQuantity = parseFloat(inventory.quantity) || 0;
+      const newQuantity = oldQuantity + itemQuantity;
       await StockInventory.update({
         quantity: newQuantity,
         updatedAt: getNow()
@@ -652,7 +661,7 @@ async function revertStockOut(id, operator = 'system') {
     }
     
     // 添加日志
-    await addStockLog('revert_out', `ZD-${id}`, item.herbName, item.quantity, operator);
+    await addStockLog('revert_out', `ZD-${id}`, item.herbName, itemQuantity, operator);
   }
   
   return {
