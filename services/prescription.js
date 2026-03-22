@@ -1,4 +1,4 @@
-const { Prescription, StockOutOrder, StockOutItem, Herb, Op } = require('../wrappers/db-wrapper');
+const { Prescription, StockOutOrder, StockOutItem, Herb, User, Op } = require('../wrappers/db-wrapper');
 const https = require('https');
 
 // 获取当前时间
@@ -209,13 +209,20 @@ async function handlePrescriptionOCR(image, openid, thumbnail) {
 
 // 获取处方历史
 // 【手机号改造】参数改为 phone（从 req.user.phone 传入）
+// 处方表存的是 openid，需要先查用户获取 openid
 async function getPrescriptionHistory(phone) {
   if (!phone) {
     throw new Error("缺少用户标识");
   }
 
+  // 根据 phone 查询用户的 openid
+  const user = await User.findOne({ where: { phone } });
+  if (!user) {
+    return { code: 0, data: [] };  // 用户不存在，返回空列表
+  }
+
   const prescriptions = await Prescription.findAll({
-    where: { phone },  // 【手机号改造】使用 phone 查询
+    where: { openid: user.openid },  // 处方表存的是 openid
     order: [["updatedAt", "DESC"]],
   });
 
