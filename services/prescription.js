@@ -262,7 +262,7 @@ async function getPrescriptionHistory(phone) {
       prescriptionId: p.prescriptionId,
       status: p.status,
       data: convertedData,
-      thumbnail: p.thumbnail,
+      thumbnail: p.thumbnail ? convertCloudFileIdToUrl(p.thumbnail) : null,
       createTime: p.createTime,
       updatedAt: p.updatedAt,
     };
@@ -648,7 +648,7 @@ async function getPrescriptionsList({ page = 1, pageSize = 20, keyword = '', sta
       openid: p.openid,
       status: p.status,
       data: convertedData,
-      thumbnail: p.thumbnail,
+      thumbnail: p.thumbnail ? convertCloudFileIdToUrl(p.thumbnail) : null,
       reviewer: p.reviewer,
       reviewDate: p.reviewDate,
       modifyDate: p.modifyDate,
