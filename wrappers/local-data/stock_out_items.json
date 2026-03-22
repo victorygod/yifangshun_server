@@ -2838,5 +2838,95 @@
     "createdAt": "2026-03-22T14:18:53.889Z",
     "id": 368,
     "updatedAt": "2026-03-22T14:18:53.889Z"
+  },
+  {
+    "orderId": 360,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": "1",
+    "totalPrice": 15,
+    "createdAt": "2026-03-22T14:52:17.975Z",
+    "id": 369,
+    "updatedAt": "2026-03-22T14:52:17.975Z"
+  },
+  {
+    "orderId": 361,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": "1",
+    "totalPrice": 15,
+    "createdAt": "2026-03-22T14:52:18.008Z",
+    "id": 370,
+    "updatedAt": "2026-03-22T14:52:18.008Z"
+  },
+  {
+    "orderId": 363,
+    "herbName": "测试药材_1774162337738",
+    "quantity": 100,
+    "unitPrice": 0.06,
+    "totalPrice": 6,
+    "createdAt": "2026-03-22T14:52:20.297Z",
+    "id": 372,
+    "updatedAt": "2026-03-22T14:52:20.297Z"
+  },
+  {
+    "orderId": 364,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": "1",
+    "totalPrice": 15,
+    "createdAt": "2026-03-22T14:52:25.537Z",
+    "id": 373,
+    "updatedAt": "2026-03-22T14:52:25.537Z"
+  },
+  {
+    "orderId": 365,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": "1",
+    "totalPrice": 15,
+    "createdAt": "2026-03-22T14:52:25.568Z",
+    "id": 374,
+    "updatedAt": "2026-03-22T14:52:25.568Z"
+  },
+  {
+    "orderId": 367,
+    "herbName": "测试药材_1774162345306",
+    "quantity": 100,
+    "unitPrice": 0.06,
+    "totalPrice": 6,
+    "createdAt": "2026-03-22T14:52:27.221Z",
+    "id": 376,
+    "updatedAt": "2026-03-22T14:52:27.221Z"
+  },
+  {
+    "orderId": 368,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": "1",
+    "totalPrice": 15,
+    "createdAt": "2026-03-22T14:57:22.514Z",
+    "id": 377,
+    "updatedAt": "2026-03-22T14:57:22.514Z"
+  },
+  {
+    "orderId": 369,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": "1",
+    "totalPrice": 15,
+    "createdAt": "2026-03-22T14:57:22.549Z",
+    "id": 378,
+    "updatedAt": "2026-03-22T14:57:22.549Z"
+  },
+  {
+    "orderId": 371,
+    "herbName": "测试药材_1774162642218",
+    "quantity": 100,
+    "unitPrice": 0.06,
+    "totalPrice": 6,
+    "createdAt": "2026-03-22T14:57:24.664Z",
+    "id": 380,
+    "updatedAt": "2026-03-22T14:57:24.664Z"
   }
 ]

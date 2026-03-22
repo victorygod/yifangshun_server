@@ -741,18 +741,72 @@
     "openid": "test_home_login_1774160331555",
     "name": "测试用户",
     "phone": "1381774160331556",
-    "role": "admin",
+    "role": "user",
     "id": 209,
     "createdAt": "2026-03-22T14:18:51.556Z",
-    "updatedAt": "2026-03-22T14:18:51.558Z"
+    "updatedAt": "2026-03-22T14:50:07.491Z"
   },
   {
     "openid": "test_home_user_1774160331559",
     "name": "普通用户",
     "phone": "1391774160331559",
-    "role": "user",
+    "role": "admin",
     "id": 210,
     "createdAt": "2026-03-22T14:18:51.559Z",
-    "updatedAt": "2026-03-22T14:18:51.559Z"
+    "updatedAt": "2026-03-22T14:50:10.652Z"
+  },
+  {
+    "openid": "test_home_login_1774162337786",
+    "name": "测试用户",
+    "phone": "1381774162337786",
+    "role": "admin",
+    "id": 214,
+    "createdAt": "2026-03-22T14:52:17.787Z",
+    "updatedAt": "2026-03-22T14:52:17.789Z"
+  },
+  {
+    "openid": "test_home_user_1774162337789",
+    "name": "普通用户",
+    "phone": "1391774162337789",
+    "role": "user",
+    "id": 215,
+    "createdAt": "2026-03-22T14:52:17.790Z",
+    "updatedAt": "2026-03-22T14:52:17.790Z"
+  },
+  {
+    "openid": "test_home_login_1774162345351",
+    "name": "测试用户",
+    "phone": "1381774162345351",
+    "role": "admin",
+    "id": 219,
+    "createdAt": "2026-03-22T14:52:25.351Z",
+    "updatedAt": "2026-03-22T14:52:25.353Z"
+  },
+  {
+    "openid": "test_home_user_1774162345354",
+    "name": "普通用户",
+    "phone": "1391774162345354",
+    "role": "super_admin",
+    "id": 220,
+    "createdAt": "2026-03-22T14:52:25.354Z",
+    "updatedAt": "2026-03-22T14:53:24.162Z"
+  },
+  {
+    "openid": "test_home_login_1774162642288",
+    "name": "测试用户",
+    "phone": "1381774162642288",
+    "role": "admin",
+    "id": 224,
+    "createdAt": "2026-03-22T14:57:22.290Z",
+    "updatedAt": "2026-03-22T14:57:22.292Z"
+  },
+  {
+    "openid": "test_home_user_1774162642293",
+    "name": "普通用户",
+    "phone": "1391774162642293",
+    "role": "user",
+    "id": 225,
+    "createdAt": "2026-03-22T14:57:22.294Z",
+    "updatedAt": "2026-03-22T14:57:22.294Z"
   }
 ]

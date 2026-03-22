@@ -6,8 +6,8 @@
     "isOpen": false,
     "maxBookings": 2,
     "id": 1,
-    "createdAt": "2026-03-22T14:18:51.562Z",
-    "updatedAt": "2026-03-22T14:18:51.562Z"
+    "createdAt": "2026-03-22T14:57:22.298Z",
+    "updatedAt": "2026-03-22T14:57:22.298Z"
   },
   {
     "type": "default",
@@ -16,8 +16,8 @@
     "isOpen": false,
     "maxBookings": 4,
     "id": 2,
-    "createdAt": "2026-03-22T14:18:51.562Z",
-    "updatedAt": "2026-03-22T14:18:51.562Z"
+    "createdAt": "2026-03-22T14:57:22.298Z",
+    "updatedAt": "2026-03-22T14:57:22.298Z"
   },
   {
     "type": "default",
@@ -26,8 +26,8 @@
     "isOpen": false,
     "maxBookings": 2,
     "id": 3,
-    "createdAt": "2026-03-22T14:18:51.563Z",
-    "updatedAt": "2026-03-22T14:18:51.563Z"
+    "createdAt": "2026-03-22T14:57:22.299Z",
+    "updatedAt": "2026-03-22T14:57:22.299Z"
   },
   {
     "type": "default",
@@ -36,8 +36,8 @@
     "isOpen": false,
     "maxBookings": 2,
     "id": 4,
-    "createdAt": "2026-03-22T14:18:51.593Z",
-    "updatedAt": "2026-03-22T14:18:51.593Z"
+    "createdAt": "2026-03-22T14:57:22.337Z",
+    "updatedAt": "2026-03-22T14:57:22.337Z"
   },
   {
     "type": "override",
@@ -46,7 +46,7 @@
     "isOpen": false,
     "reason": "临时停诊测试",
     "id": 5,
-    "createdAt": "2026-03-22T14:18:51.595Z",
-    "updatedAt": "2026-03-22T14:18:51.595Z"
+    "createdAt": "2026-03-22T14:57:22.340Z",
+    "updatedAt": "2026-03-22T14:57:22.340Z"
   }
 ]

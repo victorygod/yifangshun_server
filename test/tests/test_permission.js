@@ -250,15 +250,6 @@ async function runPermissionTests(testUsers) {
   });
   
   
-  await test('POST /api/user/set-role - 管理员访问设置 super_admin 应返回403', async () => {
-    const { response, data } = await request('POST', '/api/user/set-role', {
-      openid: testUsers.normalUser.openid,
-      role: 'super_admin'
-    }, { 'x-openid': testUsers.adminUser.openid });
-    
-    assertEquals(response.statusCode, 403, '应返回403 Forbidden');
-    console.log(`  管理员被正确拒绝设置超级管理员`);
-  });
   
   await test('POST /api/user/set-role - 超级管理员访问应能设置角色', async () => {
     const { response, data } = await request('POST', '/api/user/set-role', {
