@@ -5,10 +5,46 @@
     "unit": "克",
     "minValue": 0,
     "salePrice": 123,
-    "stock": 12321,
+    "stock": 0,
     "isActive": true,
     "createdAt": "2026-03-22T18:52:05.699Z",
-    "updatedAt": "2026-03-22T18:52:05.699Z",
+    "updatedAt": "2026-03-22T19:00:52.991Z",
     "id": 1
+  },
+  {
+    "name": "防风",
+    "alias": "",
+    "unit": "克",
+    "minValue": 0,
+    "salePrice": 123,
+    "stock": 12291,
+    "isActive": true,
+    "createdAt": "2026-03-22T19:01:53.894Z",
+    "updatedAt": "2026-03-22T19:02:03.631Z",
+    "id": 2
+  },
+  {
+    "name": "白芷",
+    "alias": "",
+    "unit": "克",
+    "minValue": 0,
+    "salePrice": 12,
+    "stock": 3214,
+    "isActive": true,
+    "createdAt": "2026-03-22T19:01:53.896Z",
+    "updatedAt": "2026-03-22T19:02:03.627Z",
+    "id": 3
+  },
+  {
+    "name": "车前花",
+    "alias": "",
+    "unit": "克",
+    "minValue": 0,
+    "salePrice": 323,
+    "stock": 215,
+    "isActive": true,
+    "createdAt": "2026-03-22T19:01:53.897Z",
+    "updatedAt": "2026-03-22T19:02:03.629Z",
+    "id": 4
   }
 ]

@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "prescriptionId": "0052152",
+    "prescriptionTime": "2026-03-22",
+    "pharmacist": "",
+    "reviewer": "",
+    "status": "settled",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 9720,
+    "createdAt": "2026-03-22T19:01:29.599Z",
+    "updatedAt": "2026-03-22T19:02:03.634Z",
+    "id": 1
+  }
+]

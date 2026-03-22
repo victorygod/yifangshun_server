@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "orderId": 1,
+    "herbName": "白芷",
+    "quantity": 18,
+    "unitPrice": 12,
+    "totalPrice": 216,
+    "createdAt": "2026-03-22T19:01:29.600Z",
+    "id": 1,
+    "updatedAt": "2026-03-22T19:01:54.741Z"
+  },
+  {
+    "orderId": 1,
+    "herbName": "车前花",
+    "quantity": 18,
+    "unitPrice": 323,
+    "totalPrice": 5814,
+    "createdAt": "2026-03-22T19:01:29.600Z",
+    "id": 2,
+    "updatedAt": "2026-03-22T19:01:54.742Z"
+  },
+  {
+    "orderId": 1,
+    "herbName": "防风",
+    "quantity": 30,
+    "unitPrice": 123,
+    "totalPrice": 3690,
+    "createdAt": "2026-03-22T19:01:29.601Z",
+    "id": 4,
+    "updatedAt": "2026-03-22T19:01:54.743Z"
+  }
+]

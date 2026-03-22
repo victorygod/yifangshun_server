@@ -503,8 +503,12 @@ async function loadTableData() {
 
           const cellClass = isReadonly ? 'cell-readonly' : 'cell-editable';
           const isLongText = col.key === 'openid' || col.key === 'orderNo' || col.key === 'checkNo';
+          
+          // 已结算处方禁止编辑
+          const isSettledPrescription = currentTable === 'prescriptions' && row.status === '已结算';
+          const canEdit = !isReadonly && !isSettledPrescription;
 
-          html += `<td class="${isReadonly ? '' : 'cell-clickable'}" data-row-id="${row.id}" data-col-key="${col.key}">
+          html += `<td class="${canEdit ? 'cell-clickable' : ''}" data-row-id="${row.id}" data-col-key="${col.key}">
             <span class="${cellClass} ${isLongText ? 'cell-long' : ''}" title="${escapeHtml(String(value))}">${displayValue || '-'}</span>
           </td>`;
         }
@@ -535,8 +539,10 @@ async function loadTableData() {
         // 执药单特殊处理
         if (currentTable === 'stock_out_orders' && row.status === 'settled') {
           html += `<button class="action-btn action-btn-revoke" data-action="revokeOrder" data-id="${row.id}" data-order-id="${row.id}">撤销</button>`;
-        } else if (currentTable !== 'stock_in_orders' || row.status === 'draft') {
+        } else if ((currentTable !== 'stock_in_orders' || row.status === 'draft') && 
+                   !(currentTable === 'prescriptions' && row.status === '已结算')) {
           // 入库单已入库状态不显示删除按钮（通过退回草稿后删除）
+          // 已结算处方不显示删除按钮
           html += `<button class="action-btn action-btn-delete" data-action="delete" data-id="${row.id}">删除</button>`;
         }
       }
@@ -1030,6 +1036,16 @@ function handleTableClick(e) {
   if (cell && editingRowId !== 'new') {
     const rowId = cell.dataset.rowId;
     const colKey = cell.dataset.colKey;
+    
+    // 已结算处方禁止编辑
+    if (currentTable === 'prescriptions') {
+      const row = tableData.find(r => String(r.id) === String(rowId));
+      if (row && row.status === '已结算') {
+        showToast('已结算处方不可编辑', 'error');
+        return;
+      }
+    }
+    
     if (String(editingRowId) !== String(rowId)) {
       pendingFocusCol = colKey;
       startEdit(rowId);
@@ -1479,6 +1495,15 @@ async function saveNewRow() {
 }
 
 async function deleteRow(rowId) {
+  // 已结算处方禁止删除
+  if (currentTable === 'prescriptions') {
+    const row = tableData.find(r => String(r.id) === String(rowId));
+    if (row && row.status === '已结算') {
+      showToast('已结算处方不可删除', 'error');
+      return;
+    }
+  }
+  
   // 入库单已入库状态需要特殊处理
   if (currentTable === 'stock_in_orders') {
     const row = tableData.find(r => String(r.id) === String(rowId));
