@@ -225,11 +225,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ==================== API 请求 ====================
 
 async function homeFetch(url, options = {}) {
+  // 从 URL 参数中获取 phone_number
+  const urlParams = new URLSearchParams(window.location.search);
+  const phoneNumber = urlParams.get('phone_number');
+  
   const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      'x-home-page': 'true',
+      // 如果有 phone_number 参数，添加到 header 中用于权限验证
+      ...(phoneNumber ? { 'x-phone': phoneNumber } : {}),
       ...options.headers
     }
   });

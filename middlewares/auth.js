@@ -14,20 +14,21 @@ function requireRole(allowedRoles) {
       // 从请求中获取 openid（优先检查 header，因为 body 可能是业务数据）
       // 优先级：header > query > body
       const openid = req.headers['x-openid'] || req.query.openid || req.body.openid;
-      const isHomePage = req.headers['x-home-page'] === 'true'; // 标识是否为主页请求
+      // 【首页登录改造】从 header 获取手机号
+      const phone = req.headers['x-phone'];
       
       console.log('========================================');
       console.log('权限验证中间件');
       console.log('openid:', openid);
-      console.log('isHomePage:', isHomePage);
+      console.log('phone:', phone);
       console.log('allowedRoles:', allowedRoles);
       console.log('========================================');
       
-      // 【特殊】主页请求（非微信环境），给予超级管理员权限
-      // 注意：主页请求的优先级高于 openid 检查
-      if (isHomePage) {
-        req.user = { role: 'super_admin', openid: null, phone: null, isHomePage: true };
-        console.log('✅ 权限验证通过 - 主页请求，赋予超级管理员权限');
+      // 【首页登录改造】检查是否为默认超级管理员手机号
+      // 注意：此检查优先级最高，无需查询数据库
+      if (phone === 'home_super_admin') {
+        req.user = { role: 'super_admin', openid: 'home_super_admin', phone: 'home_super_admin', isHomeAdmin: true };
+        console.log('✅ 权限验证通过 - 默认超级管理员手机号');
         return next();
       }
       

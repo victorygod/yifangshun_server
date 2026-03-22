@@ -9,5 +9,386 @@
     "updatedAt": "2026-03-22T02:40:14.034Z",
     "phone": "15201927053",
     "name": "wolf"
+  },
+  {
+    "openid": "user_didj2gn8fb9",
+    "code": "test_normal_user_1774149840059",
+    "name": "普通用户",
+    "phone": "13800138001",
+    "isNewUser": false,
+    "role": "user",
+    "id": 2,
+    "createdAt": "2026-03-22T11:24:00.060Z",
+    "updatedAt": "2026-03-22T11:24:00.061Z"
+  },
+  {
+    "openid": "user_2d1c9avswox",
+    "code": "test_admin_user_1774149840059",
+    "name": "管理员",
+    "phone": "13800138002",
+    "isNewUser": false,
+    "role": "admin",
+    "id": 3,
+    "createdAt": "2026-03-22T11:24:00.062Z",
+    "updatedAt": "2026-03-22T11:24:00.063Z"
+  },
+  {
+    "openid": "user_lrohidiwrz",
+    "code": "test_super_admin_user_1774149840059",
+    "name": "超级管理员",
+    "phone": "13800138003",
+    "isNewUser": false,
+    "role": "super_admin",
+    "id": 4,
+    "createdAt": "2026-03-22T11:24:00.063Z",
+    "updatedAt": "2026-03-22T11:24:00.064Z"
+  },
+  {
+    "openid": "test_1774151758223",
+    "name": "测试用户",
+    "phone": "1381774151758223",
+    "role": "admin",
+    "id": 5,
+    "createdAt": "2026-03-22T11:55:58.226Z",
+    "updatedAt": "2026-03-22T11:55:58.233Z"
+  },
+  {
+    "openid": "test_home_login_1774151791005",
+    "name": "测试用户",
+    "phone": "1381774151791005",
+    "role": "admin",
+    "id": 6,
+    "createdAt": "2026-03-22T11:56:31.003Z",
+    "updatedAt": "2026-03-22T11:56:31.005Z"
+  },
+  {
+    "openid": "test_home_login_1774151804489",
+    "name": "测试用户",
+    "phone": "1381774151804489",
+    "role": "admin",
+    "id": 10,
+    "createdAt": "2026-03-22T11:56:44.489Z",
+    "updatedAt": "2026-03-22T11:56:44.491Z"
+  },
+  {
+    "openid": "user_vu6zp1vey",
+    "code": "test_normal_user_1774151818088",
+    "name": "普通用户",
+    "phone": "13800138001",
+    "isNewUser": false,
+    "role": "user",
+    "id": 11,
+    "createdAt": "2026-03-22T11:56:58.088Z",
+    "updatedAt": "2026-03-22T11:56:58.089Z"
+  },
+  {
+    "openid": "user_nox588e36xo",
+    "code": "test_admin_user_1774151818088",
+    "name": "管理员",
+    "phone": "13800138002",
+    "isNewUser": false,
+    "role": "admin",
+    "id": 12,
+    "createdAt": "2026-03-22T11:56:58.089Z",
+    "updatedAt": "2026-03-22T11:56:58.090Z"
+  },
+  {
+    "openid": "user_qk8bxyv16a",
+    "code": "test_super_admin_user_1774151818088",
+    "name": "超级管理员",
+    "phone": "13800138003",
+    "isNewUser": false,
+    "role": "super_admin",
+    "id": 13,
+    "createdAt": "2026-03-22T11:56:58.091Z",
+    "updatedAt": "2026-03-22T11:56:58.092Z"
+  },
+  {
+    "openid": "test_home_login_1774151834719",
+    "name": "测试用户",
+    "phone": "1381774151834719",
+    "role": "admin",
+    "id": 17,
+    "createdAt": "2026-03-22T11:57:14.720Z",
+    "updatedAt": "2026-03-22T11:57:14.722Z"
+  },
+  {
+    "openid": "test_home_login_1774151840274",
+    "name": "测试用户",
+    "phone": "1381774151840274",
+    "role": "admin",
+    "id": 21,
+    "createdAt": "2026-03-22T11:57:20.274Z",
+    "updatedAt": "2026-03-22T11:57:20.276Z"
+  },
+  {
+    "openid": "test_home_login_1774151945580",
+    "name": "测试用户",
+    "phone": "1381774151945580",
+    "role": "admin",
+    "id": 22,
+    "createdAt": "2026-03-22T11:59:05.582Z",
+    "updatedAt": "2026-03-22T11:59:05.584Z"
+  },
+  {
+    "openid": "test_home_user_1774151945585",
+    "name": "普通用户",
+    "phone": "1391774151945585",
+    "role": "user",
+    "id": 23,
+    "createdAt": "2026-03-22T11:59:05.586Z",
+    "updatedAt": "2026-03-22T11:59:05.586Z"
+  },
+  {
+    "openid": "test_1774151991294",
+    "name": "测试",
+    "phone": "13800000000",
+    "role": "user",
+    "id": 24,
+    "createdAt": "2026-03-22T11:59:51.299Z",
+    "updatedAt": "2026-03-22T11:59:51.299Z"
+  },
+  {
+    "openid": "test_home_login_1774152014128",
+    "name": "测试用户",
+    "phone": "1381774152014128",
+    "role": "admin",
+    "id": 28,
+    "createdAt": "2026-03-22T12:00:14.130Z",
+    "updatedAt": "2026-03-22T12:00:14.132Z"
+  },
+  {
+    "openid": "test_home_user_1774152014132",
+    "name": "普通用户",
+    "phone": "1391774152014132",
+    "role": "user",
+    "id": 29,
+    "createdAt": "2026-03-22T12:00:14.133Z",
+    "updatedAt": "2026-03-22T12:00:14.133Z"
+  },
+  {
+    "openid": "test_home_login_1774152029959",
+    "name": "测试用户",
+    "phone": "1381774152029959",
+    "role": "admin",
+    "id": 33,
+    "createdAt": "2026-03-22T12:00:29.959Z",
+    "updatedAt": "2026-03-22T12:00:29.960Z"
+  },
+  {
+    "openid": "test_home_user_1774152029961",
+    "name": "普通用户",
+    "phone": "1391774152029961",
+    "role": "user",
+    "id": 34,
+    "createdAt": "2026-03-22T12:00:29.961Z",
+    "updatedAt": "2026-03-22T12:00:29.961Z"
+  },
+  {
+    "openid": "test_home_login_1774152162328",
+    "name": "测试用户",
+    "phone": "1381774152162328",
+    "role": "admin",
+    "id": 35,
+    "createdAt": "2026-03-22T12:02:42.330Z",
+    "updatedAt": "2026-03-22T12:02:42.332Z"
+  },
+  {
+    "openid": "test_home_user_1774152162334",
+    "name": "普通用户",
+    "phone": "1391774152162334",
+    "role": "user",
+    "id": 36,
+    "createdAt": "2026-03-22T12:02:42.335Z",
+    "updatedAt": "2026-03-22T12:02:42.335Z"
+  },
+  {
+    "openid": "test_home_login_1774152167970",
+    "name": "测试用户",
+    "phone": "1381774152167970",
+    "role": "admin",
+    "id": 40,
+    "createdAt": "2026-03-22T12:02:47.973Z",
+    "updatedAt": "2026-03-22T12:02:47.975Z"
+  },
+  {
+    "openid": "test_home_user_1774152167973",
+    "name": "普通用户",
+    "phone": "1391774152167973",
+    "role": "user",
+    "id": 41,
+    "createdAt": "2026-03-22T12:02:47.976Z",
+    "updatedAt": "2026-03-22T12:02:47.976Z"
+  },
+  {
+    "openid": "test_home_login_1774152174607",
+    "name": "测试用户",
+    "phone": "1381774152174607",
+    "role": "admin",
+    "id": 45,
+    "createdAt": "2026-03-22T12:02:54.609Z",
+    "updatedAt": "2026-03-22T12:02:54.611Z"
+  },
+  {
+    "openid": "test_home_user_1774152174610",
+    "name": "普通用户",
+    "phone": "1391774152174610",
+    "role": "user",
+    "id": 46,
+    "createdAt": "2026-03-22T12:02:54.613Z",
+    "updatedAt": "2026-03-22T12:02:54.613Z"
+  },
+  {
+    "openid": "test_home_login_1774152251862",
+    "name": "测试用户",
+    "phone": "1381774152251862",
+    "role": "admin",
+    "id": 50,
+    "createdAt": "2026-03-22T12:04:11.859Z",
+    "updatedAt": "2026-03-22T12:04:11.860Z"
+  },
+  {
+    "openid": "test_home_user_1774152251866",
+    "name": "普通用户",
+    "phone": "1391774152251866",
+    "role": "user",
+    "id": 51,
+    "createdAt": "2026-03-22T12:04:11.862Z",
+    "updatedAt": "2026-03-22T12:04:11.862Z"
+  },
+  {
+    "openid": "test_home_login_1774152258944",
+    "name": "测试用户",
+    "phone": "1381774152258944",
+    "role": "admin",
+    "id": 55,
+    "createdAt": "2026-03-22T12:04:18.940Z",
+    "updatedAt": "2026-03-22T12:04:18.941Z"
+  },
+  {
+    "openid": "test_home_user_1774152258946",
+    "name": "普通用户",
+    "phone": "1391774152258946",
+    "role": "user",
+    "id": 56,
+    "createdAt": "2026-03-22T12:04:18.943Z",
+    "updatedAt": "2026-03-22T12:04:18.943Z"
+  },
+  {
+    "openid": "test_home_login_1774152409025",
+    "name": "测试用户",
+    "phone": "1381774152409025",
+    "role": "admin",
+    "id": 60,
+    "createdAt": "2026-03-22T12:06:49.028Z",
+    "updatedAt": "2026-03-22T12:06:49.031Z"
+  },
+  {
+    "openid": "test_home_user_1774152409031",
+    "name": "普通用户",
+    "phone": "1391774152409031",
+    "role": "user",
+    "id": 61,
+    "createdAt": "2026-03-22T12:06:49.032Z",
+    "updatedAt": "2026-03-22T12:06:49.032Z"
+  },
+  {
+    "openid": "test_home_login_1774152619942",
+    "name": "测试用户",
+    "phone": "1381774152619942",
+    "role": "user",
+    "id": 65,
+    "createdAt": "2026-03-22T12:10:19.943Z",
+    "updatedAt": "2026-03-22T12:10:19.944Z"
+  },
+  {
+    "openid": "test_home_user_1774152619946",
+    "name": "普通用户",
+    "phone": "1391774152619946",
+    "role": "user",
+    "id": 66,
+    "createdAt": "2026-03-22T12:10:19.947Z",
+    "updatedAt": "2026-03-22T12:10:19.947Z"
+  },
+  {
+    "openid": "test_home_login_1774152627764",
+    "name": "测试用户",
+    "phone": "1381774152627764",
+    "role": "user",
+    "id": 70,
+    "createdAt": "2026-03-22T12:10:27.764Z",
+    "updatedAt": "2026-03-22T12:10:27.764Z"
+  },
+  {
+    "openid": "test_home_user_1774152627766",
+    "name": "普通用户",
+    "phone": "1391774152627766",
+    "role": "user",
+    "id": 71,
+    "createdAt": "2026-03-22T12:10:27.767Z",
+    "updatedAt": "2026-03-22T12:10:27.767Z"
+  },
+  {
+    "openid": "test_home_login_1774152643113",
+    "name": "测试用户",
+    "phone": "1381774152643113",
+    "role": "user",
+    "id": 72,
+    "createdAt": "2026-03-22T12:10:43.114Z",
+    "updatedAt": "2026-03-22T12:10:43.114Z"
+  },
+  {
+    "openid": "test_home_user_1774152643116",
+    "name": "普通用户",
+    "phone": "1391774152643116",
+    "role": "user",
+    "id": 73,
+    "createdAt": "2026-03-22T12:10:43.116Z",
+    "updatedAt": "2026-03-22T12:10:43.116Z"
+  },
+  {
+    "openid": "test_1774152650943",
+    "name": "测试",
+    "phone": "13800000000",
+    "role": "user",
+    "id": 74,
+    "createdAt": "2026-03-22T12:10:50.961Z",
+    "updatedAt": "2026-03-22T12:10:50.961Z"
+  },
+  {
+    "openid": "test_home_login_1774152732004",
+    "name": "测试用户",
+    "phone": "1381774152732004",
+    "role": "admin",
+    "id": 75,
+    "createdAt": "2026-03-22T12:12:12.005Z",
+    "updatedAt": "2026-03-22T12:12:12.008Z"
+  },
+  {
+    "openid": "test_home_user_1774152732008",
+    "name": "普通用户",
+    "phone": "1391774152732008",
+    "role": "user",
+    "id": 76,
+    "createdAt": "2026-03-22T12:12:12.009Z",
+    "updatedAt": "2026-03-22T12:12:12.009Z"
+  },
+  {
+    "openid": "test_home_login_1774152735752",
+    "name": "测试用户",
+    "phone": "1381774152735752",
+    "role": "admin",
+    "id": 80,
+    "createdAt": "2026-03-22T12:12:15.756Z",
+    "updatedAt": "2026-03-22T12:12:15.758Z"
+  },
+  {
+    "openid": "test_home_user_1774152735755",
+    "name": "普通用户",
+    "phone": "1391774152735755",
+    "role": "user",
+    "id": 81,
+    "createdAt": "2026-03-22T12:12:15.759Z",
+    "updatedAt": "2026-03-22T12:12:15.759Z"
   }
 ]

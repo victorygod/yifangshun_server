@@ -31,8 +31,15 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(cors());
 app.use(logger);
 
-// 静态文件服务
-app.use(express.static(path.join(__dirname, 'public')));
+// 静态文件服务（排除 index.html，由路由处理）
+const staticMiddleware = express.static(path.join(__dirname, 'public'));
+app.use((req, res, next) => {
+  // 如果是根路径，跳过静态服务，让路由处理
+  if (req.path === '/' || req.path === '/index.html') {
+    return next();
+  }
+  staticMiddleware(req, res, next);
+});
 
 // 首页 - 返回用户列表数据（前端通过AJAX获取）
 app.get("/api/home/users", requireRole(['super_admin']), async (req, res) => {
@@ -90,14 +97,15 @@ app.get("/api/home/users", requireRole(['super_admin']), async (req, res) => {
   }
 });
 
-// 设置用户角色（仅超级管理员可调用，主页请求通过 x-home-page 标识自动获得超级管理员权限）
+// 设置用户角色（仅超级管理员可调用）
 app.post("/api/user/set-role", requireRole(['super_admin']), async (req, res) => {
   try {
     const { openid: targetOpenid, role: newRole } = req.body;
     const operatorOpenid = req.user.openid || 'system';
-    const isHomePage = req.user.isHomePage || false;
+    // 如果是 home_super_admin，跳过操作者验证
+    const isHomeSuperAdmin = req.user.phone === 'home_super_admin';
     
-    const result = await auth.setUserRole(targetOpenid, newRole, operatorOpenid, isHomePage);
+    const result = await auth.setUserRole(targetOpenid, newRole, operatorOpenid, isHomeSuperAdmin);
     res.json(result);
   } catch (error) {
     console.error("设置用户角色失败:", error);
@@ -121,6 +129,14 @@ app.put("/api/user/:openid", requireRole(['super_admin']), async (req, res) => {
 
 // 首页 - 返回HTML页面
 app.get("/", (req, res) => {
+  const phoneNumber = req.query.phone_number;
+  
+  // 如果没有 phone_number 参数，重定向到登录页
+  if (!phoneNumber) {
+    return res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  }
+  
+  // 如果有 phone_number 参数，返回主页面
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
@@ -171,6 +187,67 @@ app.post("/api/bind-phone", async (req, res) => {
   } catch (error) {
     console.error("绑定手机号失败:", error);
     return res.status(400).json({ code: 1, message: error.message || "绑定失败" });
+  }
+});
+
+// ==================== 首页登录接口 ====================
+
+// 首页管理员登录（通过手机号）
+app.post("/api/home-login", async (req, res) => {
+  try {
+    const { phone } = req.body;
+    
+    if (!phone) {
+      return res.status(400).json({ code: 1, message: '缺少手机号参数' });
+    }
+    
+    // 【特殊处理】默认超级管理员手机号（无需数据库）
+    if (phone === 'home_super_admin') {
+      return res.json({
+        code: 0,
+        message: '登录成功',
+        data: {
+          openid: 'home_super_admin',
+          phone: 'home_super_admin',
+          role: 'super_admin',
+          name: '超级管理员',
+          isHomeAdmin: true
+        }
+      });
+    }
+    
+    // 查询用户信息
+    const user = await User.findOne({ where: { phone } });
+    
+    if (!user) {
+      return res.status(404).json({ 
+        code: 1, 
+        message: '该手机号未注册，请先在系统中添加用户' 
+      });
+    }
+    
+    // 检查是否为管理员或超级管理员（禁止普通用户登录）
+    if (!['admin', 'super_admin'].includes(user.role)) {
+      return res.status(403).json({ 
+        code: 1, 
+        message: '普通用户禁止登录管理后台' 
+      });
+    }
+    
+    res.json({
+      code: 0,
+      message: '登录成功',
+      data: {
+        openid: user.openid,
+        phone: user.phone,
+        role: user.role,
+        name: user.name
+      }
+    });
+    
+  } catch (error) {
+    console.error("首页登录失败:", error);
+    return res.status(500).json({ code: 1, message: error.message || "登录失败" });
   }
 });
 
@@ -1320,31 +1397,6 @@ async function bootstrap() {
     console.log(`服务地址: http://localhost:${port}`);
     console.log(`健康检查: http://localhost:${port}/health`);
     console.log("=================================");
-    console.log("\n可用接口:");
-    console.log("POST   /api/login");
-    console.log("POST   /api/bind-user-info");
-    console.log("POST   /api/bind-phone");
-    console.log("GET    /api/available-slots");
-    console.log("POST   /api/booking");
-    console.log("DELETE /api/booking/:bookingId");
-    console.log("GET    /api/my-bookings");
-    console.log("POST   /api/prescription/ocr");
-    console.log("GET    /api/prescription/history");
-    console.log("POST   /api/prescription/save");
-    console.log("POST   /api/prescription/update");
-    console.log("DELETE /api/prescription/:id");
-    console.log("POST   /api/prescription/review");
-    console.log("POST   /api/prescription/confirm-approve");
-    console.log("POST   /api/prescription/confirm-overwrite");
-    console.log("GET    /api/prescription/list");
-    console.log("POST   /api/chat");
-    console.log("GET    /api/schedule/config");
-    console.log("POST   /api/schedule/config/default");
-    console.log("POST   /api/schedule/config/override");
-    console.log("DELETE /api/schedule/config/override/:id");
-    console.log("GET    /health");
-    console.log("POST   /api/log");
-    console.log("=================================\n");
   });
 }
 

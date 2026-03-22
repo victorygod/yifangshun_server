@@ -138,7 +138,7 @@ async function runSystemTests(testUsers) {
   // GET /api/home/users
   await test('GET /api/home/users - 获取首页用户列表', async () => {
     const { response, data } = await request('GET', '/api/home/users', null, {
-      'x-home-page': 'true'
+      'x-phone': 'home_super_admin'
     });
     
     assertEquals(response.statusCode, 200, '请求成功');

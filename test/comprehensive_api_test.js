@@ -27,6 +27,7 @@ console.log('');
 
 // 导入测试模块
 const testLogin = require('./tests/test_login');
+const testHomeLogin = require('./tests/test_home_login'); // 新增：首页登录测试
 const testBooking = require('./tests/test_booking');
 const testPrescription = require('./tests/test_prescription');
 const testChat = require('./tests/test_chat');
@@ -61,6 +62,11 @@ async function runAllTests() {
     await testLogin.runLoginTests();
     const loginStats = testLogin.getTestStats();
     updateGlobalStats(loginStats);
+    
+    // 1.5 测试首页登录（新增）
+    await testHomeLogin.runHomeLoginTests();
+    const homeLoginStats = testHomeLogin.getTestStats ? testHomeLogin.getTestStats() : { total: 0, passed: 0, failed: 0 };
+    updateGlobalStats(homeLoginStats);
     
     // 2. 测试预约管理API
     const testUsers = testLogin.getTestUsers();

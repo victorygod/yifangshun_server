@@ -266,7 +266,7 @@ async function runPermissionTests(testUsers) {
     const { response, data } = await request('POST', '/api/user/set-role', {
       openid: testUsers.normalUser.openid,
       role: 'user'
-    }, { 'x-home-page': 'true' });
+    }, { 'x-phone': 'home_super_admin' });
     
     // 主页请求自动获得超级管理员权限
     assert(response.statusCode !== 403, '主页请求应有权限');

@@ -87,7 +87,7 @@ function request(method, url, body = null, headers = {}) {
  */
 function superAdminRequest(method, url, body = null) {
   return request(method, url, body, {
-    'x-home-page': 'true'
+    'x-phone': 'home_super_admin'
   });
 }
 
