@@ -718,10 +718,19 @@ async function getOutOrders(options = {}) {
   const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
     let items = allItems.filter(item => item.orderId == order.id);
     
+    // 为每个明细查询药材柜号
+    const itemsWithCabinetNo = await Promise.all(items.map(async (item) => {
+      const herb = await Herb.findOne({ where: { name: item.herbName } });
+      return {
+        ...toPlainObject(item),
+        cabinetNo: herb ? herb.cabinetNo || '' : ''
+      };
+    }));
+    
     // 待执药状态：自动同步药材单价
-    if (order.status === 'pending' && items.length > 0) {
+    if (order.status === 'pending' && itemsWithCabinetNo.length > 0) {
       let needUpdateTotal = false;
-      for (const item of items) {
+      for (const item of itemsWithCabinetNo) {
         const herb = await Herb.findOne({ where: { name: item.herbName } });
         if (herb && herb.salePrice != null && parseFloat(herb.salePrice) !== parseFloat(item.unitPrice)) {
           const newUnitPrice = parseFloat(herb.salePrice);
@@ -744,7 +753,7 @@ async function getOutOrders(options = {}) {
     
     return {
       ...toPlainObject(order),
-      items: items.map(toPlainObject)
+      items: itemsWithCabinetNo
     };
   }));
   
@@ -835,10 +844,19 @@ async function getOutOrderById(id) {
   
   const items = await StockOutItem.findAll({ where: { orderId: id } });
   
+  // 为每个明细查询药材柜号
+  const itemsWithCabinetNo = await Promise.all(items.map(async (item) => {
+    const herb = await Herb.findOne({ where: { name: item.herbName } });
+    return {
+      ...toPlainObject(item),
+      cabinetNo: herb ? herb.cabinetNo || '' : ''
+    };
+  }));
+  
   // 待执药状态：自动同步药材单价
-  if (order.status === 'pending' && items.length > 0) {
+  if (order.status === 'pending' && itemsWithCabinetNo.length > 0) {
     let needUpdateTotal = false;
-    for (const item of items) {
+    for (const item of itemsWithCabinetNo) {
       const herb = await Herb.findOne({ where: { name: item.herbName } });
       if (herb && herb.salePrice != null && parseFloat(herb.salePrice) !== parseFloat(item.unitPrice)) {
         const newUnitPrice = parseFloat(herb.salePrice);
@@ -862,7 +880,7 @@ async function getOutOrderById(id) {
   
   return {
     ...toPlainObject(order),
-    items: items.map(toPlainObject)
+    items: itemsWithCabinetNo
   };
 }
 

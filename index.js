@@ -630,6 +630,18 @@ app.get("/api/admin/table/:name", requireRole(['admin', 'super_admin']), async (
       }));
     }
     
+    // 执药明细表：查询药材柜号
+    if (name === 'stock_out_items') {
+      const { Herb } = require('./wrappers/db-wrapper');
+      allData = await Promise.all(allData.map(async (row) => {
+        const herb = await Herb.findOne({ where: { name: row.herbName } });
+        return {
+          ...row,
+          cabinetNo: herb ? herb.cabinetNo || '' : ''
+        };
+      }));
+    }
+    
     // 多维度搜索
     if (keyword) {
       const keywordLower = keyword.toLowerCase();
