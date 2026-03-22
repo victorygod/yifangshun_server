@@ -85,6 +85,13 @@ async function generateAvailableSlots(startDate, openid) {
 
   const slots = [];
 
+  // 【手机号改造】根据 openid 获取用户的 phone，用于判断已预约状态
+  let userPhone = null;
+  if (openid) {
+    const user = await User.findOne({ where: { openid } });
+    userPhone = user ? user.phone : null;
+  }
+
   // 获取所有有效预约（confirmed 和 checked_in）
   const bookings = await Booking.findAll({
     where: { 
@@ -134,7 +141,7 @@ async function generateAvailableSlots(startDate, openid) {
       if (!cfg.isOpen) {
         status = 'closed';
         statusText = '停诊';
-      } else if (openid && bookingInfo.users.has(openid)) {
+      } else if (userPhone && bookingInfo.users.has(userPhone)) {
         status = 'booked';
         statusText = '已预约';
       } else if (bookingInfo.count >= cfg.maxBookings) {
