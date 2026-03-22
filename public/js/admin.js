@@ -1046,6 +1046,15 @@ function handleTableClick(e) {
       }
     }
     
+    // 已入库的入库单禁止编辑
+    if (currentTable === 'stock_in_orders') {
+      const row = tableData.find(r => String(r.id) === String(rowId));
+      if (row && row.status === 'stocked') {
+        showToast('已入库的入库单不可编辑', 'error');
+        return;
+      }
+    }
+    
     if (String(editingRowId) !== String(rowId)) {
       pendingFocusCol = colKey;
       startEdit(rowId);

@@ -3,48 +3,56 @@
     "name": "21321",
     "alias": "",
     "unit": "克",
-    "minValue": 0,
-    "salePrice": 123,
+    "minValue": "0",
+    "salePrice": "123",
     "stock": 0,
     "isActive": true,
     "createdAt": "2026-03-22T18:52:05.699Z",
-    "updatedAt": "2026-03-22T19:00:52.991Z",
-    "id": 1
+    "updatedAt": "2026-03-22T21:00:21.272Z",
+    "id": 1,
+    "cabinetNo": "E#",
+    "remark": ""
   },
   {
     "name": "防风",
     "alias": "",
     "unit": "克",
-    "minValue": 0,
-    "salePrice": 123,
+    "minValue": "0",
+    "salePrice": "123",
     "stock": 1321,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.894Z",
-    "updatedAt": "2026-03-22T19:46:25.737Z",
-    "id": 2
+    "updatedAt": "2026-03-22T21:00:18.070Z",
+    "id": 2,
+    "cabinetNo": "E",
+    "remark": ""
   },
   {
     "name": "白芷",
     "alias": "",
     "unit": "克",
-    "minValue": 0,
-    "salePrice": 12,
+    "minValue": "0",
+    "salePrice": "12",
     "stock": 3232,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.896Z",
-    "updatedAt": "2026-03-22T19:46:25.739Z",
-    "id": 3
+    "updatedAt": "2026-03-22T21:00:12.213Z",
+    "id": 3,
+    "cabinetNo": "435",
+    "remark": ""
   },
   {
     "name": "车前花",
     "alias": "",
     "unit": "克",
-    "minValue": 0,
-    "salePrice": 323,
+    "minValue": "0",
+    "salePrice": "323",
     "stock": 233,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.897Z",
-    "updatedAt": "2026-03-22T19:46:25.741Z",
-    "id": 4
+    "updatedAt": "2026-03-22T21:00:15.255Z",
+    "id": 4,
+    "cabinetNo": "BF",
+    "remark": ""
   }
 ]
