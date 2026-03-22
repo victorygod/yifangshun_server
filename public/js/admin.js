@@ -569,8 +569,18 @@ async function loadTableData() {
               ${col.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('')}
             </select>
           </td>`;
+        } else if (col.type === 'date') {
+          // 日期类型使用 type="date"
+          let dateValue = '';
+          if (col.defaultValue === 'today') {
+            const today = new Date();
+            dateValue = today.toISOString().split('T')[0]; // YYYY-MM-DD 格式
+          }
+          html += `<td><input type="date" class="cell-input" data-col="${col.key}" value="${dateValue}"></td>`;
+        } else if (col.type === 'number') {
+          html += `<td><input type="number" class="cell-input" data-col="${col.key}" placeholder="${col.label}"></td>`;
         } else {
-          html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="cell-input" data-col="${col.key}" placeholder="${col.label}"></td>`;
+          html += `<td><input type="text" class="cell-input" data-col="${col.key}" placeholder="${col.label}"></td>`;
         }
       });
       html += `<td class="col-action">
@@ -1431,6 +1441,16 @@ async function saveNewRow() {
       data[input.dataset.col] = input.value.trim();
     }
   });
+
+  // 入库管理特殊处理：需要至少填写供应商名称
+  if (currentTable === 'stock_in_orders') {
+    if (!data.supplierName) {
+      showToast('请填写供应商名称', 'error');
+      return;
+    }
+    // 新增入库单默认为草稿状态
+    data.status = 'draft';
+  }
 
   if (Object.keys(data).length === 0) {
     showToast('请至少填写一个字段', 'error');
