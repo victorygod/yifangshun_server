@@ -509,8 +509,9 @@ async function updateOrderTotalAmount(orderTable, itemTable, orderId) {
       totalAmount += parseFloat(item.totalPrice) || 0;
     });
     
-    // 更新主表
-    await OrderModel.update({ totalAmount }, { where: { id: orderId } });
+    // 执药单用的是 totalPrice，其他表用 totalAmount
+    const fieldName = orderTable === 'stock_out_orders' ? 'totalPrice' : 'totalAmount';
+    await OrderModel.update({ [fieldName]: totalAmount }, { where: { id: orderId } });
   } catch (error) {
     console.error('更新主表总价失败:', error);
   }

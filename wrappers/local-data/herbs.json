@@ -17,10 +17,10 @@
     "unit": "克",
     "minValue": 0,
     "salePrice": 123,
-    "stock": 12291,
+    "stock": 1321,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.894Z",
-    "updatedAt": "2026-03-22T19:37:10.414Z",
+    "updatedAt": "2026-03-22T19:46:25.737Z",
     "id": 2
   },
   {
@@ -29,10 +29,10 @@
     "unit": "克",
     "minValue": 0,
     "salePrice": 12,
-    "stock": 3214,
+    "stock": 3232,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.896Z",
-    "updatedAt": "2026-03-22T19:37:10.410Z",
+    "updatedAt": "2026-03-22T19:46:25.739Z",
     "id": 3
   },
   {
@@ -41,10 +41,10 @@
     "unit": "克",
     "minValue": 0,
     "salePrice": 323,
-    "stock": 215,
+    "stock": 233,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.897Z",
-    "updatedAt": "2026-03-22T19:37:10.412Z",
+    "updatedAt": "2026-03-22T19:46:25.741Z",
     "id": 4
   }
 ]

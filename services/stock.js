@@ -678,12 +678,12 @@ async function revertStockOut(id, operator = 'system') {
 async function updateOutOrderTotalAmount(orderId) {
   try {
     const items = await StockOutItem.findAll({ where: { orderId } });
-    let totalAmount = 0;
+    let totalPrice = 0;
     items.forEach(item => {
-      totalAmount += parseFloat(item.totalPrice) || 0;
+      totalPrice += parseFloat(item.totalPrice) || 0;
     });
-    await StockOutOrder.update({ totalAmount, updatedAt: getNow() }, { where: { id: orderId } });
-    return totalAmount;
+    await StockOutOrder.update({ totalPrice, updatedAt: getNow() }, { where: { id: orderId } });
+    return totalPrice;
   } catch (error) {
     console.error('更新执药单总价失败:', error);
     return 0;
@@ -738,7 +738,7 @@ async function getOutOrders(options = {}) {
       // 更新执药单总价
       if (needUpdateTotal) {
         const newTotal = await updateOutOrderTotalAmount(order.id);
-        order.totalAmount = newTotal;
+        order.totalPrice = newTotal;
       }
     }
     
@@ -779,12 +779,12 @@ async function createOutOrder(data, operator = 'system') {
   }
   
   // 计算总金额
-  let totalAmount = 0;
+  let totalPrice = 0;
   for (const item of items) {
     // 获取药材售价
     const herb = await Herb.findOne({ where: { name: item.herbName } });
     const unitPrice = herb ? parseFloat(herb.salePrice) || 0 : 0;
-    totalAmount += parseFloat(item.quantity) * unitPrice;
+    totalPrice += parseFloat(item.quantity) * unitPrice;
   }
   
   const order = await StockOutOrder.create({
@@ -794,7 +794,7 @@ async function createOutOrder(data, operator = 'system') {
     reviewer,
     status: 'pending',
     remark,
-    totalAmount,
+    totalPrice,
     createdAt: getNow(),
     updatedAt: getNow()
   });
@@ -856,7 +856,7 @@ async function getOutOrderById(id) {
     // 更新执药单总价
     if (needUpdateTotal) {
       const newTotal = await updateOutOrderTotalAmount(id);
-      order.totalAmount = newTotal;
+      order.totalPrice = newTotal;
     }
   }
   

@@ -140,7 +140,7 @@ const tableConfigs = {
           { value: 'settled', label: '已结算', badge: 'badge-stocked' }
         ]
       },
-      { key: 'totalAmount', label: '总价', readonly: true, type: 'number' },
+      { key: 'totalPrice', label: '总价', readonly: true, type: 'number' },
       { key: 'remark', label: '备注', editable: true }
     ],
     searchFields: ['prescriptionId', 'pharmacist'],

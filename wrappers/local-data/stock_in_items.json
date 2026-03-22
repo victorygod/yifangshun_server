@@ -3,12 +3,12 @@
     "orderId": "1",
     "herbName": "防风",
     "supplierName": "213213",
-    "quantity": 12321,
+    "quantity": 1321,
     "unitPrice": 123,
-    "totalPrice": 1515483,
+    "totalPrice": 162483,
     "id": 1,
     "createdAt": "2026-03-22T18:52:03.701Z",
-    "updatedAt": "2026-03-22T19:01:02.825Z"
+    "updatedAt": "2026-03-22T19:46:23.321Z"
   },
   {
     "orderId": "1",
