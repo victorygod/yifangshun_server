@@ -817,6 +817,21 @@ app.put("/api/admin/table/:name/:id", requireRole(['admin', 'super_admin']), asy
     const protectedFields = ['id', 'openid', 'createdAt'];
     protectedFields.forEach(field => delete updates[field]);
     
+    // 【权限控制】如果是 users 表，admin 不能修改 role 字段为 super_admin
+    if (name === 'users' && req.user.role === 'admin') {
+      // 如果尝试修改 role 字段
+      if (updates.role) {
+        // admin 不能设置 super_admin 角色
+        if (updates.role === 'super_admin') {
+          return res.status(403).json({ code: 1, message: '管理员无权设置超级管理员' });
+        }
+        // admin 只能将角色降级或设置为 admin/user
+        if (!['user', 'admin'].includes(updates.role)) {
+          return res.status(403).json({ code: 1, message: '管理员无权设置此角色' });
+        }
+      }
+    }
+    
     // 执行更新
     await model.update(updates, { where: { id } });
     

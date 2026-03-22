@@ -3232,5 +3232,73 @@
     "createdAt": "2026-03-22T14:57:24.663Z",
     "updatedAt": "2026-03-22T14:57:24.663Z",
     "id": 371
+  },
+  {
+    "prescriptionId": "APPROVE_TEST_1774162889100",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-22T15:01:29.137Z",
+    "updatedAt": "2026-03-22T15:01:29.137Z",
+    "id": 372
+  },
+  {
+    "prescriptionId": "CONFIRM_APPROVE_1774162889137",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-22T15:01:29.177Z",
+    "updatedAt": "2026-03-22T15:01:29.177Z",
+    "id": 373
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774162890764",
+    "prescriptionTime": "2026-03-22T07:01:30.768Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-22T15:01:30.769Z",
+    "updatedAt": "2026-03-22T15:01:30.769Z",
+    "id": 375
+  },
+  {
+    "prescriptionId": "APPROVE_TEST_1774162982821",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-22T15:03:02.854Z",
+    "updatedAt": "2026-03-22T15:03:02.854Z",
+    "id": 376
+  },
+  {
+    "prescriptionId": "CONFIRM_APPROVE_1774162982859",
+    "prescriptionTime": "2026-03-15",
+    "pharmacist": "",
+    "reviewer": "管理员",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-22T15:03:02.892Z",
+    "updatedAt": "2026-03-22T15:03:02.892Z",
+    "id": 377
+  },
+  {
+    "prescriptionId": "DUPLICATE_TEST_1774162984409",
+    "prescriptionTime": "2026-03-22T07:03:04.409Z",
+    "pharmacist": "测试药师",
+    "status": "pending",
+    "totalAmount": 6,
+    "createdAt": "2026-03-22T15:03:04.410Z",
+    "updatedAt": "2026-03-22T15:03:04.410Z",
+    "id": 379
   }
 ]
