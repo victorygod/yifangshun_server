@@ -104,7 +104,8 @@ async function generateAvailableSlots(startDate, openid) {
       bookingCountMap[key] = { count: 0, users: new Set() };
     }
     bookingCountMap[key].count += personCount;
-    bookingCountMap[key].users.add(booking.openid);
+    // 【手机号改造】使用 phone 而非 openid
+    bookingCountMap[key].users.add(booking.phone);
   });
 
   const today = new Date();
@@ -283,10 +284,13 @@ async function createBooking(date, session, personCount, openid) {
 }
 
 // 取消预约
-async function cancelBooking(id, openid) {
-  if (!openid) {
+async function cancelBooking(id, userInfo) {
+  // 【手机号改造】userInfo 现在是 req.user 对象（包含 openid, phone, role）
+  if (!userInfo || !userInfo.phone) {
     throw new Error("缺少用户标识");
   }
+  
+  const userPhone = userInfo.phone;
 
   const booking = await Booking.findOne({ where: { id } });
 
@@ -294,8 +298,8 @@ async function cancelBooking(id, openid) {
     throw new Error("预约不存在");
   }
 
-  // 检查是否是当前用户的预约
-  if (booking.openid !== openid) {
+  // 【手机号改造】检查是否是当前用户的预约（使用 phone）
+  if (booking.phone !== userPhone) {
     throw new Error("无权取消该预约");
   }
 
@@ -329,16 +333,16 @@ async function cancelBooking(id, openid) {
   return { code: 0, message: "预约已取消" };
 }
 
-// 获取我的预约 - 返回场次信息
-async function getMyBookings(openid) {
-  if (!openid) {
+// 获取我的预约 - 返回场次信息（【手机号改造】改用 phone 查询）
+async function getMyBookings(phone) {
+  if (!phone) {
     throw new Error("缺少用户标识");
   }
 
   // 查询所有有效预约（confirmed 和 checked_in）
   const bookings = await Booking.findAll({
     where: { 
-      openid, 
+      phone,  // 【手机号改造】改用 phone 查询
       status: { [Op.in]: ["confirmed", "checked_in"] }
     },
     order: [["date", "ASC"]],

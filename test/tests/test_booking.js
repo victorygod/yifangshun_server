@@ -199,8 +199,8 @@ async function runBookingTests(testUsers) {
     const { response, data } = await request('POST', '/api/booking', {
       date: dateStr,
       session: 'afternoon',
-      personCount: 1,
-      openid: testUsers.normalUser.openid
+      personCount: 1}, {
+      'x-openid': testUsers.normalUser.openid
     });
     
     assertEquals(response.statusCode, 200, '请求成功');
@@ -217,8 +217,8 @@ async function runBookingTests(testUsers) {
     const { response, data } = await request('POST', '/api/booking', {
       date: today,
       session: 'afternoon',
-      personCount: 1,
-      openid: testUsers.normalUser.openid
+      personCount: 1}, {
+      'x-openid': testUsers.normalUser.openid
     });
     
     assertEquals(response.statusCode, 400, '请求失败');
@@ -236,8 +236,8 @@ async function runBookingTests(testUsers) {
     const { response, data } = await request('POST', '/api/booking', {
       date: dateStr,
       session: 'afternoon',
-      personCount: 1,
-      openid: testUsers.normalUser.openid
+      personCount: 1}, {
+      'x-openid': testUsers.normalUser.openid
     });
     
     assertEquals(response.statusCode, 400, '请求失败');
@@ -252,8 +252,8 @@ async function runBookingTests(testUsers) {
     const { response, data } = await request('POST', '/api/booking', {
       date: '2026-04-01',
       session: 'morning',
-      personCount: 1,
-      openid: testUsers.normalUser.openid
+      personCount: 1}, {
+      'x-openid': testUsers.normalUser.openid
     });
     
     assertEquals(response.statusCode, 400, '请求失败');
@@ -262,7 +262,9 @@ async function runBookingTests(testUsers) {
   
   // GET /api/my-bookings
   await test('GET /api/my-bookings - 获取我的预约', async () => {
-    const { response, data } = await request('GET', `/api/my-bookings?openid=${testUsers.normalUser.openid}`);
+    const { response, data } = await request('GET', '/api/my-bookings', null, {
+      'x-openid': testUsers.normalUser.openid
+    });
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
@@ -275,7 +277,9 @@ async function runBookingTests(testUsers) {
       return 'skipped';
     }
     
-    const { response, data } = await request('DELETE', `/api/booking/${testData.bookingId}?openid=${testUsers.normalUser.openid}`);
+    const { response, data } = await request('DELETE', `/api/booking/${testData.bookingId}`, null, {
+      'x-openid': testUsers.normalUser.openid
+    });
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '取消成功');
@@ -357,8 +361,8 @@ async function runBookingTests(testUsers) {
     const { response, data } = await request('POST', '/api/booking', {
       date: dateStr,
       session: 'afternoon',
-      personCount: 2,
-      openid: testUsers.normalUser.openid
+      personCount: 2}, {
+      'x-openid': testUsers.normalUser.openid
     });
     
     // 改造前会失败（缺少session参数）
@@ -373,7 +377,9 @@ async function runBookingTests(testUsers) {
   });
   
   await test('[改造后] GET /api/my-bookings - 获取包含场次信息的预约', async () => {
-    const { response, data } = await request('GET', `/api/my-bookings?openid=${testUsers.normalUser.openid}`);
+    const { response, data } = await request('GET', '/api/my-bookings', null, {
+      'x-openid': testUsers.normalUser.openid
+    });
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');

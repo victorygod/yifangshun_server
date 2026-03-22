@@ -190,11 +190,12 @@ app.get("/api/available-slots", async (req, res) => {
   }
 });
 
-// 创建预约 - 支持场次和人数
-app.post("/api/booking", async (req, res) => {
+// 创建预约 - 支持场次和人数（需要登录）
+app.post("/api/booking", requireRole(['user', 'admin', 'super_admin']), async (req, res) => {
   try {
-    const { date, session, personCount, openid } = req.body;
-    const result = await booking.createBooking(date, session, personCount, openid);
+    const { date, session, personCount } = req.body;
+    // 【手机号改造】使用 req.user.phone 而非 openid
+    const result = await booking.createBooking(date, session, personCount, req.user);
     res.json(result);
   } catch (error) {
     console.error("创建预约失败:", error);
@@ -202,12 +203,12 @@ app.post("/api/booking", async (req, res) => {
   }
 });
 
-// 取消预约
-app.delete("/api/booking/:id", async (req, res) => {
+// 取消预约（需要登录）
+app.delete("/api/booking/:id", requireRole(['user', 'admin', 'super_admin']), async (req, res) => {
   try {
     const { id } = req.params;
-    const { openid } = req.query;
-    const result = await booking.cancelBooking(id, openid);
+    // 【手机号改造】使用 req.user.phone 而非 openid
+    const result = await booking.cancelBooking(id, req.user);
     res.json(result);
   } catch (error) {
     console.error("取消预约失败:", error);
@@ -215,11 +216,11 @@ app.delete("/api/booking/:id", async (req, res) => {
   }
 });
 
-// 获取我的预约
-app.get("/api/my-bookings", async (req, res) => {
+// 获取我的预约（需要登录）
+app.get("/api/my-bookings", requireRole(['user', 'admin', 'super_admin']), async (req, res) => {
   try {
-    const { openid } = req.query;
-    const result = await booking.getMyBookings(openid);
+    // 【手机号改造】使用 req.user.phone 而非 openid
+    const result = await booking.getMyBookings(req.user.phone);
     res.json(result);
   } catch (error) {
     console.error("获取我的预约失败:", error);
@@ -284,17 +285,12 @@ app.post("/api/prescription/update", requireRole(['admin', 'super_admin']), asyn
   }
 });
 
-// 删除处方 - 双键 URL
-app.delete("/api/prescription/:prescriptionId/:status", async (req, res) => {
+// 删除处方 - 双键 URL（需要登录）
+app.delete("/api/prescription/:prescriptionId/:status", requireRole(['user', 'admin', 'super_admin']), async (req, res) => {
   try {
     const { prescriptionId, status } = req.params;
-    const { openid } = req.query;
-    
-    if (!prescriptionId || !status) {
-      return res.status(400).json({ code: 1, message: "缺少处方ID或状态" });
-    }
-    
-    const result = await prescription.deletePrescription(prescriptionId, status, openid);
+    // 【手机号改造】使用 req.user 而非 openid
+    const result = await prescription.deletePrescription(prescriptionId, status, req.user);
     res.json(result);
   } catch (error) {
     console.error("删除处方失败:", error);

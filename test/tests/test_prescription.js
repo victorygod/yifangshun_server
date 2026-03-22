@@ -232,7 +232,9 @@ async function runPrescriptionTests(testUsers) {
   
   // GET /api/prescription/user-history
   await test('GET /api/prescription/user-history - 获取用户处方历史', async () => {
-    const { response, data } = await request('GET', `/api/prescription/user-history?openid=${testUsers.normalUser.openid}`);
+    const { response, data } = await request('GET', `/api/prescription/user-history$`, null, {
+      'x-openid': testUsers.normalUser.openid
+    });
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
@@ -241,7 +243,9 @@ async function runPrescriptionTests(testUsers) {
   
   // GET /api/prescription/list
   await test('GET /api/prescription/list - 获取所有处方列表（管理员）', async () => {
-    const { response, data } = await request('GET', `/api/prescription/list?openid=${testUsers.adminUser.openid}`);
+    const { response, data } = await request('GET', `/api/prescription/list$`, null, {
+      'x-openid': testUsers.adminUser.openid
+    });
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
@@ -305,7 +309,9 @@ async function runPrescriptionTests(testUsers) {
     });
     
     // 使用双键URL删除
-    const { response, data } = await request('DELETE', `/api/prescription/${encodeURIComponent(prescriptionId)}/待审核?openid=${testUsers.normalUser.openid}`);
+    const { response, data } = await request('DELETE', `/api/prescription/${encodeURIComponent(prescriptionId)}/待审核$`, null, {
+      'x-openid': testUsers.normalUser.openid
+    });
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '删除成功');
@@ -338,8 +344,9 @@ async function runPrescriptionTests(testUsers) {
       prescriptionId: prescriptionId,
       status: '待审核',
       action: 'reject',
-      openid: testUsers.adminUser.openid,
       reviewerName: '测试管理员'
+    }, {
+      'x-openid': testUsers.adminUser.openid
     });
     
     assertEquals(response.statusCode, 200, '请求成功');
@@ -373,8 +380,9 @@ async function runPrescriptionTests(testUsers) {
       prescriptionId: prescriptionId,
       status: '待审核',
       action: 'approve',
-      openid: testUsers.adminUser.openid,
       reviewerName: '测试管理员'
+    }, {
+      'x-openid': testUsers.adminUser.openid
     });
     
     assertEquals(response.statusCode, 200, '请求成功');
@@ -410,8 +418,9 @@ async function runPrescriptionTests(testUsers) {
     // 使用双键参数确认审核通过
     const { response, data } = await request('POST', '/api/prescription/confirm-approve', {
       prescriptionId: prescriptionId,
-      status: '待审核',
-      openid: testUsers.adminUser.openid
+      status: '待审核'
+    }, {
+      'x-openid': testUsers.adminUser.openid
     });
     
     assertEquals(response.statusCode, 200, '请求成功');
@@ -490,7 +499,9 @@ async function runPrescriptionTests(testUsers) {
     // 批量删除（使用双键URL）
     let deleteCount = 0;
     for (const item of items) {
-      const { response, data } = await request('DELETE', `/api/prescription/${encodeURIComponent(item.prescriptionId)}/${encodeURIComponent(item.status)}?openid=${testUsers.normalUser.openid}`);
+      const { response, data } = await request('DELETE', `/api/prescription/${encodeURIComponent(item.prescriptionId)}/${encodeURIComponent(item.status)}$`, null, {
+      'x-openid': testUsers.normalUser.openid
+    });
       if (response.statusCode === 200 && data.code === 0) {
         deleteCount++;
       }

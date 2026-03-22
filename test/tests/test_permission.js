@@ -120,7 +120,9 @@ async function runPermissionTests(testUsers) {
   // ==================== GET /api/prescription/list 权限测试 ====================
   
   await test('GET /api/prescription/list - 普通用户访问应返回403', async () => {
-    const { response, data } = await request('GET', `/api/prescription/list?openid=${testUsers.normalUser.openid}`);
+    const { response, data } = await request('GET', `/api/prescription/list`, null, {
+      'x-openid': testUsers.normalUser.openid
+    });
     
     assertEquals(response.statusCode, 403, '应返回403 Forbidden');
     assertEquals(data.code, 1, '应返回错误码');
@@ -129,7 +131,9 @@ async function runPermissionTests(testUsers) {
   });
   
   await test('GET /api/prescription/list - 管理员访问应返回200', async () => {
-    const { response, data } = await request('GET', `/api/prescription/list?openid=${testUsers.adminUser.openid}`);
+    const { response, data } = await request('GET', `/api/prescription/list`, null, {
+      'x-openid': testUsers.adminUser.openid
+    });
     
     assertEquals(response.statusCode, 200, '应返回200成功');
     assertEquals(data.code, 0, '应返回成功码');
@@ -138,7 +142,9 @@ async function runPermissionTests(testUsers) {
   });
   
   await test('GET /api/prescription/list - 超级管理员访问应返回200', async () => {
-    const { response, data } = await request('GET', `/api/prescription/list?openid=${testUsers.superAdminUser.openid}`);
+    const { response, data } = await request('GET', `/api/prescription/list`, null, {
+      'x-openid': testUsers.superAdminUser.openid
+    });
     
     assertEquals(response.statusCode, 200, '应返回200成功');
     assertEquals(data.code, 0, '应返回成功码');
@@ -159,10 +165,11 @@ async function runPermissionTests(testUsers) {
   
   await test('POST /api/prescription/update - 普通用户访问应返回403', async () => {
     const { response, data } = await request('POST', '/api/prescription/update', {
-      openid: testUsers.normalUser.openid,
       id: 'test_prescription_id',
       name: '普通用户尝试修改',
       age: '30'
+    }, {
+      'x-openid': testUsers.normalUser.openid
     });
     
     assertEquals(response.statusCode, 403, '应返回403 Forbidden');
@@ -174,10 +181,11 @@ async function runPermissionTests(testUsers) {
   await test('POST /api/prescription/update - 管理员访问应能修改处方', async () => {
     // 注意：这个测试需要有效的处方ID，这里测试权限验证通过即可
     const { response, data } = await request('POST', '/api/prescription/update', {
-      openid: testUsers.adminUser.openid,
       id: 'non_existent_prescription_id',
       name: '管理员修改',
       age: '30'
+    }, {
+      'x-openid': testUsers.adminUser.openid
     });
     
     // 权限验证通过，但因为处方不存在会返回400
@@ -189,10 +197,11 @@ async function runPermissionTests(testUsers) {
   
   await test('POST /api/prescription/update - 超级管理员访问应能修改处方', async () => {
     const { response, data } = await request('POST', '/api/prescription/update', {
-      openid: testUsers.superAdminUser.openid,
       id: 'non_existent_prescription_id',
       name: '超级管理员修改',
       age: '30'
+    }, {
+      'x-openid': testUsers.superAdminUser.openid
     });
     
     // 权限验证通过，但因为处方不存在会返回400
@@ -272,9 +281,10 @@ async function runPermissionTests(testUsers) {
     // 中间件会检查该用户的权限。真正的未登录应该不传递任何操作者身份。
     // 这里我们测试不传递任何 openid 的情况
     const { response, data } = await request('POST', '/api/user/set-role', {
-      // 目标用户信息保留，但不应影响权限验证
-      openid: testUsers.normalUser.openid,
+      // 目标用户信息保留，但不应影响权限验证,
       role: 'admin'
+    }, {
+      'x-openid': testUsers.normalUser.openid
     });
     
     // 由于 body.openid 存在，中间件会检查该用户的权限

@@ -16,7 +16,7 @@
  * - status: 查看服务器状态
  */
 
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 const path = require('path');
 const BASE_URL = 'http://localhost:80';
 
@@ -24,11 +24,14 @@ const BASE_URL = 'http://localhost:80';
 const command = process.argv[2] || 'run';
 
 /**
- * 执行命令
+ * 执行命令（增加缓冲区大小）
  */
 function execCommand(cmd) {
   return new Promise((resolve, reject) => {
-    exec(cmd, { cwd: path.join(__dirname, '..') }, (error, stdout, stderr) => {
+    exec(cmd, { 
+      cwd: path.join(__dirname, '..'), 
+      maxBuffer: 1024 * 1024 * 10 // 10MB 缓冲区
+    }, (error, stdout, stderr) => {
       if (error) {
         reject(error);
       } else {

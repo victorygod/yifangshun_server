@@ -32,7 +32,8 @@ const User = sequelize.define("User", {
   },
   phone: {
     type: DataTypes.STRING(11),
-    allowNull: true,
+    allowNull: true,  // 【手机号改造】允许为空（登录时可不绑定）
+    unique: true,      // 【手机号改造】绑定后唯一
   },
   name: {
     type: DataTypes.STRING,
@@ -68,9 +69,11 @@ const Booking = sequelize.define("Booking", {
     primaryKey: true,
     autoIncrement: true,
   },
-  openid: {
-    type: DataTypes.STRING,
+  // 【手机号改造】只保留 phone，不保留 openid
+  phone: {
+    type: DataTypes.STRING(11),
     allowNull: false,
+    index: true,  // 查询优化
   },
   date: {
     type: DataTypes.DATEONLY,
@@ -442,6 +445,58 @@ const StockInventory = sequelize.define("StockInventory", {
   minValue: {
     type: DataTypes.DECIMAL(10, 2),
     defaultValue: 0,
+  },
+  updatedAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
+  },
+});
+
+// 场次配置模型（新增）
+const ScheduleConfig = sequelize.define("ScheduleConfig", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  type: {
+    type: DataTypes.ENUM('default', 'override'),
+    allowNull: false,
+    comment: '配置类型：default-默认规则，override-临时调整'
+  },
+  dayOfWeek: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: '星期几（0-6，仅 default 类型有效）'
+  },
+  date: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+    comment: '具体日期（仅 override 类型有效）'
+  },
+  session: {
+    type: DataTypes.ENUM('morning', 'afternoon', 'evening'),
+    allowNull: false,
+    comment: '场次'
+  },
+  isOpen: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+    comment: '是否开放预约'
+  },
+  maxBookings: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    comment: '最大预约人数'
+  },
+  reason: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+    comment: '停诊原因（仅 override 类型有效）'
+  },
+  createdAt: {
+    type: DataTypes.DATE,
+    defaultValue: DataTypes.NOW,
   },
   updatedAt: {
     type: DataTypes.DATE,

@@ -225,7 +225,7 @@ async function handleBindUserInfo(openid, name, phone) {
   return { code: 0, message: "绑定成功" };
 }
 
-// 绑定手机号
+// 绑定手机号（增加冲突检测）
 async function handleBindPhone(openid, phone) {
   if (!openid || !phone) {
     throw new Error("缺少必要参数");
@@ -235,6 +235,33 @@ async function handleBindPhone(openid, phone) {
     throw new Error("手机号格式不正确");
   }
 
+  // 【手机号改造】检查手机号是否已被其他 openid 绑定
+  const existingUser = await User.findOne({ where: { phone } });
+  
+  if (existingUser) {
+    // 如果是同一个用户（换设备登录），允许直接绑定
+    if (existingUser.openid === openid) {
+      await User.update(
+        { phone, isNewUser: false },
+        { where: { openid } }
+      );
+      return { code: 0, message: "绑定成功" };
+    }
+    
+    // 不同用户占用，返回冲突信息
+    return {
+      code: 2,
+      message: "该手机号已被其他账号绑定",
+      data: {
+        conflict: true,
+        boundOpenid: existingUser.openid,
+        boundName: existingUser.name,
+        boundPhone: existingUser.phone,
+      }
+    };
+  }
+
+  // 正常绑定
   const user = await User.findOne({ where: { openid } });
 
   if (!user) {

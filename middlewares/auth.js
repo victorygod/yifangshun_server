@@ -11,7 +11,7 @@ const ROLE_LEVEL = {
 function requireRole(allowedRoles) {
   return async (req, res, next) => {
     try {
-      // 从请求中获取openid（优先检查header，因为body可能是业务数据）
+      // 从请求中获取 openid（优先检查 header，因为 body 可能是业务数据）
       // 优先级：header > query > body
       const openid = req.headers['x-openid'] || req.query.openid || req.body.openid;
       const isHomePage = req.headers['x-home-page'] === 'true'; // 标识是否为主页请求
@@ -23,26 +23,26 @@ function requireRole(allowedRoles) {
       console.log('allowedRoles:', allowedRoles);
       console.log('========================================');
       
-      // 主页请求（非微信环境），给予超级管理员权限
-      // 注意：主页请求的优先级高于openid检查
+      // 【特殊】主页请求（非微信环境），给予超级管理员权限
+      // 注意：主页请求的优先级高于 openid 检查
       if (isHomePage) {
-        req.user = { role: 'super_admin', openid: null, isHomePage: true };
+        req.user = { role: 'super_admin', openid: null, phone: null, isHomePage: true };
         console.log('✅ 权限验证通过 - 主页请求，赋予超级管理员权限');
         return next();
       }
       
-      if (!openid) {
-        console.log('❌ 权限验证失败 - 缺少openid');
-        return res.status(401).json({ 
-          code: 1, 
-          message: '未授权，缺少openid' 
-        });
+      // 【特殊】system_super_admin 是系统内置超级管理员（无需绑定手机号）
+      if (openid === 'system_super_admin') {
+        req.user = { role: 'super_admin', openid: 'system_super_admin', phone: 'system' };
+        return next();
       }
       
-      // 特殊处理：system_super_admin 是系统内置超级管理员
-      if (openid === 'system_super_admin') {
-        req.user = { role: 'super_admin', openid: 'system_super_admin' };
-        return next();
+      if (!openid) {
+        console.log('❌ 权限验证失败 - 缺少 openid');
+        return res.status(401).json({ 
+          code: 1, 
+          message: '未授权，缺少 openid' 
+        });
       }
       
       // 查询用户信息
@@ -57,17 +57,37 @@ function requireRole(allowedRoles) {
       
       // 检查角色权限
       if (!allowedRoles.includes(user.role)) {
-        console.log(`❌ 权限验证失败 - 用户角色不匹配: 期望 ${allowedRoles.join(', ')}, 实际 ${user.role}`);
+        console.log(`❌ 权限验证失败 - 用户角色不匹配：期望 ${allowedRoles.join(', ')}, 实际 ${user.role}`);
         return res.status(403).json({ 
           code: 1, 
           message: '权限不足' 
         });
       }
       
-      console.log(`✅ 权限验证通过 - 用户角色: ${user.role}, 允许角色: ${allowedRoles.join(', ')}`);
+      // 【手机号改造】检查是否已绑定手机号（普通用户必须绑定）
+      // 注意：排除绑定 API 本身，否则无法绑定
+      const skipPhoneCheckPaths = ['/api/bind-phone', '/api/bind-user-info'];
+      const shouldSkipPhoneCheck = skipPhoneCheckPaths.some(path => 
+        req.path === path || req.originalUrl?.includes(path)
+      );
       
-      // 将用户信息附加到请求对象
-      req.user = user;
+      if (!user.phone && !shouldSkipPhoneCheck) {
+        return res.status(403).json({ 
+          code: 1, 
+          message: '请先绑定手机号',
+          needBindPhone: true 
+        });
+      }
+      
+      console.log(`✅ 权限验证通过 - 用户角色：${user.role}, 允许角色：${allowedRoles.join(', ')}`);
+      
+      // 【手机号改造】将 openid 和 phone 都附加到请求对象
+      req.user = {
+        openid: user.openid,
+        phone: user.phone,  // 新增：业务层使用 phone
+        role: user.role,
+        name: user.name,
+      };
       next();
       
     } catch (error) {
