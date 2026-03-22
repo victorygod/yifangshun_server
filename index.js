@@ -20,6 +20,9 @@ const chat = require("./services/chat");
 const stock = require("./services/stock");
 const schedule = require("./services/schedule");  // 新增
 
+// 导入工具函数
+const { convertCloudFileIdToUrl } = require("./services/prescription");
+
 // 导入权限中间件
 const { requireRole } = require("./middlewares/auth");
 
@@ -617,6 +620,14 @@ app.get("/api/admin/table/:name", requireRole(['admin', 'super_admin']), async (
           phone: userMap[row.openid]?.phone || ''
         }));
       }
+    }
+    
+    // 处方表：转换缩略图 URL
+    if (name === 'prescriptions') {
+      allData = allData.map(row => ({
+        ...row,
+        thumbnail: row.thumbnail ? convertCloudFileIdToUrl(row.thumbnail) : null
+      }));
     }
     
     // 多维度搜索

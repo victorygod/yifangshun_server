@@ -1279,4 +1279,5 @@ module.exports = {
   updatePrescriptionIdByPrescriptionId,
   cleanExpiredPrescriptions,
   checkTodayPendingPrescriptions,
+  convertCloudFileIdToUrl,
 };
