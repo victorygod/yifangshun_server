@@ -902,17 +902,19 @@ async function settleOutOrder(id) {
   const insufficientItems = [];
   for (const item of items) {
     const herb = await Herb.findOne({ where: { name: item.herbName } });
-    const herbStock = herb ? (herb.stock || 0) : 0;
+    const herbStock = herb ? parseFloat(herb.stock) || 0 : 0;
     
     const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
+    const inventoryQuantity = inventory ? parseFloat(inventory.quantity) || 0 : 0;
+    const needQuantity = parseFloat(item.quantity) || 0;
     
     // 检查库存是否充足
     if (!herb && !inventory) {
-      insufficientItems.push({ name: item.herbName, need: item.quantity, have: 0, reason: '药材不存在' });
-    } else if (inventory && inventory.quantity < item.quantity) {
-      insufficientItems.push({ name: item.herbName, need: item.quantity, have: inventory.quantity, reason: '库存统计表不足' });
-    } else if (!inventory && herbStock < item.quantity) {
-      insufficientItems.push({ name: item.herbName, need: item.quantity, have: herbStock, reason: '药材库存不足' });
+      insufficientItems.push({ name: item.herbName, need: needQuantity, have: 0, reason: '药材不存在' });
+    } else if (inventory && inventoryQuantity < needQuantity) {
+      insufficientItems.push({ name: item.herbName, need: needQuantity, have: inventoryQuantity, reason: '库存统计表不足' });
+    } else if (!inventory && herbStock < needQuantity) {
+      insufficientItems.push({ name: item.herbName, need: needQuantity, have: herbStock, reason: '药材库存不足' });
     }
   }
   
