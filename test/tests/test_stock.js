@@ -212,7 +212,6 @@ async function runStockTests(users) {
     const { response, data } = await adminRequest('POST', '/api/stock/in/orders', {
       orderDate: new Date().toISOString().split('T')[0],
       supplierName: '测试供应商',
-      supplierPhone: '13800138000',
       items: [
         {
           herbName: testData.herbName,
@@ -422,7 +421,6 @@ async function runStockTests(users) {
     const { response, data } = await adminRequest('POST', '/api/stock/in/orders', {
       orderDate: new Date().toISOString().split('T')[0],
       supplierName: '回滚测试供应商',
-      supplierPhone: '13900139000',
       items: [
         {
           herbName: testData.herbName,

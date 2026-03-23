@@ -17,7 +17,7 @@
     "avgPrice": 12,
     "minValue": 0,
     "lastStockInDate": "2026-03-22",
-    "updatedAt": "2026-03-22T20:59:45.085Z",
+    "updatedAt": "2026-03-23T23:59:53.147Z",
     "id": 2,
     "createdAt": "2026-03-22T19:01:53.895Z"
   },
@@ -28,7 +28,7 @@
     "avgPrice": 12,
     "minValue": 0,
     "lastStockInDate": "2026-03-22",
-    "updatedAt": "2026-03-22T20:59:45.087Z",
+    "updatedAt": "2026-03-23T23:59:53.150Z",
     "id": 3,
     "createdAt": "2026-03-22T19:01:53.896Z"
   },
@@ -39,7 +39,7 @@
     "avgPrice": 323,
     "minValue": 0,
     "lastStockInDate": "2026-03-22",
-    "updatedAt": "2026-03-22T20:59:45.089Z",
+    "updatedAt": "2026-03-23T23:59:53.153Z",
     "id": 4,
     "createdAt": "2026-03-22T19:01:53.898Z"
   }

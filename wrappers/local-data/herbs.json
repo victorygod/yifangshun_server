@@ -22,7 +22,7 @@
     "stock": 1321,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.894Z",
-    "updatedAt": "2026-03-22T21:00:18.070Z",
+    "updatedAt": "2026-03-23T23:59:53.146Z",
     "id": 2,
     "cabinetNo": "E",
     "remark": ""
@@ -36,7 +36,7 @@
     "stock": 3232,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.896Z",
-    "updatedAt": "2026-03-22T21:00:12.213Z",
+    "updatedAt": "2026-03-23T23:59:53.149Z",
     "id": 3,
     "cabinetNo": "435",
     "remark": ""
@@ -50,7 +50,7 @@
     "stock": 233,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.897Z",
-    "updatedAt": "2026-03-23T23:50:41.117Z",
+    "updatedAt": "2026-03-23T23:59:53.152Z",
     "id": 4,
     "cabinetNo": "BF",
     "remark": ""

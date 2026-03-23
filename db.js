@@ -260,20 +260,20 @@ const StockInOrder = sequelize.define("StockInOrder", {
     primaryKey: true,
     autoIncrement: true,
   },
-  orderNo: {
-    type: DataTypes.STRING(50),
+  purchaseDate: {
+    type: DataTypes.DATEONLY,
     allowNull: true,
   },
   orderDate: {
     type: DataTypes.DATEONLY,
     allowNull: true,
   },
-  supplierName: {
-    type: DataTypes.STRING(100),
+  orderNo: {
+    type: DataTypes.STRING(50),
     allowNull: true,
   },
-  supplierPhone: {
-    type: DataTypes.STRING(20),
+  supplierName: {
+    type: DataTypes.STRING(100),
     allowNull: true,
   },
   totalAmount: {

@@ -111,9 +111,9 @@ const tableConfigs = {
     displayName: '入库管理',
     columns: [
       { key: 'id', label: 'ID', readonly: true },
+      { key: 'purchaseDate', label: '下单日期', editable: true, type: 'date', defaultValue: 'today' },
       { key: 'orderDate', label: '入库日期', editable: true, type: 'date', defaultValue: 'today' },
       { key: 'supplierName', label: '供应商', editable: true, required: true },
-      { key: 'supplierPhone', label: '电话', editable: true },
       { key: 'totalAmount', label: '总价', readonly: true, type: 'number' },
       {
         key: 'status', label: '状态', type: 'select', readonly: true, options: [

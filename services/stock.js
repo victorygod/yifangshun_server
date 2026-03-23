@@ -282,10 +282,10 @@ async function getInOrderById(id) {
 
 // 创建入库单（草稿）
 async function createInOrder(data) {
-  const { orderDate, supplierName, supplierPhone, supplierAddress, remark, items = [] } = data;
+  const { purchaseDate, orderDate, supplierName, remark, items = [] } = data;
   
-  if (!orderDate || !supplierName) {
-    throw new Error('入库日期和供应商名称不能为空');
+  if (!supplierName) {
+    throw new Error('供应商名称不能为空');
   }
   
   const orderNo = generateOrderNo('RK');
@@ -298,10 +298,9 @@ async function createInOrder(data) {
   
   const order = await StockInOrder.create({
     orderNo,
+    purchaseDate,
     orderDate,
     supplierName,
-    supplierPhone,
-    supplierAddress,
     status: 'draft',
     remark,
     totalAmount,
@@ -341,13 +340,12 @@ async function updateInOrder(id, data) {
     throw new Error('只有草稿状态的入库单可以修改');
   }
   
-  const { orderDate, supplierName, supplierPhone, supplierAddress, remark, items } = data;
+  const { purchaseDate, orderDate, supplierName, remark, items } = data;
   
   const updates = {};
+  if (purchaseDate !== undefined) updates.purchaseDate = purchaseDate;
   if (orderDate !== undefined) updates.orderDate = orderDate;
   if (supplierName !== undefined) updates.supplierName = supplierName;
-  if (supplierPhone !== undefined) updates.supplierPhone = supplierPhone;
-  if (supplierAddress !== undefined) updates.supplierAddress = supplierAddress;
   if (remark !== undefined) updates.remark = remark;
   updates.updatedAt = getNow();
   
