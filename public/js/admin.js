@@ -504,12 +504,22 @@ async function loadTableData() {
           const cellClass = isReadonly ? 'cell-readonly' : 'cell-editable';
           const isLongText = col.key === 'openid' || col.key === 'orderNo' || col.key === 'checkNo';
           
+          // 药材库存预警：库存低于最低库存时字体变红
+          let stockWarning = '';
+          if (currentTable === 'herbs' && col.key === 'stock' && row.minValue !== undefined) {
+            const stock = parseFloat(value) || 0;
+            const minValue = parseFloat(row.minValue) || 0;
+            if (stock < minValue) {
+              stockWarning = 'style="color: #e74c3c; font-weight: bold;"';
+            }
+          }
+          
           // 已结算处方禁止编辑
           const isSettledPrescription = currentTable === 'prescriptions' && row.status === '已结算';
           const canEdit = !isReadonly && !isSettledPrescription;
 
           html += `<td class="${canEdit ? 'cell-clickable' : ''}" data-row-id="${row.id}" data-col-key="${col.key}">
-            <span class="${cellClass} ${isLongText ? 'cell-long' : ''}" title="${escapeHtml(String(value))}">${displayValue || '-'}</span>
+            <span class="${cellClass} ${isLongText ? 'cell-long' : ''}" ${stockWarning} title="${escapeHtml(String(value))}">${displayValue || '-'}</span>
           </td>`;
         }
       });
