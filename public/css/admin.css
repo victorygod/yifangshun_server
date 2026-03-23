@@ -1327,4 +1327,16 @@ body {
   padding: 24px 0;
 }
 
+/* 成本价灰色提示 */
+.cell-with-hint {
+  position: relative;
+}
+
+.field-hint {
+  display: block;
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
 
