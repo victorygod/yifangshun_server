@@ -100,7 +100,9 @@ const tableConfigs = {
       { key: 'name', label: '药材名称', editable: true, required: true },
       { key: 'alias', label: '别名', editable: true },
       { key: 'cabinetNo', label: '柜号', editable: true },
-      { key: 'salePrice', label: '售卖单价', editable: true, type: 'number' },
+      { key: 'coefficient', label: '系数', editable: true, type: 'number' },
+      { key: 'costPrice', label: '成本价', editable: true, type: 'number' },
+      { key: 'salePrice', label: '售卖单价', readonly: true, type: 'number' },
       { key: 'stock', label: '现有库存', readonly: true, type: 'number' },
       { key: 'minValue', label: '最低库存', editable: true, type: 'number' },
       { key: 'remark', label: '备注', editable: true }

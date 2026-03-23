@@ -772,6 +772,13 @@ app.post("/api/admin/table/:name", requireRole(['admin', 'super_admin'], true), 
     delete recordData.createdAt;
     delete recordData.updatedAt;
     
+    // 药材表：自动计算售卖单价 = 系数 * 成本价
+    if (name === 'herbs') {
+      const coefficient = parseFloat(recordData.coefficient) || 1;
+      const costPrice = parseFloat(recordData.costPrice) || 0;
+      recordData.salePrice = coefficient * costPrice;
+    }
+    
     const newRecord = await model.create(recordData);
     
     // 如果是入库明细，更新入库单总价
@@ -869,6 +876,13 @@ app.put("/api/admin/table/:name/:id", requireRole(['admin', 'super_admin']), asy
           return res.status(403).json({ code: 1, message: '管理员无权设置此角色' });
         }
       }
+    }
+    
+    // 药材表：自动计算售卖单价 = 系数 * 成本价
+    if (name === 'herbs') {
+      const coefficient = updates.coefficient !== undefined ? parseFloat(updates.coefficient) : parseFloat(record.coefficient) || 1;
+      const costPrice = updates.costPrice !== undefined ? parseFloat(updates.costPrice) : parseFloat(record.costPrice) || 0;
+      updates.salePrice = coefficient * costPrice;
     }
     
     // 执行更新

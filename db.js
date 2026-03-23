@@ -219,6 +219,15 @@ const Herb = sequelize.define("Herb", {
     type: DataTypes.STRING(20),
     allowNull: true,
   },
+  coefficient: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    defaultValue: 1,
+  },
+  costPrice: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
   salePrice: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true,
