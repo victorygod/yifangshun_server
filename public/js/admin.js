@@ -168,12 +168,17 @@ const tableConfigs = {
       { key: 'id', label: 'ID', readonly: true },
       { key: 'orderId', label: '入库单ID', readonly: true },
       { key: 'herbName', label: '药材名称', editable: true },
-      { key: 'supplierName', label: '供方品名', editable: true },
+      { key: 'quality', label: '品质', editable: true },
+      { key: 'origin', label: '产地', editable: true },
+      { key: 'productionDate', label: '生产日期', editable: true, type: 'date' },
+      { key: 'expiryDate', label: '保质期至', editable: true, type: 'date' },
       { key: 'quantity', label: '克数', editable: true, type: 'number' },
       { key: 'unitPrice', label: '进货单价', editable: true, type: 'number' },
-      { key: 'totalPrice', label: '总价', editable: true, type: 'number' }
+      { key: 'costPrice', label: '成本价', editable: true, type: 'number' },
+      { key: 'totalPrice', label: '总价', editable: true, type: 'number' },
+      { key: 'remark', label: '备注', editable: true }
     ],
-    searchFields: ['herbName', 'supplierName']
+    searchFields: ['herbName']
   },
   stock_out_items: {
     displayName: '执药明细',

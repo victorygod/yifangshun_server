@@ -322,11 +322,31 @@ const StockInItem = sequelize.define("StockInItem", {
     type: DataTypes.STRING(50),
     allowNull: false,
   },
+  quality: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+  },
+  origin: {
+    type: DataTypes.STRING(100),
+    allowNull: true,
+  },
+  productionDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
+  expiryDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+  },
   quantity: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,
   },
   unitPrice: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+  },
+  costPrice: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true,
   },

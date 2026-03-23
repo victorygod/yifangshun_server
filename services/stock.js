@@ -310,15 +310,32 @@ async function createInOrder(data) {
   
   // 创建明细
   for (const item of items) {
+    const costPrice = item.costPrice !== undefined ? item.costPrice : item.unitPrice;
     await StockInItem.create({
       orderId: order.id,
       herbName: item.herbName,
-      herbAlias: item.herbAlias,
+      quality: item.quality,
+      origin: item.origin,
+      productionDate: item.productionDate,
+      expiryDate: item.expiryDate,
       quantity: item.quantity,
       unitPrice: item.unitPrice,
+      costPrice: costPrice,
       totalPrice: (item.quantity || 0) * (item.unitPrice || 0),
       remark: item.remark
     });
+    // 同步成本价到药材表，并更新售卖单价
+    if (item.herbName && costPrice !== undefined) {
+      const herb = await Herb.findOne({ where: { name: item.herbName } });
+      if (herb) {
+        const coefficient = parseFloat(herb.coefficient) || 1;
+        const newSalePrice = coefficient * parseFloat(costPrice);
+        await Herb.update(
+          { costPrice: costPrice, salePrice: newSalePrice, updatedAt: getNow() },
+          { where: { name: item.herbName } }
+        );
+      }
+    }
   }
   
   const created = await getInOrderById(order.id);
@@ -367,15 +384,32 @@ async function updateInOrder(id, data) {
     
     // 创建新明细
     for (const item of items) {
+      const costPrice = item.costPrice !== undefined ? item.costPrice : item.unitPrice;
       await StockInItem.create({
         orderId: id,
         herbName: item.herbName,
-        herbAlias: item.herbAlias,
+        quality: item.quality,
+        origin: item.origin,
+        productionDate: item.productionDate,
+        expiryDate: item.expiryDate,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
+        costPrice: costPrice,
         totalPrice: (item.quantity || 0) * (item.unitPrice || 0),
         remark: item.remark
       });
+      // 同步成本价到药材表，并更新售卖单价
+      if (item.herbName && costPrice !== undefined) {
+        const herb = await Herb.findOne({ where: { name: item.herbName } });
+        if (herb) {
+          const coefficient = parseFloat(herb.coefficient) || 1;
+          const newSalePrice = coefficient * parseFloat(costPrice);
+          await Herb.update(
+            { costPrice: costPrice, salePrice: newSalePrice, updatedAt: getNow() },
+            { where: { name: item.herbName } }
+          );
+        }
+      }
     }
   }
   

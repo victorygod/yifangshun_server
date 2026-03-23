@@ -14,10 +14,10 @@
     "herbName": "防风",
     "herbAlias": "",
     "quantity": 1321,
-    "avgPrice": 12,
+    "avgPrice": 10,
     "minValue": 0,
     "lastStockInDate": "2026-03-22",
-    "updatedAt": "2026-03-23T23:59:53.147Z",
+    "updatedAt": "2026-03-24T00:20:44.083Z",
     "id": 2,
     "createdAt": "2026-03-22T19:01:53.895Z"
   },
@@ -28,7 +28,7 @@
     "avgPrice": 12,
     "minValue": 0,
     "lastStockInDate": "2026-03-22",
-    "updatedAt": "2026-03-23T23:59:53.150Z",
+    "updatedAt": "2026-03-24T00:20:44.085Z",
     "id": 3,
     "createdAt": "2026-03-22T19:01:53.896Z"
   },
@@ -39,7 +39,7 @@
     "avgPrice": 323,
     "minValue": 0,
     "lastStockInDate": "2026-03-22",
-    "updatedAt": "2026-03-23T23:59:53.153Z",
+    "updatedAt": "2026-03-24T00:20:44.086Z",
     "id": 4,
     "createdAt": "2026-03-22T19:01:53.898Z"
   }

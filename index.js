@@ -779,11 +779,31 @@ app.post("/api/admin/table/:name", requireRole(['admin', 'super_admin'], true), 
       recordData.salePrice = coefficient * costPrice;
     }
     
+    // 入库明细：成本价默认等于进货单价
+    if (name === 'stock_in_items') {
+      if (recordData.costPrice === undefined || recordData.costPrice === null || recordData.costPrice === '') {
+        recordData.costPrice = recordData.unitPrice;
+      }
+    }
+    
     const newRecord = await model.create(recordData);
     
-    // 如果是入库明细，更新入库单总价
+    // 如果是入库明细，更新入库单总价，并同步成本价到药材表
     if (name === 'stock_in_items' && recordData.orderId) {
       await updateOrderTotalAmount('stock_in_orders', 'stock_in_items', recordData.orderId);
+      // 同步成本价到药材表，并更新售卖单价
+      if (recordData.herbName && recordData.costPrice !== undefined) {
+        const { Herb } = require('./wrappers/db-wrapper');
+        const herb = await Herb.findOne({ where: { name: recordData.herbName } });
+        if (herb) {
+          const coefficient = parseFloat(herb.coefficient) || 1;
+          const newSalePrice = coefficient * parseFloat(recordData.costPrice);
+          await Herb.update(
+            { costPrice: recordData.costPrice, salePrice: newSalePrice, updatedAt: new Date() },
+            { where: { name: recordData.herbName } }
+          );
+        }
+      }
     }
     // 如果是执药明细，更新执药单总价
     if (name === 'stock_out_items' && recordData.orderId) {
@@ -885,8 +905,32 @@ app.put("/api/admin/table/:name/:id", requireRole(['admin', 'super_admin']), asy
       updates.salePrice = coefficient * costPrice;
     }
     
+    // 入库明细：成本价默认等于进货单价
+    if (name === 'stock_in_items') {
+      if (updates.costPrice === undefined || updates.costPrice === null || updates.costPrice === '') {
+        updates.costPrice = updates.unitPrice !== undefined ? updates.unitPrice : record.unitPrice;
+      }
+    }
+    
     // 执行更新
     await model.update(updates, { where: { id } });
+    
+    // 入库明细：同步成本价到药材表，并更新售卖单价
+    if (name === 'stock_in_items' && updates.costPrice !== undefined) {
+      const herbName = updates.herbName || record.herbName;
+      if (herbName) {
+        const { Herb } = require('./wrappers/db-wrapper');
+        const herb = await Herb.findOne({ where: { name: herbName } });
+        if (herb) {
+          const coefficient = parseFloat(herb.coefficient) || 1;
+          const newSalePrice = coefficient * parseFloat(updates.costPrice);
+          await Herb.update(
+            { costPrice: updates.costPrice, salePrice: newSalePrice, updatedAt: new Date() },
+            { where: { name: herbName } }
+          );
+        }
+      }
+    }
     
     // 返回更新后的记录
     const updatedRecord = await model.findOne({ where: { id } });
