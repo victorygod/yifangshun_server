@@ -219,8 +219,6 @@ let editingRowId = null;
 let searchKeyword = '';
 let expandedRows = new Set();
 let pendingFocusCol = null;
-let savingDetailRows = new Set();
-let manuallyModifiedTotals = new Set();
 let tableData = [];
 
 // ==================== 初始化 ====================
@@ -1246,11 +1244,6 @@ function bindAutoSaveEvents() {
     input.removeEventListener('blur', handleDetailBlur);
     input.addEventListener('blur', handleDetailBlur);
 
-    if (input.dataset.col === 'totalPrice') {
-      input.removeEventListener('input', handleTotalPriceInput);
-      input.addEventListener('input', handleTotalPriceInput);
-    }
-
     if (input.dataset.col === 'quantity' || input.dataset.col === 'unitPrice') {
       input.removeEventListener('input', handleCalcSourceInput);
       input.addEventListener('input', handleCalcSourceInput);
@@ -1362,25 +1355,6 @@ function recalculateCostPricesForOrder(orderId) {
     
     console.log('[recalculateCostPricesForOrder] 明细', index, '药材:', herbName, '新成本价:', newCostPrice.toFixed(2));
   });
-}
-
-function handleTotalPriceInput(e) {
-  const input = e.target;
-  const detailId = input.dataset.detailId;
-  const isNew = input.dataset.isNew === 'true';
-
-  console.log('[handleTotalPriceInput] 用户修改总价, detailId:', detailId, 'isNew:', isNew);
-
-  if (isNew) {
-    manuallyModifiedTotals.add('new-' + input.closest('tr').dataset.orderId);
-  } else if (detailId) {
-    manuallyModifiedTotals.add(detailId);
-  }
-
-  const statusSpan = input.parentElement.querySelector('.manual-status');
-  if (statusSpan) {
-    statusSpan.style.display = 'inline';
-  }
 }
 
 function handleCalcSourceInput(e) {
@@ -1573,19 +1547,11 @@ async function calculateDetailTotalPrice(row) {
   const isNew = totalPriceInput.dataset.isNew === 'true';
   const orderId = totalPriceInput.closest('tr')?.dataset.orderId;
 
-  const checkKey = isNew ? `new-${orderId}` : detailId;
-  const isManuallyModified = manuallyModifiedTotals.has(checkKey);
-
   console.log('[calculateDetailTotalPrice] 计算总价:', quantity, '*', unitPrice, '=', calculatedTotal);
-  console.log('[calculateDetailTotalPrice] checkKey:', checkKey, 'isManuallyModified:', isManuallyModified);
 
-  if (!isManuallyModified) {
-    console.log('[calculateDetailTotalPrice] 自动更新总价');
-    totalPriceInput.value = calculatedTotal;
-    totalPriceInput.dataset.autoCalc = 'true';
-  } else {
-    console.log('[calculateDetailTotalPrice] 总价已手动指定，跳过自动计算');
-  }
+  // 自动更新总价
+  totalPriceInput.value = calculatedTotal;
+  totalPriceInput.dataset.autoCalc = 'true';
 }
 
 async function handleCellBlur(e) {

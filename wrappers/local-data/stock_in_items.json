@@ -44,8 +44,8 @@
     "totalPrice": 75567725,
     "remark": "",
     "id": 7,
-    "createdAt": "2026-03-25T02:56:23.061Z",
-    "updatedAt": "2026-03-25T02:56:23.061Z"
+    "createdAt": "2026-03-25T03:05:04.281Z",
+    "updatedAt": "2026-03-25T03:05:04.281Z"
   },
   {
     "orderId": "2",
@@ -56,11 +56,43 @@
     "expiryDate": "324",
     "quantity": 3249,
     "unitPrice": 209,
-    "costPrice": 25.54,
+    "costPrice": 28.05,
     "totalPrice": 679041,
     "remark": "",
     "id": 8,
-    "createdAt": "2026-03-25T02:56:23.062Z",
-    "updatedAt": "2026-03-25T02:56:23.062Z"
+    "createdAt": "2026-03-25T03:05:04.282Z",
+    "updatedAt": "2026-03-25T03:05:04.282Z"
+  },
+  {
+    "orderId": "2",
+    "herbName": "防风",
+    "quality": "345",
+    "origin": "435",
+    "productionDate": "34",
+    "expiryDate": "34",
+    "quantity": 435,
+    "unitPrice": 46,
+    "costPrice": 46,
+    "totalPrice": 20010,
+    "remark": "",
+    "id": 9,
+    "createdAt": "2026-03-25T03:05:04.283Z",
+    "updatedAt": "2026-03-25T03:05:04.283Z"
+  },
+  {
+    "orderId": "2",
+    "herbName": "苡米仁",
+    "quality": "3243",
+    "origin": "",
+    "productionDate": "",
+    "expiryDate": "",
+    "quantity": 2356,
+    "unitPrice": 23,
+    "costPrice": 23,
+    "totalPrice": 54188,
+    "remark": "",
+    "id": 10,
+    "createdAt": "2026-03-25T03:05:04.284Z",
+    "updatedAt": "2026-03-25T03:05:04.284Z"
   }
 ]
