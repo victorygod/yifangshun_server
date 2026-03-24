@@ -40,6 +40,7 @@ const tableConfigs = {
   users: {
     displayName: '用户管理',
     columns: [
+      { key: 'id', label: 'ID', readonly: true },
       { key: 'openid', label: 'OpenID', readonly: true },
       { key: 'name', label: '姓名', editable: true },
       { key: 'phone', label: '手机号', editable: true },
@@ -401,6 +402,10 @@ async function renderTablePage() {
         <div class="toolbar-left">
           <input type="text" class="search-input" placeholder="搜索..." id="searchInput" value="${searchKeyword}">
           ${!config.readonly ? '<button class="btn btn-danger" id="batchDeleteBtn" disabled>🗑️ 批量删除</button>' : ''}
+          <button class="btn btn-success" id="exportBtn">📤 导出</button>
+          <label class="btn btn-primary" style="margin-left:8px;cursor:pointer;">📥 导入
+            <input type="file" accept=".xlsx,.xls" style="display:none" id="importFile">
+          </label>
         </div>
         <div class="selected-count" id="selectedCount"></div>
       </div>
@@ -415,6 +420,10 @@ async function renderTablePage() {
   const batchDeleteBtn = document.getElementById('batchDeleteBtn');
   if (batchDeleteBtn) batchDeleteBtn.addEventListener('click', batchDelete);
   document.getElementById('searchInput').addEventListener('keyup', handleSearch);
+  
+  // 导入导出按钮事件
+  document.getElementById('exportBtn').addEventListener('click', exportTableData);
+  document.getElementById('importFile').addEventListener('change', handleImportFile);
 
   await loadTableData();
 }
@@ -2316,4 +2325,182 @@ async function reloadOverrideList() {
   } catch (err) {
     listEl.innerHTML = `<div class="schedule-empty">加载失败: ${err.message}</div>`;
   }
+}
+
+// ==================== 数据导入导出功能 ====================
+
+// 导出当前表数据
+async function exportTableData() {
+  const config = tableConfigs[currentTable];
+  
+  try {
+    showToast('正在导出...', 'info');
+    
+    // 获取数据（主表+详情表）
+    const res = await homeFetch(`/api/admin/export/${currentTable}`);
+    if (res.code !== 0) throw new Error(res.message);
+    
+    // 创建工作簿
+    const wb = XLSX.utils.book_new();
+    
+    // 主表数据
+    const mainData = res.data.main || res.data;
+    const mainWs = createSheetFromData(mainData, config.columns, currentTable);
+    XLSX.utils.book_append_sheet(wb, mainWs, currentTable);
+    
+    // 如果有详情表，添加第二个sheet
+    if (config.hasDetail && config.detailTable && res.data.detail) {
+      const detailConfig = tableConfigs[config.detailTable];
+      if (detailConfig) {
+        const detailWs = createSheetFromData(res.data.detail, detailConfig.columns, config.detailTable);
+        XLSX.utils.book_append_sheet(wb, detailWs, config.detailTable);
+      }
+    }
+    
+    // 下载文件
+    const filename = `${config.displayName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(wb, filename);
+    
+    showToast('导出成功', 'success');
+  } catch (err) {
+    showToast('导出失败: ' + err.message, 'error');
+  }
+}
+
+// 根据数据和列配置创建Sheet
+function createSheetFromData(data, columns, sheetName) {
+  // 表头行：使用数据列名
+  const headers = columns.map(col => col.key);
+  
+  // 数据行
+  const rows = data.map(row => {
+    return columns.map(col => {
+      const value = row[col.key];
+      if (value === null || value === undefined) return '';
+      // 日期时间格式处理
+      if (col.type === 'datetime' && value) {
+        return new Date(value).toLocaleString('zh-CN');
+      }
+      if (col.type === 'date' && value) {
+        return new Date(value).toLocaleDateString('zh-CN');
+      }
+      return value;
+    });
+  });
+  
+  // 合并表头和数据
+  const sheetData = [headers, ...rows];
+  return XLSX.utils.aoa_to_sheet(sheetData);
+}
+
+// 处理导入文件选择
+async function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  try {
+    showToast('正在导入...', 'info');
+    
+    const arrayBuffer = await file.arrayBuffer();
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+    
+    const importResults = {};
+    
+    // 遍历所有Sheet
+    for (const sheetName of workbook.SheetNames) {
+      // 按Sheet名匹配数据表配置
+      const tableConfig = tableConfigs[sheetName];
+      if (!tableConfig) {
+        console.log(`跳过未知Sheet: ${sheetName}`);
+        continue;
+      }
+      
+      const sheet = workbook.Sheets[sheetName];
+      const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      
+      if (data.length < 2) {
+        importResults[sheetName] = { success: 0, failed: 0, errors: ['无数据'] };
+        continue;
+      }
+      
+      const headers = data[0]; // 列名行
+      const validKeys = tableConfig.columns.map(c => c.key);
+      
+      // 构建批量导入数据
+      const records = [];
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        if (!row || row.every(cell => cell === '' || cell === null || cell === undefined)) {
+          continue; // 跳过空行
+        }
+        
+        const record = {};
+        
+        // 按列名匹配，只保留能匹配的列
+        headers.forEach((header, index) => {
+          if (validKeys.includes(header) && row[index] !== undefined && row[index] !== '') {
+            record[header] = row[index];
+          }
+        });
+        
+        records.push(record);
+      }
+      
+      // 调用专门的导入API
+      if (records.length > 0) {
+        try {
+          const res = await homeFetch(`/api/admin/import/${sheetName}`, {
+            method: 'POST',
+            body: JSON.stringify({ records })
+          });
+          if (res.code !== 0) {
+            throw new Error(res.message);
+          }
+          importResults[sheetName] = {
+            success: res.data.success,
+            failed: res.data.failed,
+            errors: res.data.errors ? res.data.errors.map(e => `第${e.row}行: ${e.error}`) : []
+          };
+        } catch (err) {
+          importResults[sheetName] = { success: 0, failed: records.length, errors: [err.message] };
+        }
+      }
+    }
+    
+    // 显示导入结果
+    showImportResult(importResults);
+    
+    // 刷新表格数据
+    await loadTableData();
+    
+  } catch (err) {
+    showToast('导入失败: ' + err.message, 'error');
+  }
+  
+  // 清空文件选择，允许重复选择同一文件
+  e.target.value = '';
+}
+
+// 显示导入结果
+function showImportResult(results) {
+  const tableNames = Object.keys(results);
+  if (tableNames.length === 0) {
+    showToast('没有可导入的数据', 'warning');
+    return;
+  }
+  
+  let message = '';
+  tableNames.forEach(name => {
+    const r = results[name];
+    const config = tableConfigs[name];
+    const displayName = config ? config.displayName : name;
+    message += `【${displayName}】成功: ${r.success}条, 失败: ${r.failed}条\n`;
+    if (r.errors.length > 0 && r.errors.length <= 5) {
+      message += r.errors.map(e => `  ${e}`).join('\n') + '\n';
+    } else if (r.errors.length > 5) {
+      message += r.errors.slice(0, 5).map(e => `  ${e}`).join('\n') + '\n  ... 还有' + (r.errors.length - 5) + '条错误\n';
+    }
+  });
+  
+  alert(message);
 }

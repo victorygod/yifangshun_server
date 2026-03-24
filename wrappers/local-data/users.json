@@ -1,13 +1,10 @@
 [
   {
     "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "code": "0f1A0yFa1hxqpL0pCFFa1bSt780A0yFu",
-    "role": "admin",
-    "isNewUser": false,
-    "id": 1,
-    "createdAt": "2026-03-22T18:52:16.891Z",
-    "updatedAt": "2026-03-23T23:42:51.609Z",
     "phone": "15201927053",
-    "name": ""
+    "role": "admin",
+    "id": 1,
+    "createdAt": "2026-03-24T21:44:04.264Z",
+    "updatedAt": "2026-03-24T22:17:02.407Z"
   }
 ]

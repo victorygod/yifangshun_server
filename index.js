@@ -712,6 +712,102 @@ app.delete("/api/admin/table/:name", requireRole(['admin', 'super_admin']), asyn
   }
 });
 
+// ==================== 数据导入导出API（仅超管）====================
+
+// 导出表数据（支持主从表）
+app.get("/api/admin/export/:name", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { name } = req.params;
+    
+    const model = TABLE_MODELS[name];
+    if (!model) {
+      return res.status(404).json({ code: 1, message: "表不存在" });
+    }
+    
+    // 获取主表全量数据
+    const mainData = await model.findAll({ raw: true });
+    
+    // 判断是否有详情表
+    const detailTableMap = {
+      'stock_in_orders': 'stock_in_items',
+      'stock_out_orders': 'stock_out_items'
+    };
+    
+    const detailTable = detailTableMap[name];
+    if (detailTable) {
+      const detailModel = TABLE_MODELS[detailTable];
+      if (detailModel) {
+        const detailData = await detailModel.findAll({ raw: true });
+        return res.json({
+          code: 0,
+          data: {
+            main: mainData,
+            detail: detailData,
+            mainTable: name,
+            detailTable: detailTable
+          }
+        });
+      }
+    }
+    
+    // 单表导出
+    res.json({ code: 0, data: mainData });
+  } catch (error) {
+    console.error("导出表失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "导出表失败" });
+  }
+});
+
+// 导入数据（批量，支持更新或新增）
+app.post("/api/admin/import/:name", requireRole(['super_admin']), async (req, res) => {
+  try {
+    const { name } = req.params;
+    const { records } = req.body;
+    
+    if (!Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({ code: 1, message: "无有效数据" });
+    }
+    
+    const model = TABLE_MODELS[name];
+    if (!model) {
+      return res.status(404).json({ code: 1, message: "表不存在" });
+    }
+    
+    const results = { success: 0, failed: 0, errors: [] };
+    
+    for (let i = 0; i < records.length; i++) {
+      const record = records[i];
+      try {
+        // 移除保护字段
+        delete record.createdAt;
+        delete record.updatedAt;
+        
+        if (record.id) {
+          // 有ID：尝试更新，不存在则新增
+          const existing = await model.findOne({ where: { id: record.id } });
+          if (existing) {
+            await model.update(record, { where: { id: record.id } });
+          } else {
+            await model.create(record);
+          }
+        } else {
+          // 无ID：新增
+          await model.create(record);
+        }
+        results.success++;
+      } catch (err) {
+        results.failed++;
+        results.errors.push({ row: i + 1, error: err.message });
+      }
+    }
+    
+    res.json({ code: 0, data: results });
+  } catch (error) {
+    console.error("导入数据失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "导入数据失败" });
+  }
+});
+
 // 获取指定表的单条记录
 app.get("/api/admin/table/:name/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {

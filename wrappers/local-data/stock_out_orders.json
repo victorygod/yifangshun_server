@@ -1,27 +1,22 @@
 [
   {
+    "prescriptionTime": "2026/3/22 08:00:00",
     "prescriptionId": "0052152",
-    "prescriptionTime": "2026-03-22",
-    "pharmacist": "",
-    "reviewer": "",
     "status": "settled",
     "remark": "处方审核通过自动生成",
-    "totalAmount": 9720,
-    "createdAt": "2026-03-22T19:37:02.354Z",
-    "updatedAt": "2026-03-22T19:37:10.416Z",
-    "id": 1
+    "id": 1,
+    "createdAt": "2026-03-24T21:43:43.784Z",
+    "updatedAt": "2026-03-24T22:14:12.311Z",
+    "totalPrice": 9720
   },
   {
+    "prescriptionTime": "2026/3/23 08:00:00",
     "prescriptionId": "0000255",
-    "prescriptionTime": "2026-03-23",
-    "pharmacist": "",
-    "reviewer": "",
     "status": "pending",
+    "totalPrice": 89083.2,
     "remark": "处方审核通过自动生成",
-    "totalAmount": 0,
-    "createdAt": "2026-03-24T00:06:02.475Z",
-    "updatedAt": "2026-03-24T20:34:06.034Z",
     "id": 2,
-    "totalPrice": 89083.2
+    "createdAt": "2026-03-24T21:43:43.791Z",
+    "updatedAt": "2026-03-24T22:14:12.312Z"
   }
 ]

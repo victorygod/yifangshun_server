@@ -8,11 +8,11 @@
     "totalPrice": 3876,
     "id": 2,
     "createdAt": "2026-03-22T19:01:41.198Z",
-    "updatedAt": "2026-03-24T00:35:27.240Z",
+    "updatedAt": "2026-03-24T22:14:51.133Z",
     "quality": "324",
     "origin": "43",
-    "productionDate": "43",
-    "expiryDate": "43",
+    "productionDate": "2043/1/1",
+    "expiryDate": "2043/1/1",
     "costPrice": 292.92,
     "remark": "34"
   },
@@ -25,11 +25,11 @@
     "totalPrice": 7429,
     "id": 3,
     "createdAt": "2026-03-22T19:01:50.281Z",
-    "updatedAt": "2026-03-24T00:35:24.567Z",
+    "updatedAt": "2026-03-24T22:14:51.133Z",
     "quality": "123",
     "origin": "23",
-    "productionDate": "455",
-    "expiryDate": "5",
+    "productionDate": "455/1/1",
+    "expiryDate": "2001/5/1",
     "costPrice": 331.19,
     "remark": "234"
   },
@@ -38,8 +38,8 @@
     "herbName": "防风",
     "quality": "32",
     "origin": "324",
-    "productionDate": "432",
-    "expiryDate": "324",
+    "productionDate": "432/1/1",
+    "expiryDate": "324/1/1",
     "quantity": 23,
     "unitPrice": 120,
     "costPrice": 20.12,
@@ -47,6 +47,6 @@
     "remark": "",
     "id": 4,
     "createdAt": "2026-03-24T00:33:10.867Z",
-    "updatedAt": "2026-03-24T00:35:22.215Z"
+    "updatedAt": "2026-03-24T22:14:51.134Z"
   }
 ]
