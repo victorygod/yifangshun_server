@@ -18,15 +18,15 @@
     "alias": "",
     "unit": "克",
     "minValue": "8000",
-    "salePrice": 40.24,
+    "salePrice": 466,
     "stock": 0,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.894Z",
-    "updatedAt": "2026-03-25T02:05:40.062Z",
+    "updatedAt": "2026-03-25T02:56:23.062Z",
     "id": 2,
     "cabinetNo": "E",
     "remark": "",
-    "costPrice": 20.12,
+    "costPrice": 233,
     "coefficient": "2"
   },
   {
@@ -34,31 +34,31 @@
     "alias": "",
     "unit": "克",
     "minValue": "10",
-    "salePrice": 516,
+    "salePrice": 5196,
     "stock": 234,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.896Z",
-    "updatedAt": "2026-03-25T02:47:51.616Z",
+    "updatedAt": "2026-03-25T02:49:47.372Z",
     "id": 3,
     "cabinetNo": "435",
     "remark": "",
     "coefficient": "12",
-    "costPrice": 43
+    "costPrice": 433
   },
   {
     "name": "车前花",
     "alias": "34",
     "unit": "克",
     "minValue": "10000",
-    "salePrice": 46,
+    "salePrice": 51.08,
     "stock": 234324,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.897Z",
-    "updatedAt": "2026-03-25T02:47:51.611Z",
+    "updatedAt": "2026-03-25T02:56:23.063Z",
     "id": 4,
     "cabinetNo": "BF",
     "remark": "",
     "coefficient": "2",
-    "costPrice": 23
+    "costPrice": 25.54
   }
 ]

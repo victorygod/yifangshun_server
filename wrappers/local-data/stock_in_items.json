@@ -11,9 +11,9 @@
     "costPrice": 23,
     "totalPrice": 5389452,
     "remark": "",
-    "id": 1,
-    "createdAt": "2026-03-25T02:47:47.487Z",
-    "updatedAt": "2026-03-25T02:47:47.487Z"
+    "id": 5,
+    "createdAt": "2026-03-25T02:49:45.335Z",
+    "updatedAt": "2026-03-25T02:49:45.335Z"
   },
   {
     "orderId": "1",
@@ -23,12 +23,44 @@
     "productionDate": "",
     "expiryDate": "",
     "quantity": 234,
-    "unitPrice": 43,
-    "costPrice": 43,
-    "totalPrice": 10062,
+    "unitPrice": 433,
+    "costPrice": 433,
+    "totalPrice": 101322,
     "remark": "",
-    "id": 2,
-    "createdAt": "2026-03-25T02:47:47.488Z",
-    "updatedAt": "2026-03-25T02:47:47.488Z"
+    "id": 6,
+    "createdAt": "2026-03-25T02:49:45.336Z",
+    "updatedAt": "2026-03-25T02:49:45.336Z"
+  },
+  {
+    "orderId": "2",
+    "herbName": "防风",
+    "quality": "32432",
+    "origin": "32432",
+    "productionDate": "324",
+    "expiryDate": "342324",
+    "quantity": 324325,
+    "unitPrice": 233,
+    "costPrice": 233,
+    "totalPrice": 75567725,
+    "remark": "",
+    "id": 7,
+    "createdAt": "2026-03-25T02:56:23.061Z",
+    "updatedAt": "2026-03-25T02:56:23.061Z"
+  },
+  {
+    "orderId": "2",
+    "herbName": "车前花",
+    "quality": "324",
+    "origin": "324",
+    "productionDate": "324",
+    "expiryDate": "324",
+    "quantity": 3249,
+    "unitPrice": 209,
+    "costPrice": 25.54,
+    "totalPrice": 679041,
+    "remark": "",
+    "id": 8,
+    "createdAt": "2026-03-25T02:56:23.062Z",
+    "updatedAt": "2026-03-25T02:56:23.062Z"
   }
 ]
