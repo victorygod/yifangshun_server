@@ -858,5 +858,535 @@
     "createdAt": "2026-03-24T22:15:29.954Z",
     "id": 86,
     "updatedAt": "2026-03-24T22:15:29.954Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": -323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:19:49.907Z",
+    "id": 87,
+    "updatedAt": "2026-03-25T01:19:49.907Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:19:49.909Z",
+    "id": 88,
+    "updatedAt": "2026-03-25T01:19:49.909Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:19:49.910Z",
+    "id": 89,
+    "updatedAt": "2026-03-25T01:19:49.910Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": 323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:20:00.612Z",
+    "id": 90,
+    "updatedAt": "2026-03-25T01:20:00.612Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:20:00.614Z",
+    "id": 91,
+    "updatedAt": "2026-03-25T01:20:00.614Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:20:00.617Z",
+    "id": 92,
+    "updatedAt": "2026-03-25T01:20:00.617Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": -323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:20:38.013Z",
+    "id": 93,
+    "updatedAt": "2026-03-25T01:20:38.013Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:20:38.014Z",
+    "id": 94,
+    "updatedAt": "2026-03-25T01:20:38.014Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:20:38.017Z",
+    "id": 95,
+    "updatedAt": "2026-03-25T01:20:38.017Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": 323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:20:47.973Z",
+    "id": 96,
+    "updatedAt": "2026-03-25T01:20:47.973Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:20:47.975Z",
+    "id": 97,
+    "updatedAt": "2026-03-25T01:20:47.975Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:20:47.977Z",
+    "id": 98,
+    "updatedAt": "2026-03-25T01:20:47.977Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": -323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:35:56.377Z",
+    "id": 99,
+    "updatedAt": "2026-03-25T01:35:56.377Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:35:56.379Z",
+    "id": 100,
+    "updatedAt": "2026-03-25T01:35:56.379Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:35:56.381Z",
+    "id": 101,
+    "updatedAt": "2026-03-25T01:35:56.381Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": 323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:36:02.819Z",
+    "id": 102,
+    "updatedAt": "2026-03-25T01:36:02.819Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:36:02.822Z",
+    "id": 103,
+    "updatedAt": "2026-03-25T01:36:02.822Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:36:02.826Z",
+    "id": 104,
+    "updatedAt": "2026-03-25T01:36:02.826Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": -323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:36:33.103Z",
+    "id": 105,
+    "updatedAt": "2026-03-25T01:36:33.103Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:36:33.106Z",
+    "id": 106,
+    "updatedAt": "2026-03-25T01:36:33.106Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:36:33.108Z",
+    "id": 107,
+    "updatedAt": "2026-03-25T01:36:33.108Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": 323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:36:49.408Z",
+    "id": 108,
+    "updatedAt": "2026-03-25T01:36:49.408Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:36:49.410Z",
+    "id": 109,
+    "updatedAt": "2026-03-25T01:36:49.410Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:36:49.411Z",
+    "id": 110,
+    "updatedAt": "2026-03-25T01:36:49.411Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": -323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:46:22.072Z",
+    "id": 111,
+    "updatedAt": "2026-03-25T01:46:22.072Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:46:22.075Z",
+    "id": 112,
+    "updatedAt": "2026-03-25T01:46:22.075Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:46:22.077Z",
+    "id": 113,
+    "updatedAt": "2026-03-25T01:46:22.077Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": 323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:46:29.427Z",
+    "id": 114,
+    "updatedAt": "2026-03-25T01:46:29.427Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:46:29.429Z",
+    "id": 115,
+    "updatedAt": "2026-03-25T01:46:29.429Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:46:29.430Z",
+    "id": 116,
+    "updatedAt": "2026-03-25T01:46:29.430Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": -323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:47:00.934Z",
+    "id": 117,
+    "updatedAt": "2026-03-25T01:47:00.934Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:47:00.938Z",
+    "id": 118,
+    "updatedAt": "2026-03-25T01:47:00.938Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:47:00.940Z",
+    "id": 119,
+    "updatedAt": "2026-03-25T01:47:00.940Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": 323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:47:12.708Z",
+    "id": 120,
+    "updatedAt": "2026-03-25T01:47:12.708Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:47:12.710Z",
+    "id": 121,
+    "updatedAt": "2026-03-25T01:47:12.710Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:47:12.712Z",
+    "id": 122,
+    "updatedAt": "2026-03-25T01:47:12.712Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": -323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:53:31.260Z",
+    "id": 123,
+    "updatedAt": "2026-03-25T01:53:31.260Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:53:31.261Z",
+    "id": 124,
+    "updatedAt": "2026-03-25T01:53:31.261Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:53:31.263Z",
+    "id": 125,
+    "updatedAt": "2026-03-25T01:53:31.263Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": 323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:54:23.709Z",
+    "id": 126,
+    "updatedAt": "2026-03-25T01:54:23.709Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:54:23.711Z",
+    "id": 127,
+    "updatedAt": "2026-03-25T01:54:23.711Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:54:23.713Z",
+    "id": 128,
+    "updatedAt": "2026-03-25T01:54:23.713Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": -323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:55:10.926Z",
+    "id": 129,
+    "updatedAt": "2026-03-25T01:55:10.926Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:55:10.928Z",
+    "id": 130,
+    "updatedAt": "2026-03-25T01:55:10.928Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:55:10.930Z",
+    "id": 131,
+    "updatedAt": "2026-03-25T01:55:10.930Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": 323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:55:25.165Z",
+    "id": 132,
+    "updatedAt": "2026-03-25T01:55:25.165Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:55:25.167Z",
+    "id": 133,
+    "updatedAt": "2026-03-25T01:55:25.167Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": 23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T01:55:25.169Z",
+    "id": 134,
+    "updatedAt": "2026-03-25T01:55:25.169Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": -323,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T02:05:40.060Z",
+    "id": 135,
+    "updatedAt": "2026-03-25T02:05:40.060Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T02:05:40.062Z",
+    "id": 136,
+    "updatedAt": "2026-03-25T02:05:40.062Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "防风",
+    "quantity": -23,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T02:05:40.063Z",
+    "id": 137,
+    "updatedAt": "2026-03-25T02:05:40.063Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "车前花",
+    "quantity": 234324,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T02:47:51.615Z",
+    "id": 138,
+    "updatedAt": "2026-03-25T02:47:51.615Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260322-090",
+    "herbName": "白芷",
+    "quantity": 234,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T02:47:51.617Z",
+    "id": 139,
+    "updatedAt": "2026-03-25T02:47:51.617Z"
   }
 ]

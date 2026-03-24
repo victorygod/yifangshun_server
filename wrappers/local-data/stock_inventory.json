@@ -13,33 +13,33 @@
   {
     "herbName": "防风",
     "herbAlias": "",
-    "quantity": 23,
+    "quantity": 0,
     "avgPrice": 120,
     "minValue": 0,
     "lastStockInDate": "2026/3/22",
-    "updatedAt": "2026-03-24T22:15:29.953Z",
+    "updatedAt": "2026-03-25T02:05:40.063Z",
     "id": 2,
     "createdAt": "2026-03-22T19:01:53.895Z"
   },
   {
     "herbName": "白芷",
     "herbAlias": "",
-    "quantity": 323,
-    "avgPrice": 12,
+    "quantity": 234,
+    "avgPrice": 43,
     "minValue": 0,
     "lastStockInDate": "2026/3/22",
-    "updatedAt": "2026-03-24T22:15:29.949Z",
+    "updatedAt": "2026-03-25T02:47:51.616Z",
     "id": 3,
     "createdAt": "2026-03-22T19:01:53.896Z"
   },
   {
     "herbName": "车前花",
     "herbAlias": "",
-    "quantity": 23,
-    "avgPrice": 323,
+    "quantity": 234324,
+    "avgPrice": 23,
     "minValue": 0,
     "lastStockInDate": "2026/3/22",
-    "updatedAt": "2026-03-24T22:15:29.952Z",
+    "updatedAt": "2026-03-25T02:47:51.613Z",
     "id": 4,
     "createdAt": "2026-03-22T19:01:53.898Z"
   }

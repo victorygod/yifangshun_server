@@ -177,7 +177,6 @@ const tableConfigs = {
       { key: 'quantity', label: '克数', readonly: true, type: 'number' },
       { key: 'unitPrice', label: '进货单价', readonly: true, type: 'number' },
       { key: 'costPrice', label: '成本价', readonly: true, type: 'number' },
-      { key: 'totalPrice', label: '总价', readonly: true, type: 'number' },
       { key: 'remark', label: '备注', readonly: true }
     ],
     searchFields: ['herbName']
@@ -459,6 +458,16 @@ async function loadTableData() {
     tableData = rows;
     const columns = config.columns;
 
+    // 调试：检查返回的数据是否包含明细
+    if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
+      rows.forEach((row, index) => {
+        console.log('[loadTableData] 订单', index, 'ID:', row.id, '明细数量:', row.items?.length || 0);
+        if (row.items && row.items.length > 0) {
+          console.log('[loadTableData] 订单', index, '明细数据:', row.items);
+        }
+      });
+    }
+
     if (rows.length === 0 && editingRowId !== 'new') {
       tableBody.innerHTML = `
         <div class="empty-state">
@@ -653,6 +662,13 @@ async function loadTableData() {
     tableBody.onclick = handleTableClick;
     updateSelectedCount();
     bindAutoSaveEvents();
+
+    // 入库单：为所有展开的订单计算总金额
+    if (currentTable === 'stock_in_orders') {
+      expandedRows.forEach(orderId => {
+        calculateOrderTotalAmount(orderId);
+      });
+    }
 
     // 自动对焦
     if (editingRowId && pendingFocusCol) {
@@ -915,6 +931,9 @@ function renderOrderDetail(row, config, detailTable) {
       html += `<button class="action-btn action-btn-settle" data-action="settleOrder" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">确认结算</button>`;
     }
     html += `<button class="action-btn action-btn-zoom" data-action="zoomDetail" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">放大展示</button></div>`;
+  } else if (currentTable === 'stock_in_orders') {
+    // 入库单明细
+    html += `<div class="detail-header"><span>明细信息</span></div>`;
   } else {
     html += `<div class="detail-header">明细信息</div>`;
   }
@@ -937,7 +956,19 @@ function renderOrderDetail(row, config, detailTable) {
       const isReadonly = col.readonly;
       const isDisabled = col.disabled;
 
-      if (isDetailReadonly || isReadonly) {
+      // ID和入库单ID始终只读
+      const isAlwaysReadonly = col.key === 'id' || col.key === 'orderId';
+      
+      // 草稿状态的入库单：忽略 readonly 配置，允许编辑（但ID和orderId除外）
+      const isActuallyReadonly = isDetailReadonly || isAlwaysReadonly || (isReadonly && !(currentTable === 'stock_in_orders' && row.status === 'draft'));
+
+      // 跳过 totalPrice 列（入库明细不显示总价）
+      if (col.key === 'totalPrice') {
+        html += `<td style="display:none;"></td>`;
+        return;
+      }
+
+      if (isActuallyReadonly) {
         html += `<td><span class="cell-readonly">${value || '-'}</span></td>`;
       } else {
         let dataAttrs = ` data-detail-id="${item.id}" data-order-id="${row.id}"`;
@@ -948,18 +979,11 @@ function renderOrderDetail(row, config, detailTable) {
         if (currentTable === 'stock_in_orders' && (col.key === 'quantity' || col.key === 'unitPrice')) {
           dataAttrs += ' data-cost-calc="true"';
         }
-        if (col.key === 'totalPrice') {
-          dataAttrs += ' data-calc-target="true"';
-        }
         if (col.key === 'cabinetNo') {
           dataAttrs += ' data-cabinet-no="true"';
         }
         const disabledAttr = isDisabled ? ' disabled' : '';
-        if (col.key === 'totalPrice') {
-          const showManualStatus = manuallyModifiedTotals.has(String(item.id));
-          const statusStyle = showManualStatus ? 'display:inline;' : 'display:none;';
-          html += `<td class="cell-with-status"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}${disabledAttr}><span class="manual-status" style="${statusStyle}">已手动指定</span></td>`;
-        } else if (currentTable === 'stock_in_orders' && col.key === 'costPrice') {
+        if (currentTable === 'stock_in_orders' && col.key === 'costPrice') {
           // 入库明细成本价：显示当前成本灰色小字
           const herbInfo = window._herbInfoMap && window._herbInfoMap[item.herbName];
           const currentCost = herbInfo ? herbInfo.costPrice : 0;
@@ -987,7 +1011,18 @@ function renderOrderDetail(row, config, detailTable) {
     detailColumns.forEach(col => {
       const isReadonly = col.readonly;
       const isDisabled = col.disabled;
-      if (isReadonly) {
+      // ID和入库单ID始终只读
+      const isAlwaysReadonly = col.key === 'id' || col.key === 'orderId';
+      // 草稿状态的入库单：忽略 readonly 配置，允许编辑（但ID和orderId除外）
+      const isActuallyReadonly = isReadonly && !(currentTable === 'stock_in_orders' && row.status === 'draft') || isAlwaysReadonly;
+      
+      // 跳过 totalPrice 列（入库明细不显示总价）
+      if (col.key === 'totalPrice') {
+        html += `<td style="display:none;"></td>`;
+        return;
+      }
+      
+      if (isActuallyReadonly) {
         html += `<td><span class="cell-readonly">自动</span></td>`;
       } else {
         let dataAttrs = ' data-is-new="true"';
@@ -998,16 +1033,11 @@ function renderOrderDetail(row, config, detailTable) {
         if (currentTable === 'stock_in_orders' && (col.key === 'quantity' || col.key === 'unitPrice')) {
           dataAttrs += ' data-cost-calc="true"';
         }
-        if (col.key === 'totalPrice') {
-          dataAttrs += ' data-calc-target="true"';
-        }
         if (col.key === 'cabinetNo') {
           dataAttrs += ' data-cabinet-no="true"';
         }
         const disabledAttr = isDisabled ? ' disabled' : '';
-        if (col.key === 'totalPrice') {
-          html += `<td class="cell-with-status"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}><span class="manual-status" style="display:none;">已手动指定</span></td>`;
-        } else if (currentTable === 'stock_in_orders' && col.key === 'costPrice') {
+        if (currentTable === 'stock_in_orders' && col.key === 'costPrice') {
           // 入库明细成本价：新增行暂不显示当前成本
           html += `<td class="cell-with-hint"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}><span class="field-hint"></span></td>`;
         } else {
@@ -1055,7 +1085,8 @@ function handleTableClick(e) {
         toggleDetail(id);
         return;
       case 'deleteDetail':
-        deleteDetailItem(id, orderId);
+        removeDetailRow(id, orderId);
+        showToast('已删除', 'success');
         return;
       case 'saveDetail':
         const editRow = document.querySelector(`tr[data-detail-id="${id}"]`);
@@ -1083,6 +1114,9 @@ function handleTableClick(e) {
         return;
       case 'revertToDraft':
         revertToDraft(id);
+        return;
+      case 'saveOrderDetails':
+        saveOrderDetails(orderId);
         return;
     }
   }
@@ -1187,12 +1221,9 @@ async function getHerbInfoMap() {
 
 function bindAutoSaveEvents() {
   const detailInputs = document.querySelectorAll('.detail-input');
-  console.log('[bindAutoSaveEvents] 找到明细输入框数量:', detailInputs.length);
 
   detailInputs.forEach(input => {
     const col = input.dataset.col;
-    const isDisabled = input.disabled;
-    console.log('[bindAutoSaveEvents] 绑定失焦事件 - 列:', col, 'disabled:', isDisabled);
 
     input.removeEventListener('blur', handleDetailBlur);
     input.addEventListener('blur', handleDetailBlur);
@@ -1314,36 +1345,96 @@ function handleHerbNameInput(e) {
 }
 
 async function handleDetailBlur(e) {
-  console.log('[handleDetailBlur] ====== 触发失焦事件 ======');
-
   const input = e.target;
   const row = input.closest('tr');
-  if (!row) {
-    console.log('[handleDetailBlur] 未找到行元素');
-    return;
-  }
+  if (!row) return;
 
   const isNew = input.dataset.isNew === 'true';
   const orderId = row.dataset.orderId;
   const detailId = input.dataset.detailId;
 
-  console.log('[handleDetailBlur] 触发失焦, 列:', input.dataset.col, 'isNew:', isNew, 'orderId:', orderId, 'detailId:', detailId, 'currentTable:', currentTable);
-
   await calculateDetailTotalPrice(row);
 
-  console.log('[handleDetailBlur] 失焦时不自动保存，请点击保存按钮');
+  // 入库单：重新计算订单总金额
+  if (currentTable === 'stock_in_orders' && orderId) {
+    calculateOrderTotalAmount(orderId);
+  }
+}
+
+// 计算入库单总金额（所有明细的 克数*进货单价 之和）
+function calculateOrderTotalAmount(orderId) {
+  console.log('[calculateOrderTotalAmount] 开始计算订单总价, 订单ID:', orderId, '当前表:', currentTable);
+  
+  if (currentTable !== 'stock_in_orders') {
+    console.log('[calculateOrderTotalAmount] 非入库单，跳过计算');
+    return;
+  }
+  
+  const detailRows = document.querySelectorAll(`tr.detail-row[data-order-id="${orderId}"]`);
+  const newRows = document.querySelectorAll(`tr.detail-new-row[data-order-id="${orderId}"]`);
+  
+  console.log('[calculateOrderTotalAmount] 找到明细行数量:', detailRows.length, '新增行数量:', newRows.length);
+  
+  let totalAmount = 0;
+  
+  // 遍历现有明细行
+  detailRows.forEach((row, index) => {
+    const quantityInput = row.querySelector('.detail-input[data-col="quantity"]');
+    const unitPriceInput = row.querySelector('.detail-input[data-col="unitPrice"]');
+    
+    console.log('[calculateOrderTotalAmount] 明细行', index, 'quantityInput:', !!quantityInput, 'unitPriceInput:', !!unitPriceInput);
+    
+    if (quantityInput && unitPriceInput) {
+      const quantity = parseFloat(quantityInput.value) || 0;
+      const unitPrice = parseFloat(unitPriceInput.value) || 0;
+      const rowTotal = quantity * unitPrice;
+      totalAmount += rowTotal;
+      console.log('[calculateOrderTotalAmount] 明细行', index, '克数:', quantity, '单价:', unitPrice, '小计:', rowTotal);
+    }
+  });
+  
+  // 遍历新增行
+  newRows.forEach((row, index) => {
+    const quantityInput = row.querySelector('.detail-input[data-col="quantity"]');
+    const unitPriceInput = row.querySelector('.detail-input[data-col="unitPrice"]');
+    
+    console.log('[calculateOrderTotalAmount] 新增行', index, 'quantityInput:', !!quantityInput, 'unitPriceInput:', !!unitPriceInput);
+    
+    if (quantityInput && unitPriceInput) {
+      const quantity = parseFloat(quantityInput.value) || 0;
+      const unitPrice = parseFloat(unitPriceInput.value) || 0;
+      const rowTotal = quantity * unitPrice;
+      totalAmount += rowTotal;
+      console.log('[calculateOrderTotalAmount] 新增行', index, '克数:', quantity, '单价:', unitPrice, '小计:', rowTotal);
+    }
+  });
+  
+  // 更新订单行的总金额
+  const orderRow = document.querySelector(`tr[data-id="${orderId}"]`);
+  
+  if (orderRow) {
+    // 总金额字段是只读的，在 td 元素上查找
+    const totalAmountCell = orderRow.querySelector(`td[data-col-key="totalAmount"] span.cell-readonly`);
+    
+    if (totalAmountCell) {
+      totalAmountCell.textContent = totalAmount.toFixed(2);
+    }
+  }
 }
 
 async function calculateDetailTotalPrice(row) {
   const quantityInput = row.querySelector('.detail-input[data-col="quantity"]');
   const unitPriceInput = row.querySelector('.detail-input[data-col="unitPrice"]');
-  const totalPriceInput = row.querySelector('.detail-input[data-col="totalPrice"]');
   const herbNameInput = row.querySelector('.detail-input[data-col="herbName"]');
+  const totalPriceInput = row.querySelector('.detail-input[data-col="totalPrice"]');
   const cabinetNoInput = row.querySelector('.detail-input[data-col="cabinetNo"]');
 
   console.log('[calculateDetailTotalPrice] 当前表:', currentTable);
   console.log('[calculateDetailTotalPrice] 药材名称输入框:', herbNameInput ? '找到' : '未找到');
   console.log('[calculateDetailTotalPrice] 柜号输入框:', cabinetNoInput ? '找到' : '未找到');
+  console.log('[calculateDetailTotalPrice] 克数输入框:', quantityInput ? '找到' : '未找到');
+  console.log('[calculateDetailTotalPrice] 单价输入框:', unitPriceInput ? '找到' : '未找到');
+  console.log('[calculateDetailTotalPrice] 总价输入框:', totalPriceInput ? '找到' : '未找到');
 
   // 执药单：根据药材名称自动获取单价和柜号
   if (currentTable === 'stock_out_orders' && herbNameInput) {
@@ -1374,6 +1465,13 @@ async function calculateDetailTotalPrice(row) {
     }
   }
 
+  // 入库单不需要计算单个明细的总价（totalPrice列已隐藏）
+  if (currentTable === 'stock_in_orders') {
+    console.log('[calculateDetailTotalPrice] 入库单跳过明细总价计算');
+    return;
+  }
+
+  // 执药单需要计算明细总价
   if (!quantityInput || !unitPriceInput || !totalPriceInput) {
     console.log('[calculateDetailTotalPrice] 缺少必要的输入框:', {
       quantity: !!quantityInput,
@@ -1412,108 +1510,140 @@ async function handleCellBlur(e) {
 
 // ==================== 明细保存 ====================
 
+// 保存新增明细（保存到后端并重新加载）
 async function saveDetailNewAuto(row) {
   const orderId = row.dataset.orderId;
   const inputs = row.querySelectorAll('.detail-input');
-  const data = { orderId };
+  const newItem = { orderId };
 
   inputs.forEach(input => {
     const col = input.dataset.col;
-    data[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
+    newItem[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
   });
 
-  console.log('[saveDetailNewAuto] 收集的数据:', data);
+  console.log('[saveDetailNewAuto] 新增明细:', newItem);
 
-  if (!data.herbName && !data.name) {
-    console.log('[saveDetailNewAuto] 药材名称为空，跳过保存');
+  if (!newItem.herbName && !newItem.name) {
     return;
   }
 
-  try {
-    const detailTable = tableConfigs[currentTable].detailTable;
-    console.log('[saveDetailNewAuto] 保存到表:', detailTable, '数据:', data);
-
-    const res = await homeFetch(`/api/admin/table/${detailTable}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    console.log('[saveDetailNewAuto] 保存结果:', res);
-
-    if (res.code !== 0) throw new Error(res.message);
-    showToast('已保存');
-
-    // 执药单展开后重新计算总价
-    if (currentTable === 'stock_out_orders') {
-      await recalculateOrderTotalAmount(orderId);
-    }
-
-    loadTableData();
-  } catch (err) {
-    console.error('[saveDetailNewAuto] 保存失败:', err);
-    showToast('保存失败: ' + err.message, 'error');
+  // 检查是否是入库单且是草稿状态
+  const order = tableData.find(r => String(r.id) === String(orderId));
+  if (currentTable === 'stock_in_orders' && order && order.status !== 'draft') {
+    showToast('已入库的单据不能添加明细', 'error');
+    return;
   }
-}
 
-async function updateDetailItemAuto(detailId, orderId, row) {
-  const inputs = row.querySelectorAll('.detail-input');
-  const data = {};
-
-  inputs.forEach(input => {
-    const col = input.dataset.col;
-    data[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
+  // 收集所有现有明细
+  // 修复：明细数据行使用 data-order-id 属性，不是 class="detail-row"
+  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
+  const items = [];
+  
+  console.log('[saveDetailNewAuto] 查询选择器:', `tr[data-order-id="${orderId}"]`);
+  console.log('[saveDetailNewAuto] 现有明细行数量:', detailRows.length);
+  
+  // 调试：打印所有带有 data-order-id 的行
+  const allRowsWithOrderId = document.querySelectorAll('tr[data-order-id]');
+  console.log('[saveDetailNewAuto] 页面上所有带有 data-order-id 的行数量:', allRowsWithOrderId.length);
+  allRowsWithOrderId.forEach((row, index) => {
+    console.log('[saveDetailNewAuto] 行', index, 'data-order-id:', row.dataset.orderId, 'data-detail-id:', row.dataset.detailId, '匹配结果:', String(row.dataset.orderId) === String(orderId));
   });
+  
+  // 过滤出明细数据行（不是新增行）
+  effectiveDetailRows = Array.from(detailRows).filter(row => !row.classList.contains('detail-new-row'));
+  
+  console.log('[saveDetailNewAuto] 过滤后的明细行数量（排除新增行）:', effectiveDetailRows.length);
+  
+  effectiveDetailRows.forEach((row, index) => {
+    const inputs = row.querySelectorAll('.detail-input');
+    const item = {};
+    
+    inputs.forEach(input => {
+      const col = input.dataset.col;
+      item[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
+    });
+    
+    if (item.herbName || item.name) {
+      items.push(item);
+      console.log('[saveDetailNewAuto] 现有明细', index, ':', item);
+    }
+  });
+  
+  // 添加新明细
+  items.push(newItem);
+  console.log('[saveDetailNewAuto] 最终明细列表:', items);
 
+  // 保存到后端
   try {
-    const detailTable = tableConfigs[currentTable].detailTable;
-    const res = await homeFetch(`/api/admin/table/${detailTable}/${detailId}`, {
+    const apiPath = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${orderId}` : `/api/stock/out/orders/${orderId}`;
+    const res = await homeFetch(apiPath, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({ items })
     });
+    
+    console.log('[saveDetailNewAuto] 后端响应:', JSON.stringify(res, null, 2));
+    console.log('[saveDetailNewAuto] 后端返回的明细数据:', res.data?.items);
+    
     if (res.code !== 0) throw new Error(res.message);
-    showToast('已保存');
-
-    // 执药单展开后重新计算总价
-    if (currentTable === 'stock_out_orders') {
-      await recalculateOrderTotalAmount(orderId);
-    }
-
+    showToast('添加成功', 'success');
+    
+    // 重新加载表格数据，保持展开状态
     loadTableData();
   } catch (err) {
-    showToast('保存失败: ' + err.message, 'error');
+    console.error('[saveDetailNewAuto] 错误:', err);
+    showToast('添加失败: ' + err.message, 'error');
   }
 }
 
 async function saveDetailEdit(detailId, orderId, row) {
-  await updateDetailItemAuto(detailId, orderId, row);
-}
-
-// 重新计算执药单总价
-async function recalculateOrderTotalAmount(orderId) {
+  // 收集当前编辑的明细数据
+  const inputs = row.querySelectorAll('.detail-input');
+  const editedItem = {};
+  
+  inputs.forEach(input => {
+    const col = input.dataset.col;
+    editedItem[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
+  });
+  
+  // 收集所有明细（包括当前编辑的行）
+  // 修复：明细数据行使用 data-order-id 属性，不是 class="detail-row"
+  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
+  const items = [];
+  
+  // 过滤出明细数据行（不是新增行）
+  let effectiveDetailRows = Array.from(detailRows).filter(row => !row.classList.contains('detail-new-row'));
+  
+  effectiveDetailRows.forEach(row => {
+    const inputs = row.querySelectorAll('.detail-input');
+    const item = {};
+    
+    inputs.forEach(input => {
+      const col = input.dataset.col;
+      item[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
+    });
+    
+    if (item.herbName || item.name) {
+      items.push(item);
+    }
+  });
+  
+  // 保存到后端
   try {
-    // 获取执药单最新数据（包含明细）
-    const res = await homeFetch(`/api/stock/out/orders/${orderId}`);
-    if (res.code !== 0) return;
-
-    const order = res.data;
-    if (!order || !order.items) return;
-
-    // 计算总价
-    let totalAmount = 0;
-    order.items.forEach(item => {
-      totalAmount += parseFloat(item.totalPrice) || 0;
-    });
-
-    // 更新主表
-    await homeFetch(`/api/admin/table/stock_out_orders/${orderId}`, {
+    const apiPath = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${orderId}` : `/api/stock/out/orders/${orderId}`;
+    const res = await homeFetch(apiPath, {
       method: 'PUT',
-      body: JSON.stringify({ totalAmount: totalAmount.toFixed(2) })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items })
     });
-
-    console.log('[recalculateOrderTotalAmount] 更新总价:', orderId, totalAmount.toFixed(2));
+    
+    if (res.code !== 0) throw new Error(res.message);
+    showToast('保存成功', 'success');
+    
+    // 重新加载表格数据，保持展开状态
+    loadTableData();
   } catch (err) {
-    console.error('[recalculateOrderTotalAmount] 更新总价失败:', err);
+    showToast('保存失败: ' + err.message, 'error');
   }
 }
 
@@ -1668,11 +1798,10 @@ async function deleteRow(rowId) {
   // 检查是否是入库单或执药单，需要显示明细数量
   if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
     try {
-      const detailTable = currentTable === 'stock_in_orders' ? 'stock_in_items' : 'stock_out_items';
-      const orderIdField = 'orderId';
-
-      const res = await homeFetch(`/api/admin/table/${detailTable}?search=${encodeURIComponent(JSON.stringify({ [orderIdField]: rowId }))}&pageSize=1`);
-      const detailCount = res.data?.total || 0;
+      // 使用对应的API获取单据详情，从中获取明细数量
+      const apiPath = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${rowId}` : `/api/stock/out/orders/${rowId}`;
+      const res = await homeFetch(apiPath);
+      const detailCount = res.data?.items?.length || 0;
 
       const tableLabel = currentTable === 'stock_in_orders' ? '入库单' : '执药单';
       const detailLabel = currentTable === 'stock_in_orders' ? '入库明细' : '执药明细';
@@ -1683,7 +1812,8 @@ async function deleteRow(rowId) {
 
       showConfirm('确认删除', message, async () => {
         try {
-          const res = await homeFetch(`/api/admin/table/${currentTable}/${rowId}`, { method: 'DELETE' });
+          const deleteApi = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${rowId}` : `/api/stock/out/orders/${rowId}`;
+          const res = await homeFetch(deleteApi, { method: 'DELETE' });
           if (res.code !== 0) throw new Error(res.message);
 
           showToast('删除成功', 'success');
@@ -1696,7 +1826,8 @@ async function deleteRow(rowId) {
     } catch (err) {
       showConfirm('确认删除', '确定要删除这条记录吗？', async () => {
         try {
-          const res = await homeFetch(`/api/admin/table/${currentTable}/${rowId}`, { method: 'DELETE' });
+          const deleteApi = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${rowId}` : `/api/stock/out/orders/${rowId}`;
+          const res = await homeFetch(deleteApi, { method: 'DELETE' });
           if (res.code !== 0) throw new Error(res.message);
 
           showToast('删除成功', 'success');
@@ -1735,78 +1866,49 @@ function toggleDetail(rowId) {
   loadTableData();
 }
 
-async function saveDetailNew(orderId) {
-  const newRow = document.querySelector(`tr.detail-new-row[data-order-id="${orderId}"]`);
-  if (!newRow) {
-    showToast('找不到新增行', 'error');
-    return;
+// 删除现有明细行（保存到后端）
+async function removeDetailRow(detailId, orderId) {
+  // 修复：明细数据行使用 data-detail-id 属性，不是 class="detail-row"
+  const row = document.querySelector(`tr[data-detail-id="${detailId}"]`);
+  if (row) {
+    row.remove();
   }
-
-  const inputs = newRow.querySelectorAll('.detail-new-input');
-  const data = { orderId };
-
-  inputs.forEach(input => {
-    const col = input.dataset.col;
-    data[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
-  });
-
-  if (!data.herbName && !data.name) {
-    showToast('请填写药材名称', 'warning');
-    return;
-  }
-
-  try {
-    const detailTable = tableConfigs[currentTable].detailTable;
-    const res = await homeFetch(`/api/admin/table/${detailTable}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+  
+  // 收集剩余明细并保存到后端
+  // 修复：明细数据行使用 data-order-id 属性，不是 class="detail-row"
+  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
+  const items = [];
+  
+  // 过滤出明细数据行（不是新增行）
+  let effectiveDetailRows = Array.from(detailRows).filter(row => !row.classList.contains('detail-new-row'));
+  
+  effectiveDetailRows.forEach(row => {
+    const inputs = row.querySelectorAll('.detail-input');
+    const item = {};
+    
+    inputs.forEach(input => {
+      const col = input.dataset.col;
+      item[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
     });
-    if (res.code !== 0) throw new Error(res.message);
-    showToast('添加成功');
-    loadTableData();
-  } catch (err) {
-    showToast('添加失败: ' + err.message, 'error');
-  }
-}
-
-async function updateDetailItem(itemId, orderId) {
-  const row = document.querySelector(`tr[data-detail-id="${itemId}"]`);
-  if (!row) {
-    showToast('找不到编辑行', 'error');
-    return;
-  }
-
-  const inputs = row.querySelectorAll('.detail-input');
-  const data = {};
-
-  inputs.forEach(input => {
-    const col = input.dataset.col;
-    data[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
+    
+    if (item.herbName || item.name) {
+      items.push(item);
+    }
   });
-
+  
+  // 保存到后端
   try {
-    const detailTable = tableConfigs[currentTable].detailTable;
-    const res = await homeFetch(`/api/admin/table/${detailTable}/${itemId}`, {
+    const apiPath = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${orderId}` : `/api/stock/out/orders/${orderId}`;
+    const res = await homeFetch(apiPath, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({ items })
     });
+    
     if (res.code !== 0) throw new Error(res.message);
-    showToast('保存成功');
-    loadTableData();
-  } catch (err) {
-    showToast('保存失败: ' + err.message, 'error');
-  }
-}
-
-async function deleteDetailItem(itemId, orderId) {
-  try {
-    const res = await homeFetch(`/api/admin/table/${tableConfigs[currentTable].detailTable}/${itemId}`, {
-      method: 'DELETE'
-    });
-    if (res.code !== 0) throw new Error(res.message);
-    showToast('删除成功');
+    showToast('删除成功', 'success');
+    
+    // 重新加载表格数据，保持展开状态
     loadTableData();
   } catch (err) {
     showToast('删除失败: ' + err.message, 'error');
