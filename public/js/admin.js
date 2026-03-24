@@ -164,32 +164,34 @@ const tableConfigs = {
   },
   stock_in_items: {
     displayName: '入库明细',
+    readonly: true,
     columns: [
       { key: 'id', label: 'ID', readonly: true },
       { key: 'orderId', label: '入库单ID', readonly: true },
-      { key: 'herbName', label: '药材名称', editable: true },
-      { key: 'quality', label: '品质', editable: true },
-      { key: 'origin', label: '产地', editable: true },
-      { key: 'productionDate', label: '生产日期', editable: true, type: 'date' },
-      { key: 'expiryDate', label: '保质期至', editable: true, type: 'date' },
-      { key: 'quantity', label: '克数', editable: true, type: 'number' },
-      { key: 'unitPrice', label: '进货单价', editable: true, type: 'number' },
-      { key: 'costPrice', label: '成本价', editable: true, type: 'number' },
-      { key: 'totalPrice', label: '总价', editable: true, type: 'number' },
-      { key: 'remark', label: '备注', editable: true }
+      { key: 'herbName', label: '药材名称', readonly: true },
+      { key: 'quality', label: '品质', readonly: true },
+      { key: 'origin', label: '产地', readonly: true },
+      { key: 'productionDate', label: '生产日期', readonly: true, type: 'date' },
+      { key: 'expiryDate', label: '保质期至', readonly: true, type: 'date' },
+      { key: 'quantity', label: '克数', readonly: true, type: 'number' },
+      { key: 'unitPrice', label: '进货单价', readonly: true, type: 'number' },
+      { key: 'costPrice', label: '成本价', readonly: true, type: 'number' },
+      { key: 'totalPrice', label: '总价', readonly: true, type: 'number' },
+      { key: 'remark', label: '备注', readonly: true }
     ],
     searchFields: ['herbName']
   },
   stock_out_items: {
     displayName: '执药明细',
+    readonly: true,
     columns: [
       { key: 'id', label: 'ID', readonly: true },
       { key: 'orderId', label: '执药单ID', readonly: true },
-      { key: 'herbName', label: '药材名称', editable: true },
-      { key: 'cabinetNo', label: '柜号', editable: true, disabled: true },
-      { key: 'quantity', label: '克数', editable: true, type: 'number' },
-      { key: 'unitPrice', label: '单价', editable: true, disabled: true, type: 'number' },
-      { key: 'totalPrice', label: '本药总价', editable: true, type: 'number' }
+      { key: 'herbName', label: '药材名称', readonly: true },
+      { key: 'cabinetNo', label: '柜号', readonly: true },
+      { key: 'quantity', label: '克数', readonly: true, type: 'number' },
+      { key: 'unitPrice', label: '单价', readonly: true, type: 'number' },
+      { key: 'totalPrice', label: '本药总价', readonly: true, type: 'number' }
     ],
     searchFields: ['herbName']
   },
@@ -391,14 +393,14 @@ async function renderTablePage() {
     <div class="page-header">
       <div class="page-title">${config.displayName}</div>
       <div class="page-actions">
-        <button class="btn btn-primary" id="addNewBtn">+ 新增记录</button>
+        ${!config.readonly ? '<button class="btn btn-primary" id="addNewBtn">+ 新增记录</button>' : ''}
       </div>
     </div>
     <div class="table-container">
       <div class="table-toolbar">
         <div class="toolbar-left">
           <input type="text" class="search-input" placeholder="搜索..." id="searchInput" value="${searchKeyword}">
-          <button class="btn btn-danger" id="batchDeleteBtn" disabled>🗑️ 批量删除</button>
+          ${!config.readonly ? '<button class="btn btn-danger" id="batchDeleteBtn" disabled>🗑️ 批量删除</button>' : ''}
         </div>
         <div class="selected-count" id="selectedCount"></div>
       </div>
@@ -408,8 +410,10 @@ async function renderTablePage() {
     </div>
   `;
 
-  document.getElementById('addNewBtn').addEventListener('click', addNewRow);
-  document.getElementById('batchDeleteBtn').addEventListener('click', batchDelete);
+  const addNewBtn = document.getElementById('addNewBtn');
+  if (addNewBtn) addNewBtn.addEventListener('click', addNewRow);
+  const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+  if (batchDeleteBtn) batchDeleteBtn.addEventListener('click', batchDelete);
   document.getElementById('searchInput').addEventListener('keyup', handleSearch);
 
   await loadTableData();
@@ -463,11 +467,11 @@ async function loadTableData() {
         <table class="data-table">
           <thead>
             <tr>
-              <th class="col-checkbox">
+              ${!config.readonly ? `<th class="col-checkbox">
                 <input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
-              </th>
+              </th>` : ''}
               ${columns.map(col => `<th>${col.label}</th>`).join('')}
-              <th class="col-action">操作</th>
+              ${(!config.readonly || hasDetail || currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') ? '<th class="col-action">操作</th>' : ''}
             </tr>
           </thead>
           <tbody>
@@ -479,11 +483,13 @@ async function loadTableData() {
 
       // 主行
       html += `<tr data-id="${row.id}" class="${isEditing ? 'editing' : ''}">`;
-      html += `<td class="col-checkbox">
-        <input type="checkbox" class="checkbox row-checkbox" data-id="${row.id}"
-          ${selectedIds.includes(row.id) ? 'checked' : ''}
-          onchange="toggleSelect('${row.id}')">
-      </td>`;
+      if (!config.readonly) {
+        html += `<td class="col-checkbox">
+          <input type="checkbox" class="checkbox row-checkbox" data-id="${row.id}"
+            ${selectedIds.includes(row.id) ? 'checked' : ''}
+            onchange="toggleSelect('${row.id}')">
+        </td>`;
+      }
 
       columns.forEach(col => {
         const value = row[col.key] ?? '';
@@ -533,40 +539,45 @@ async function loadTableData() {
         }
       });
 
-      // 操作列
-      html += `<td class="col-action">`;
+      // 操作列（只读表且无详情时隐藏操作列）
+      const showActionCol = !config.readonly || hasDetail || currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders';
+      if (showActionCol) {
+        html += `<td class="col-action">`;
 
-      // 展开按钮
-      if (hasDetail) {
-        html += `<button class="action-btn action-btn-expand" data-action="toggleDetail" data-id="${row.id}">
-          ${isExpanded ? '收起' : '展开'}
-        </button>`;
-      }
-
-      // 入库单特殊操作按钮
-      if (currentTable === 'stock_in_orders') {
-        if (row.status === 'draft') {
-          html += `<button class="action-btn action-btn-confirm" data-action="confirmStockIn" data-id="${row.id}">确认入库</button>`;
-        } else if (row.status === 'stocked') {
-          html += `<button class="action-btn action-btn-revert" data-action="revertToDraft" data-id="${row.id}">退回草稿</button>`;
+        // 展开按钮
+        if (hasDetail) {
+          html += `<button class="action-btn action-btn-expand" data-action="toggleDetail" data-id="${row.id}">
+            ${isExpanded ? '收起' : '展开'}
+          </button>`;
         }
-      }
 
-      if (isEditing) {
-        html += `<button class="action-btn action-btn-save" data-action="save" data-id="${row.id}">保存</button>`;
-      } else {
-        // 执药单特殊处理
-        if (currentTable === 'stock_out_orders' && row.status === 'settled') {
-          html += `<button class="action-btn action-btn-revoke" data-action="revokeOrder" data-id="${row.id}" data-order-id="${row.id}">撤销</button>`;
-        } else if ((currentTable !== 'stock_in_orders' || row.status === 'draft') && 
-                   !(currentTable === 'prescriptions' && row.status === '已结算')) {
-          // 入库单已入库状态不显示删除按钮（通过退回草稿后删除）
-          // 已结算处方不显示删除按钮
-          html += `<button class="action-btn action-btn-delete" data-action="delete" data-id="${row.id}">删除</button>`;
+        // 入库单特殊操作按钮
+        if (currentTable === 'stock_in_orders') {
+          if (row.status === 'draft') {
+            html += `<button class="action-btn action-btn-confirm" data-action="confirmStockIn" data-id="${row.id}">确认入库</button>`;
+          } else if (row.status === 'stocked') {
+            html += `<button class="action-btn action-btn-revert" data-action="revertToDraft" data-id="${row.id}">退回草稿</button>`;
+          }
         }
+
+        if (isEditing) {
+          html += `<button class="action-btn action-btn-save" data-action="save" data-id="${row.id}">保存</button>`;
+        } else if (!config.readonly) {
+          // 执药单特殊处理
+          if (currentTable === 'stock_out_orders' && row.status === 'settled') {
+            html += `<button class="action-btn action-btn-revoke" data-action="revokeOrder" data-id="${row.id}" data-order-id="${row.id}">撤销</button>`;
+          } else if ((currentTable !== 'stock_in_orders' || row.status === 'draft') && 
+                     !(currentTable === 'prescriptions' && row.status === '已结算')) {
+            // 入库单已入库状态不显示删除按钮（通过退回草稿后删除）
+            // 已结算处方不显示删除按钮
+            html += `<button class="action-btn action-btn-delete" data-action="delete" data-id="${row.id}">删除</button>`;
+          }
+        }
+
+        html += `</td>`;
       }
 
-      html += `</td></tr>`;
+      html += `</tr>`;
 
       // 详情行
       if (hasDetail && isExpanded) {
@@ -581,7 +592,7 @@ async function loadTableData() {
     });
 
     // 新增行
-    if (editingRowId === 'new') {
+    if (editingRowId === 'new' && !config.readonly) {
       html += `<tr class="editing" data-id="new">`;
       html += `<td class="col-checkbox"><input type="checkbox" class="checkbox" disabled></td>`;
       columns.forEach(col => {
