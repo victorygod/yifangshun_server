@@ -403,9 +403,9 @@ async function renderTablePage() {
           <input type="text" class="search-input" placeholder="搜索..." id="searchInput" value="${searchKeyword}">
           ${!config.readonly ? '<button class="btn btn-danger" id="batchDeleteBtn" disabled>🗑️ 批量删除</button>' : ''}
           <button class="btn btn-success" id="exportBtn">📤 导出</button>
-          <label class="btn btn-primary" style="margin-left:8px;cursor:pointer;">📥 导入
+          ${!config.readonly ? `<label class="btn btn-primary" style="margin-left:8px;cursor:pointer;">📥 导入
             <input type="file" accept=".xlsx,.xls" style="display:none" id="importFile">
-          </label>
+          </label>` : ''}
         </div>
         <div class="selected-count" id="selectedCount"></div>
       </div>
@@ -423,7 +423,8 @@ async function renderTablePage() {
   
   // 导入导出按钮事件
   document.getElementById('exportBtn').addEventListener('click', exportTableData);
-  document.getElementById('importFile').addEventListener('change', handleImportFile);
+  const importFile = document.getElementById('importFile');
+  if (importFile) importFile.addEventListener('change', handleImportFile);
 
   await loadTableData();
 }
