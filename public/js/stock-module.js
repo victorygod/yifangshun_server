@@ -680,6 +680,144 @@ export function closeZoomModal() {
   }
 }
 
+// ==================== 订单创建和删除辅助函数 ====================
+
+/**
+ * 验证新增订单数据
+ * @param {Object} data - 订单数据
+ * @param {string} tableType - 表类型 ('stock_in_orders' 或 'stock_out_orders')
+ * @returns {Object} { valid: boolean, error?: string }
+ */
+export function validateNewOrderData(data, tableType) {
+  if (tableType === 'stock_in_orders') {
+    if (!data || !data.supplierName) {
+      return { valid: false, error: '请填写供应商名称' };
+    }
+  }
+  return { valid: true };
+}
+
+/**
+ * 获取创建订单的 API 路径
+ * @param {string} tableType - 表类型
+ * @returns {string} API 路径
+ */
+export function getCreateOrderApiPath(tableType) {
+  if (tableType === 'stock_in_orders') {
+    return '/api/stock/in/orders';
+  } else if (tableType === 'stock_out_orders') {
+    return `/api/admin/table/${tableType}`;
+  }
+  return `/api/admin/table/${tableType}`;
+}
+
+/**
+ * 获取订单明细数量
+ * @param {string} rowId - 订单 ID
+ * @param {string} tableType - 表类型
+ * @returns {Promise<number>} 明细数量
+ */
+export async function getOrderDetailCount(rowId, tableType) {
+  try {
+    const apiPath = tableType === 'stock_in_orders' 
+      ? `/api/stock/in/orders/${rowId}` 
+      : `/api/stock/out/orders/${rowId}`;
+    
+    const res = await _dependencies.homeFetch(apiPath);
+    if (res.code !== 0) {
+      console.error(`[StockModule] 获取订单详情失败:`, res.message);
+      return 0;
+    }
+    
+    return res.data?.items?.length || 0;
+  } catch (err) {
+    console.error(`[StockModule] 获取订单明细数量异常:`, err);
+    return 0;
+  }
+}
+
+/**
+ * 处理删除前的确认逻辑
+ * @param {string} rowId - 订单 ID
+ * @param {Object} row - 订单数据
+ * @param {string} tableType - 表类型
+ * @returns {Object} { canDelete: boolean, needConfirm: boolean, message?: string, needSpecialHandling?: boolean }
+ */
+export function handleDeleteBeforeConfirm(rowId, row, tableType) {
+  // 入库单已入库状态需要特殊处理
+  if (tableType === 'stock_in_orders' && row && row.status === 'stocked') {
+    return {
+      canDelete: true,
+      needSpecialHandling: true,
+      message: '该入库单已入库，删除前需要先退回草稿。是否退回草稿并删除？'
+    };
+  }
+  
+  return {
+    canDelete: true,
+    needSpecialHandling: false
+  };
+}
+
+/**
+ * 获取删除订单的 API 路径
+ * @param {string} rowId - 订单 ID
+ * @param {string} tableType - 表类型
+ * @returns {string} API 路径
+ */
+export function getDeleteApiPath(rowId, tableType) {
+  if (tableType === 'stock_in_orders' || tableType === 'stock_out_orders') {
+    return `/api/${tableType.replace('_', '/')}/${rowId}`;
+  }
+  return `/api/admin/table/${tableType}/${rowId}`;
+}
+
+/**
+ * 处理特殊删除逻辑（如已入库单需要先退回草稿）
+ * @param {string} rowId - 订单 ID
+ * @returns {Promise<{ success: boolean, error?: string }>}
+ */
+export async function handleSpecialDelete(rowId) {
+  try {
+    // 先退回草稿
+    const revertRes = await _dependencies.homeFetch(`/api/stock/in/orders/${rowId}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status: 'draft' })
+    });
+    
+    if (revertRes.code !== 0) {
+      return { success: false, error: '退回草稿失败: ' + revertRes.message };
+    }
+    
+    // 再删除
+    const deleteRes = await _dependencies.homeFetch(`/api/stock/in/orders/${rowId}`, { 
+      method: 'DELETE' 
+    });
+    
+    if (deleteRes.code !== 0) {
+      return { success: false, error: deleteRes.message };
+    }
+    
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * 获取订单标签（用于提示信息）
+ * @param {string} tableType - 表类型
+ * @returns {Object} { orderLabel: string, detailLabel: string }
+ */
+export function getOrderLabels(tableType) {
+  if (tableType === 'stock_in_orders') {
+    return { orderLabel: '入库单', detailLabel: '入库明细' };
+  } else if (tableType === 'stock_out_orders') {
+    return { orderLabel: '执药单', detailLabel: '执药明细' };
+  }
+  return { orderLabel: '记录', detailLabel: '明细' };
+}
+
 // ==================== 导出模块实例供全局访问 ====================
 if (typeof window !== 'undefined') {
   window._stockModule = {
@@ -699,6 +837,13 @@ if (typeof window !== 'undefined') {
     handleCostCalcBlur,
     recalculateCostPricesForOrder,
     showZoomDetail,
-    closeZoomModal
+    closeZoomModal,
+    validateNewOrderData,
+    getCreateOrderApiPath,
+    getOrderDetailCount,
+    handleDeleteBeforeConfirm,
+    getDeleteApiPath,
+    handleSpecialDelete,
+    getOrderLabels
   };
 }

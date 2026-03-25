@@ -1241,10 +1241,11 @@ async function saveNewRow() {
     }
   });
 
-  // 入库管理特殊处理：需要至少填写供应商名称
-  if (currentTable === 'stock_in_orders') {
-    if (!data.supplierName) {
-      showToast('请填写供应商名称', 'error');
+  // 各模块的特殊验证
+  if (currentTable === 'stock_in_orders' && window._stockModule) {
+    const validation = window._stockModule.validateNewOrderData(data, currentTable);
+    if (!validation.valid) {
+      showToast(validation.error, 'error');
       return;
     }
   }
@@ -1255,10 +1256,12 @@ async function saveNewRow() {
   }
 
   try {
-    // 入库单使用专用 API（会自动生成 orderNo 和设置默认状态）
-    const apiUrl = currentTable === 'stock_in_orders' 
-      ? '/api/stock/in/orders' 
-      : `/api/admin/table/${currentTable}`;
+    // 获取创建订单的 API 路径（各模块可能有不同路径）
+    let apiUrl = `/api/admin/table/${currentTable}`;
+    
+    if (currentTable === 'stock_in_orders' && window._stockModule) {
+      apiUrl = window._stockModule.getCreateOrderApiPath(currentTable);
+    }
     
     const res = await homeFetch(apiUrl, {
       method: 'POST',
@@ -1278,32 +1281,27 @@ async function saveNewRow() {
 }
 
 async function deleteRow(rowId) {
-  // 已结算处方禁止删除
-  if (currentTable === 'prescriptions') {
-    const row = tableData.find(r => String(r.id) === String(rowId));
-    if (row && row.status === '已结算') {
-      showToast('已结算处方不可删除', 'error');
+  const row = tableData.find(r => String(r.id) === String(rowId));
+  
+  // 各模块的删除前验证
+  if (currentTable === 'prescriptions' && window._prescriptionModule) {
+    const validation = window._prescriptionModule.validateDelete(rowId, row);
+    if (!validation.canDelete) {
+      showToast(validation.message, 'error');
       return;
     }
   }
   
-  // 入库单已入库状态需要特殊处理
-  if (currentTable === 'stock_in_orders') {
-    const row = tableData.find(r => String(r.id) === String(rowId));
-    if (row && row.status === 'stocked') {
-      showConfirm('确认删除', '该入库单已入库，删除前需要先退回草稿。是否退回草稿并删除？', async () => {
+  // 入库单的特殊处理
+  if (currentTable === 'stock_in_orders' && window._stockModule) {
+    const handleResult = window._stockModule.handleDeleteBeforeConfirm(rowId, row, currentTable);
+    if (handleResult.needSpecialHandling) {
+      showConfirm('确认删除', handleResult.message, async () => {
         try {
-          // 先退回草稿
-          const revertRes = await homeFetch(`/api/stock/in/orders/${rowId}/status`, {
-            method: 'PUT',
-            body: JSON.stringify({ status: 'draft' })
-          });
-          if (revertRes.code !== 0) throw new Error('退回草稿失败: ' + revertRes.message);
-
-          // 再删除
-          const res = await homeFetch(`/api/admin/table/${currentTable}/${rowId}`, { method: 'DELETE' });
-          if (res.code !== 0) throw new Error(res.message);
-
+          const result = await window._stockModule.handleSpecialDelete(rowId);
+          if (!result.success) {
+            throw new Error(result.error);
+          }
           showToast('删除成功', 'success');
           loadTableData();
           loadStats();
@@ -1315,63 +1313,46 @@ async function deleteRow(rowId) {
     }
   }
 
-  // 检查是否是入库单或执药单，需要显示明细数量
-  if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
+  // 构建确认消息和删除逻辑
+  let confirmMessage = '确定要删除这条记录吗？';
+  let deleteAction = async () => {
     try {
-      // 使用对应的API获取单据详情，从中获取明细数量
-      const apiPath = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${rowId}` : `/api/stock/out/orders/${rowId}`;
-      const res = await homeFetch(apiPath);
-      const detailCount = res.data?.items?.length || 0;
-
-      const tableLabel = currentTable === 'stock_in_orders' ? '入库单' : '执药单';
-      const detailLabel = currentTable === 'stock_in_orders' ? '入库明细' : '执药明细';
-
-      const message = detailCount > 0
-        ? `确定要删除这条${tableLabel}吗？\n\n⚠️ 关联的 ${detailCount} 条${detailLabel}也将一并删除！`
-        : `确定要删除这条${tableLabel}吗？`;
-
-      showConfirm('确认删除', message, async () => {
-        try {
-          const deleteApi = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${rowId}` : `/api/stock/out/orders/${rowId}`;
-          const res = await homeFetch(deleteApi, { method: 'DELETE' });
-          if (res.code !== 0) throw new Error(res.message);
-
-          showToast('删除成功', 'success');
-          loadTableData();
-          loadStats();
-        } catch (err) {
-          showToast('删除失败: ' + err.message, 'error');
-        }
-      });
-    } catch (err) {
-      showConfirm('确认删除', '确定要删除这条记录吗？', async () => {
-        try {
-          const deleteApi = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${rowId}` : `/api/stock/out/orders/${rowId}`;
-          const res = await homeFetch(deleteApi, { method: 'DELETE' });
-          if (res.code !== 0) throw new Error(res.message);
-
-          showToast('删除成功', 'success');
-          loadTableData();
-          loadStats();
-        } catch (err) {
-          showToast('删除失败: ' + err.message, 'error');
-        }
-      });
-    }
-  } else {
-    showConfirm('确认删除', '确定要删除这条记录吗？', async () => {
-      try {
-        const res = await homeFetch(`/api/admin/table/${currentTable}/${rowId}`, { method: 'DELETE' });
-        if (res.code !== 0) throw new Error(res.message);
-
-        showToast('删除成功', 'success');
-        loadTableData();
-        loadStats();
-      } catch (err) {
-        showToast('删除失败: ' + err.message, 'error');
+      // 获取删除 API 路径
+      let deleteApi = `/api/admin/table/${currentTable}/${rowId}`;
+      
+      if ((currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') && window._stockModule) {
+        deleteApi = window._stockModule.getDeleteApiPath(rowId, currentTable);
       }
-    });
+      
+      const res = await homeFetch(deleteApi, { method: 'DELETE' });
+      if (res.code !== 0) throw new Error(res.message);
+
+      showToast('删除成功', 'success');
+      loadTableData();
+      loadStats();
+    } catch (err) {
+      showToast('删除失败: ' + err.message, 'error');
+    }
+  };
+
+  // 入库单/执药单需要显示明细数量警告
+  if ((currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') && window._stockModule) {
+    try {
+      const detailCount = await window._stockModule.getOrderDetailCount(rowId, currentTable);
+      const labels = window._stockModule.getOrderLabels(currentTable);
+      
+      if (detailCount > 0) {
+        confirmMessage = `确定要删除这条${labels.orderLabel}吗？\n\n⚠️ 关联的 ${detailCount} 条${labels.detailLabel}也将一并删除！`;
+      } else {
+        confirmMessage = `确定要删除这条${labels.orderLabel}吗？`;
+      }
+    } catch (err) {
+      console.error('获取明细数量失败:', err);
+      // 即使获取失败，也允许删除，使用默认消息
+    }
   }
+
+  showConfirm('确认删除', confirmMessage, deleteAction);
 }
 
 // ==================== 展开详情操作 ====================

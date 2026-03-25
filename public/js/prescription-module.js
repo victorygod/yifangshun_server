@@ -130,12 +130,33 @@ export function removeMedicine(rowId, index) {
   }
 }
 
+// ==================== 处方删除验证 ====================
+
+/**
+ * 验证是否可以删除处方
+ * @param {string} rowId - 处方行ID
+ * @param {Object} row - 处方数据
+ * @returns {Object} { canDelete: boolean, message?: string }
+ */
+export function validateDelete(rowId, row) {
+  // 已结算处方禁止删除
+  if (row && row.status === '已结算') {
+    return {
+      canDelete: false,
+      message: '已结算处方不可删除'
+    };
+  }
+  
+  return { canDelete: true };
+}
+
 // ==================== 导出模块实例供全局访问 ====================
 if (typeof window !== 'undefined') {
   window._prescriptionModule = {
     initPrescriptionModule,
     savePrescriptionDetail,
     addMedicine,
-    removeMedicine
+    removeMedicine,
+    validateDelete
   };
 }

@@ -60,8 +60,8 @@
     "totalPrice": 7556656,
     "remark": "",
     "id": 14,
-    "createdAt": "2026-03-25T22:40:15.089Z",
-    "updatedAt": "2026-03-25T22:40:15.089Z"
+    "createdAt": "2026-03-25T23:11:32.244Z",
+    "updatedAt": "2026-03-25T23:11:32.244Z"
   },
   {
     "orderId": "2",
@@ -72,12 +72,12 @@
     "expiryDate": "324",
     "quantity": 32490,
     "unitPrice": 20,
-    "costPrice": 35.4,
+    "costPrice": 46.58,
     "totalPrice": 649800,
     "remark": "",
     "id": 15,
-    "createdAt": "2026-03-25T22:40:15.090Z",
-    "updatedAt": "2026-03-25T22:40:15.090Z"
+    "createdAt": "2026-03-25T23:11:32.245Z",
+    "updatedAt": "2026-03-25T23:11:32.245Z"
   },
   {
     "orderId": "2",
@@ -92,23 +92,39 @@
     "totalPrice": 20010,
     "remark": "",
     "id": 16,
-    "createdAt": "2026-03-25T22:40:15.091Z",
-    "updatedAt": "2026-03-25T22:40:15.091Z"
+    "createdAt": "2026-03-25T23:11:32.247Z",
+    "updatedAt": "2026-03-25T23:11:32.247Z"
+  },
+  {
+    "orderId": "2",
+    "herbName": "金樱子",
+    "quality": "324",
+    "origin": "324",
+    "productionDate": "324",
+    "expiryDate": "324",
+    "quantity": 123,
+    "unitPrice": 7,
+    "costPrice": 7,
+    "totalPrice": 861,
+    "remark": "",
+    "id": 17,
+    "createdAt": "2026-03-25T23:11:32.248Z",
+    "updatedAt": "2026-03-25T23:11:32.248Z"
   },
   {
     "orderId": "2",
     "herbName": "苡米仁",
-    "quality": "3243",
-    "origin": "",
-    "productionDate": "",
-    "expiryDate": "",
-    "quantity": 2356,
-    "unitPrice": 23,
-    "costPrice": 23,
-    "totalPrice": 54188,
+    "quality": "324",
+    "origin": "43",
+    "productionDate": "42",
+    "expiryDate": "243",
+    "quantity": 326,
+    "unitPrice": 2,
+    "costPrice": 20.45,
+    "totalPrice": 652,
     "remark": "",
-    "id": 17,
-    "createdAt": "2026-03-25T22:40:15.091Z",
-    "updatedAt": "2026-03-25T22:40:15.091Z"
+    "id": 18,
+    "createdAt": "2026-03-25T23:11:32.248Z",
+    "updatedAt": "2026-03-25T23:11:32.248Z"
   }
 ]
