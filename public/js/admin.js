@@ -224,6 +224,23 @@ let tableData = [];
 // ==================== 初始化 ====================
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // 初始化 Stock 模块
+  if (window._stockModule && window._stockModule.initStockModule) {
+    window._stockModule.initStockModule({
+      homeFetch: homeFetch,
+      showToast: showToast,
+      showConfirm: showConfirm,
+      showAlert: showAlert,
+      escapeHtml: escapeHtml,
+      loadTableData: loadTableData,
+      loadStats: loadStats,
+      getTableData: () => tableData,
+      getCurrentTable: () => currentTable,
+      getExpandedRows: () => expandedRows
+    });
+    console.log('[admin.js] Stock 模块已初始化');
+  }
+
   // 检查登录状态
   const urlParams = new URLSearchParams(window.location.search);
   const phoneNumber = urlParams.get('phone_number');
@@ -1172,38 +1189,20 @@ function handleTableClick(e) {
 
 // 确认入库
 async function confirmStockIn(rowId) {
-  showConfirm('确认入库', '确认入库后，库存将自动增加。确定要入库吗？', async () => {
-    try {
-      const res = await homeFetch(`/api/stock/in/orders/${rowId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: 'stocked' })
-      });
-      if (res.code !== 0) throw new Error(res.message);
-      showToast('入库成功', 'success');
-      loadTableData();
-      loadStats();
-    } catch (err) {
-      showToast('入库失败: ' + err.message, 'error');
-    }
-  });
+  if (window._stockModule && window._stockModule.confirmStockIn) {
+    window._stockModule.confirmStockIn(rowId);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
+  }
 }
 
 // 退回草稿
 async function revertToDraft(rowId) {
-  showConfirm('退回草稿', '退回草稿后，库存将自动扣减。确定要退回吗？', async () => {
-    try {
-      const res = await homeFetch(`/api/stock/in/orders/${rowId}/status`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: 'draft' })
-      });
-      if (res.code !== 0) throw new Error(res.message);
-      showToast('已退回草稿', 'success');
-      loadTableData();
-      loadStats();
-    } catch (err) {
-      showToast('退回失败: ' + err.message, 'error');
-    }
-  });
+  if (window._stockModule && window._stockModule.revertToDraft) {
+    window._stockModule.revertToDraft(rowId);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
+  }
 }
 
 // ==================== 药材信息缓存 ====================
@@ -1211,24 +1210,8 @@ async function revertToDraft(rowId) {
 let herbInfoCache = null;
 
 async function getHerbInfoMap() {
-  if (herbInfoCache) return herbInfoCache;
-
-  try {
-    const res = await homeFetch('/api/stock/herbs');
-    if (res.code === 0 && res.data) {
-      herbInfoCache = {};
-      res.data.forEach(herb => {
-        herbInfoCache[herb.name] = {
-          salePrice: herb.salePrice || 0,
-          cabinetNo: herb.cabinetNo || '',
-          stock: herb.stock || 0,
-          costPrice: herb.costPrice || 0
-        };
-      });
-      return herbInfoCache;
-    }
-  } catch (err) {
-    console.error('获取药材信息失败:', err);
+  if (window._stockModule && window._stockModule.getHerbInfoMap) {
+    return window._stockModule.getHerbInfoMap();
   }
   return {};
 }
@@ -1967,40 +1950,20 @@ async function removeDetailRow(detailId, orderId) {
 
 // 结算执药单
 async function settleOutOrder(orderId) {
-  showConfirm('确认结算', '确认结算后，对应处方将变为"已结算"状态，且库存将自动扣减。确定要结算吗？', async () => {
-    try {
-      const res = await homeFetch(`/api/stock/out/orders/${orderId}/settle`, {
-        method: 'POST'
-      });
-      if (res.code !== 0) {
-        // 库存不足等错误信息弹窗显示
-        showAlert('结算失败', res.message);
-        return;
-      }
-      showToast('结算成功', 'success');
-      loadTableData();
-      loadStats();
-    } catch (err) {
-      showAlert('结算失败', err.message);
-    }
-  });
+  if (window._stockModule && window._stockModule.settleOutOrder) {
+    window._stockModule.settleOutOrder(orderId);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
+  }
 }
 
 // 撤销已结算的执药单
 async function revokeSettledOrder(orderId) {
-  showConfirm('确认撤销', '撤销后，执药单将恢复为"待执药"状态，库存将自动恢复，对应处方变为"已审核"。确定要撤销吗？', async () => {
-    try {
-      const res = await homeFetch(`/api/stock/out/orders/${orderId}/revoke`, {
-        method: 'POST'
-      });
-      if (res.code !== 0) throw new Error(res.message);
-      showToast('撤销成功', 'success');
-      loadTableData();
-      loadStats();
-    } catch (err) {
-      showToast('撤销失败: ' + err.message, 'error');
-    }
-  });
+  if (window._stockModule && window._stockModule.revokeSettledOrder) {
+    window._stockModule.revokeSettledOrder(orderId);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
+  }
 }
 
 // ==================== 多选与批量删除 ====================

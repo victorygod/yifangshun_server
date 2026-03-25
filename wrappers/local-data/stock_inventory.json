@@ -13,11 +13,11 @@
   {
     "herbName": "防风",
     "herbAlias": "",
-    "quantity": 324760,
-    "avgPrice": 232.74952272447345,
+    "quantity": 32867,
+    "avgPrice": 230.5250251011653,
     "minValue": 0,
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T03:05:06.452Z",
+    "updatedAt": "2026-03-25T22:19:27.880Z",
     "id": 2,
     "createdAt": "2026-03-22T19:01:53.895Z"
   },
@@ -35,11 +35,11 @@
   {
     "herbName": "车前花",
     "herbAlias": "",
-    "quantity": 237573,
-    "avgPrice": 32.96835440782284,
+    "quantity": 266814,
+    "avgPrice": 56.517993583681815,
     "minValue": 0,
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T03:05:06.450Z",
+    "updatedAt": "2026-03-25T22:19:27.878Z",
     "id": 4,
     "createdAt": "2026-03-22T19:01:53.898Z"
   },
@@ -50,7 +50,7 @@
     "avgPrice": 23,
     "minValue": 0,
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T03:05:06.454Z",
+    "updatedAt": "2026-03-25T22:19:27.882Z",
     "id": 5,
     "createdAt": "2026-03-25T03:04:46.364Z"
   }
