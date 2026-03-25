@@ -92,8 +92,8 @@
     "totalPrice": 7556656,
     "remark": "",
     "id": 21,
-    "createdAt": "2026-03-26T00:35:27.598Z",
-    "updatedAt": "2026-03-26T00:35:27.598Z"
+    "createdAt": "2026-03-26T00:56:13.429Z",
+    "updatedAt": "2026-03-26T00:56:13.429Z"
   },
   {
     "orderId": "2",
@@ -104,12 +104,12 @@
     "expiryDate": "324",
     "quantity": 32490,
     "unitPrice": 20,
-    "costPrice": 50.85,
+    "costPrice": 43.79,
     "totalPrice": 649800,
     "remark": "",
     "id": 22,
-    "createdAt": "2026-03-26T00:35:27.599Z",
-    "updatedAt": "2026-03-26T00:35:27.599Z"
+    "createdAt": "2026-03-26T00:56:13.429Z",
+    "updatedAt": "2026-03-26T00:56:13.429Z"
   },
   {
     "orderId": "2",
@@ -124,8 +124,8 @@
     "totalPrice": 20010,
     "remark": "",
     "id": 23,
-    "createdAt": "2026-03-26T00:35:27.600Z",
-    "updatedAt": "2026-03-26T00:35:27.600Z"
+    "createdAt": "2026-03-26T00:56:13.430Z",
+    "updatedAt": "2026-03-26T00:56:13.430Z"
   },
   {
     "orderId": "2",
@@ -135,13 +135,13 @@
     "productionDate": "324",
     "expiryDate": "324",
     "quantity": 123,
-    "unitPrice": 7,
-    "costPrice": 7.21,
-    "totalPrice": 861,
+    "unitPrice": 9,
+    "costPrice": 9.12,
+    "totalPrice": 1107,
     "remark": "",
     "id": 24,
-    "createdAt": "2026-03-26T00:35:27.600Z",
-    "updatedAt": "2026-03-26T00:35:27.600Z"
+    "createdAt": "2026-03-26T00:56:13.431Z",
+    "updatedAt": "2026-03-26T00:56:13.431Z"
   },
   {
     "orderId": "2",
@@ -156,7 +156,23 @@
     "totalPrice": 96,
     "remark": "",
     "id": 25,
-    "createdAt": "2026-03-26T00:35:27.601Z",
-    "updatedAt": "2026-03-26T00:35:27.601Z"
+    "createdAt": "2026-03-26T00:56:13.431Z",
+    "updatedAt": "2026-03-26T00:56:13.432Z"
+  },
+  {
+    "orderId": "2",
+    "herbName": "芦根",
+    "quality": "",
+    "origin": "",
+    "productionDate": "",
+    "expiryDate": "",
+    "quantity": 21,
+    "unitPrice": 12,
+    "costPrice": 12,
+    "totalPrice": 252,
+    "remark": "",
+    "id": 26,
+    "createdAt": "2026-03-26T00:56:13.432Z",
+    "updatedAt": "2026-03-26T00:56:13.432Z"
   }
 ]

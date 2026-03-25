@@ -90,7 +90,7 @@ export function clearHerbInfoCache() {
  * @param {number|string} rowId - 入库单ID
  */
 export async function confirmStockIn(rowId) {
-  _dependencies.showConfirm('确认入库', '确认入库后，库存将自动增加。确定要入库吗？', async () => {
+  _dependencies.showConfirm('确认入库', '确认入库后，库存将自动增加，成本价将自动更新。确定要入库吗？', async () => {
     try {
       const res = await _dependencies.homeFetch(`/api/stock/in/orders/${rowId}/status`, {
         method: 'PUT',
@@ -98,6 +98,10 @@ export async function confirmStockIn(rowId) {
       });
       if (res.code !== 0) throw new Error(res.message);
       _dependencies.showToast('入库成功', 'success');
+      
+      // 清除药材信息缓存，确保现成本提示显示最新数据
+      clearHerbInfoCache();
+      
       _dependencies.loadTableData();
       _dependencies.loadStats();
     } catch (err) {
@@ -111,7 +115,7 @@ export async function confirmStockIn(rowId) {
  * @param {number|string} rowId - 入库单ID
  */
 export async function revertToDraft(rowId) {
-  _dependencies.showConfirm('退回草稿', '退回草稿后，库存将自动扣减。确定要退回吗？', async () => {
+  _dependencies.showConfirm('退回草稿', '退回草稿后，库存将自动恢复。确定要退回吗？', async () => {
     try {
       const res = await _dependencies.homeFetch(`/api/stock/in/orders/${rowId}/status`, {
         method: 'PUT',
@@ -119,6 +123,10 @@ export async function revertToDraft(rowId) {
       });
       if (res.code !== 0) throw new Error(res.message);
       _dependencies.showToast('已退回草稿', 'success');
+      
+      // 清除药材信息缓存，确保现成本提示显示最新数据
+      clearHerbInfoCache();
+      
       _dependencies.loadTableData();
       _dependencies.loadStats();
     } catch (err) {
