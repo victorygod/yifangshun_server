@@ -28,7 +28,7 @@
     "avgPrice": 433,
     "minValue": 0,
     "lastStockInDate": "2026/3/22",
-    "updatedAt": "2026-03-25T02:49:47.372Z",
+    "updatedAt": "2026-03-25T22:31:01.635Z",
     "id": 3,
     "createdAt": "2026-03-22T19:01:53.896Z"
   },
@@ -36,10 +36,10 @@
     "herbName": "车前花",
     "herbAlias": "",
     "quantity": 266814,
-    "avgPrice": 56.517993583681815,
+    "avgPrice": 27.081493518083093,
     "minValue": 0,
-    "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T22:19:27.878Z",
+    "lastStockInDate": "2026/3/22",
+    "updatedAt": "2026-03-25T22:31:01.632Z",
     "id": 4,
     "createdAt": "2026-03-22T19:01:53.898Z"
   },
@@ -53,5 +53,16 @@
     "updatedAt": "2026-03-25T22:19:27.882Z",
     "id": 5,
     "createdAt": "2026-03-25T03:04:46.364Z"
+  },
+  {
+    "herbName": "芦根",
+    "herbAlias": "",
+    "quantity": 332,
+    "avgPrice": 22,
+    "minValue": 0,
+    "lastStockInDate": "2026/3/22",
+    "updatedAt": "2026-03-25T22:31:01.638Z",
+    "id": 6,
+    "createdAt": "2026-03-25T22:31:01.638Z"
   }
 ]

@@ -1253,91 +1253,20 @@ function bindAutoSaveEvents() {
 
 // 入库明细成本价计算：(库存克数*现成本价+进货克数*进货单价)/(库存克数+进货克数)
 function handleCostCalcBlur(e) {
-  const input = e.target;
-  const tr = input.closest('tr');
-  if (!tr) return;
-  
-  const herbNameInput = tr.querySelector('input[data-col="herbName"]');
-  const quantityInput = tr.querySelector('input[data-col="quantity"]');
-  const unitPriceInput = tr.querySelector('input[data-col="unitPrice"]');
-  const costPriceInput = tr.querySelector('input[data-col="costPrice"]');
-  
-  if (!herbNameInput || !quantityInput || !unitPriceInput || !costPriceInput) return;
-  
-  const herbName = herbNameInput.value.trim();
-  const quantity = parseFloat(quantityInput.value) || 0;
-  const unitPrice = parseFloat(unitPriceInput.value) || 0;
-  
-  // 只有当克数和进货单价都有值时才计算
-  if (!herbName || quantity <= 0 || unitPrice <= 0) return;
-  
-  // 获取药材当前库存和成本价
-  const herbInfo = window._herbInfoMap && window._herbInfoMap[herbName];
-  if (!herbInfo) return;
-  
-  const currentStock = parseFloat(herbInfo.stock) || 0;
-  const currentCost = parseFloat(herbInfo.costPrice) || 0;
-  
-  // 计算新成本价：(库存克数*现成本价+进货克数*进货单价)/(库存克数+进货克数)
-  const totalQuantity = currentStock + quantity;
-  if (totalQuantity <= 0) return;
-  
-  const newCostPrice = (currentStock * currentCost + quantity * unitPrice) / totalQuantity;
-  
-  // 始终填入计算值
-  costPriceInput.value = newCostPrice.toFixed(2);
-  // 更新灰色提示
-  const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
-  if (hintSpan) {
-    hintSpan.textContent = `(现成本:${currentCost})`;
+  if (window._stockModule && window._stockModule.handleCostCalcBlur) {
+    window._stockModule.handleCostCalcBlur(e);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
   }
 }
 
 // 重新计算某个订单下所有明细的成本价（用于展开时触发）
 function recalculateCostPricesForOrder(orderId) {
-  console.log('[recalculateCostPricesForOrder] 开始重新计算订单成本价, 订单ID:', orderId);
-  
-  // 获取该订单的所有明细行（不包括新增行）
-  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]:not(.detail-new-row)`);
-  
-  detailRows.forEach((row, index) => {
-    const herbNameInput = row.querySelector('input[data-col="herbName"]');
-    const quantityInput = row.querySelector('input[data-col="quantity"]');
-    const unitPriceInput = row.querySelector('input[data-col="unitPrice"]');
-    const costPriceInput = row.querySelector('input[data-col="costPrice"]');
-    
-    if (!herbNameInput || !quantityInput || !unitPriceInput || !costPriceInput) return;
-    
-    const herbName = herbNameInput.value.trim();
-    const quantity = parseFloat(quantityInput.value) || 0;
-    const unitPrice = parseFloat(unitPriceInput.value) || 0;
-    
-    // 只有当克数和进货单价都有值时才计算
-    if (!herbName || quantity <= 0 || unitPrice <= 0) return;
-    
-    // 获取药材当前库存和成本价
-    const herbInfo = window._herbInfoMap && window._herbInfoMap[herbName];
-    if (!herbInfo) return;
-    
-    const currentStock = parseFloat(herbInfo.stock) || 0;
-    const currentCost = parseFloat(herbInfo.costPrice) || 0;
-    
-    // 计算新成本价：(库存克数*现成本价+进货克数*进货单价)/(库存克数+进货克数)
-    const totalQuantity = currentStock + quantity;
-    if (totalQuantity <= 0) return;
-    
-    const newCostPrice = (currentStock * currentCost + quantity * unitPrice) / totalQuantity;
-    
-    // 更新成本价
-    costPriceInput.value = newCostPrice.toFixed(2);
-    // 更新灰色提示
-    const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
-    if (hintSpan) {
-      hintSpan.textContent = `(现成本:${currentCost})`;
-    }
-    
-    console.log('[recalculateCostPricesForOrder] 明细', index, '药材:', herbName, '新成本价:', newCostPrice.toFixed(2));
-  });
+  if (window._stockModule && window._stockModule.recalculateCostPricesForOrder) {
+    window._stockModule.recalculateCostPricesForOrder(orderId);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
+  }
 }
 
 function handleCalcSourceInput(e) {
@@ -1345,43 +1274,10 @@ function handleCalcSourceInput(e) {
 }
 
 function handleHerbNameInput(e) {
-  // 入库明细：输入药材名称后更新成本价提示，并自动计算成本价
-  if (currentTable !== 'stock_in_orders') return;
-  
-  const input = e.target;
-  const tr = input.closest('tr');
-  if (!tr) return;
-  
-  const herbName = input.value.trim();
-  const costPriceInput = tr.querySelector('input[data-col="costPrice"]');
-  const hintSpan = costPriceInput ? costPriceInput.parentElement.querySelector('.field-hint') : null;
-  const quantityInput = tr.querySelector('input[data-col="quantity"]');
-  const unitPriceInput = tr.querySelector('input[data-col="unitPrice"]');
-  
-  if (herbName && window._herbInfoMap && window._herbInfoMap[herbName]) {
-    const herbInfo = window._herbInfoMap[herbName];
-    if (hintSpan) {
-      hintSpan.textContent = `(现成本:${herbInfo.costPrice || 0})`;
-    }
-    
-    // 如果克数和进货价已填写，自动计算成本价
-    if (quantityInput && unitPriceInput && costPriceInput) {
-      const quantity = parseFloat(quantityInput.value) || 0;
-      const unitPrice = parseFloat(unitPriceInput.value) || 0;
-      
-      if (quantity > 0 && unitPrice > 0) {
-        const currentStock = parseFloat(herbInfo.stock) || 0;
-        const currentCost = parseFloat(herbInfo.costPrice) || 0;
-        const totalQuantity = currentStock + quantity;
-        
-        if (totalQuantity > 0) {
-          const newCostPrice = (currentStock * currentCost + quantity * unitPrice) / totalQuantity;
-          costPriceInput.value = newCostPrice.toFixed(2);
-        }
-      }
-    }
-  } else if (hintSpan) {
-    hintSpan.textContent = '';
+  if (window._stockModule && window._stockModule.handleHerbNameInput) {
+    window._stockModule.handleHerbNameInput(e);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
   }
 }
 
@@ -1404,137 +1300,19 @@ async function handleDetailBlur(e) {
 
 // 计算入库单总金额（所有明细的 克数*进货单价 之和）
 function calculateOrderTotalAmount(orderId) {
-  console.log('[calculateOrderTotalAmount] 开始计算订单总价, 订单ID:', orderId, '当前表:', currentTable);
-  
-  if (currentTable !== 'stock_in_orders') {
-    console.log('[calculateOrderTotalAmount] 非入库单，跳过计算');
-    return;
-  }
-  
-  const detailRows = document.querySelectorAll(`tr.detail-row[data-order-id="${orderId}"]`);
-  const newRows = document.querySelectorAll(`tr.detail-new-row[data-order-id="${orderId}"]`);
-  
-  console.log('[calculateOrderTotalAmount] 找到明细行数量:', detailRows.length, '新增行数量:', newRows.length);
-  
-  let totalAmount = 0;
-  
-  // 遍历现有明细行
-  detailRows.forEach((row, index) => {
-    const quantityInput = row.querySelector('.detail-input[data-col="quantity"]');
-    const unitPriceInput = row.querySelector('.detail-input[data-col="unitPrice"]');
-    
-    console.log('[calculateOrderTotalAmount] 明细行', index, 'quantityInput:', !!quantityInput, 'unitPriceInput:', !!unitPriceInput);
-    
-    if (quantityInput && unitPriceInput) {
-      const quantity = parseFloat(quantityInput.value) || 0;
-      const unitPrice = parseFloat(unitPriceInput.value) || 0;
-      const rowTotal = quantity * unitPrice;
-      totalAmount += rowTotal;
-      console.log('[calculateOrderTotalAmount] 明细行', index, '克数:', quantity, '单价:', unitPrice, '小计:', rowTotal);
-    }
-  });
-  
-  // 遍历新增行
-  newRows.forEach((row, index) => {
-    const quantityInput = row.querySelector('.detail-input[data-col="quantity"]');
-    const unitPriceInput = row.querySelector('.detail-input[data-col="unitPrice"]');
-    
-    console.log('[calculateOrderTotalAmount] 新增行', index, 'quantityInput:', !!quantityInput, 'unitPriceInput:', !!unitPriceInput);
-    
-    if (quantityInput && unitPriceInput) {
-      const quantity = parseFloat(quantityInput.value) || 0;
-      const unitPrice = parseFloat(unitPriceInput.value) || 0;
-      const rowTotal = quantity * unitPrice;
-      totalAmount += rowTotal;
-      console.log('[calculateOrderTotalAmount] 新增行', index, '克数:', quantity, '单价:', unitPrice, '小计:', rowTotal);
-    }
-  });
-  
-  // 更新订单行的总金额
-  const orderRow = document.querySelector(`tr[data-id="${orderId}"]`);
-  
-  if (orderRow) {
-    // 总金额字段是只读的，在 td 元素上查找
-    const totalAmountCell = orderRow.querySelector(`td[data-col-key="totalAmount"] span.cell-readonly`);
-    
-    if (totalAmountCell) {
-      totalAmountCell.textContent = totalAmount.toFixed(2);
-    }
+  if (window._stockModule && window._stockModule.calculateOrderTotalAmount) {
+    window._stockModule.calculateOrderTotalAmount(orderId);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
   }
 }
 
 async function calculateDetailTotalPrice(row) {
-  const quantityInput = row.querySelector('.detail-input[data-col="quantity"]');
-  const unitPriceInput = row.querySelector('.detail-input[data-col="unitPrice"]');
-  const herbNameInput = row.querySelector('.detail-input[data-col="herbName"]');
-  const totalPriceInput = row.querySelector('.detail-input[data-col="totalPrice"]');
-  const cabinetNoInput = row.querySelector('.detail-input[data-col="cabinetNo"]');
-
-  console.log('[calculateDetailTotalPrice] 当前表:', currentTable);
-  console.log('[calculateDetailTotalPrice] 药材名称输入框:', herbNameInput ? '找到' : '未找到');
-  console.log('[calculateDetailTotalPrice] 柜号输入框:', cabinetNoInput ? '找到' : '未找到');
-  console.log('[calculateDetailTotalPrice] 克数输入框:', quantityInput ? '找到' : '未找到');
-  console.log('[calculateDetailTotalPrice] 单价输入框:', unitPriceInput ? '找到' : '未找到');
-  console.log('[calculateDetailTotalPrice] 总价输入框:', totalPriceInput ? '找到' : '未找到');
-
-  // 执药单：根据药材名称自动获取单价和柜号
-  if (currentTable === 'stock_out_orders' && herbNameInput) {
-    const herbName = herbNameInput.value.trim();
-    console.log('[calculateDetailTotalPrice] 药材名称:', herbName);
-
-    if (herbName) {
-      const infoMap = await getHerbInfoMap();
-      console.log('[calculateDetailTotalPrice] 药材信息缓存:', infoMap);
-
-      if (infoMap[herbName]) {
-        const herbInfo = infoMap[herbName];
-        console.log('[calculateDetailTotalPrice] 找到药材信息:', herbName, herbInfo);
-
-        if (unitPriceInput) {
-          unitPriceInput.value = herbInfo.salePrice;
-          unitPriceInput.dataset.autoFilled = 'true';
-          console.log('[calculateDetailTotalPrice] 已设置单价:', herbInfo.salePrice);
-        }
-
-        if (cabinetNoInput) {
-          cabinetNoInput.value = herbInfo.cabinetNo || '';
-          console.log('[calculateDetailTotalPrice] 已设置柜号:', herbInfo.cabinetNo);
-        }
-      } else {
-        console.log('[calculateDetailTotalPrice] 未找到药材信息:', herbName);
-      }
-    }
+  if (window._stockModule && window._stockModule.calculateDetailTotalPrice) {
+    await window._stockModule.calculateDetailTotalPrice(row);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
   }
-
-  // 入库单不需要计算单个明细的总价（totalPrice列已隐藏）
-  if (currentTable === 'stock_in_orders') {
-    console.log('[calculateDetailTotalPrice] 入库单跳过明细总价计算');
-    return;
-  }
-
-  // 执药单需要计算明细总价
-  if (!quantityInput || !unitPriceInput || !totalPriceInput) {
-    console.log('[calculateDetailTotalPrice] 缺少必要的输入框:', {
-      quantity: !!quantityInput,
-      unitPrice: !!unitPriceInput,
-      totalPrice: !!totalPriceInput
-    });
-    return;
-  }
-
-  const quantity = parseFloat(quantityInput.value) || 0;
-  const unitPrice = parseFloat(unitPriceInput.value) || 0;
-  const calculatedTotal = (quantity * unitPrice).toFixed(2);
-
-  const detailId = totalPriceInput.dataset.detailId;
-  const isNew = totalPriceInput.dataset.isNew === 'true';
-  const orderId = totalPriceInput.closest('tr')?.dataset.orderId;
-
-  console.log('[calculateDetailTotalPrice] 计算总价:', quantity, '*', unitPrice, '=', calculatedTotal);
-
-  // 自动更新总价
-  totalPriceInput.value = calculatedTotal;
-  totalPriceInput.dataset.autoCalc = 'true';
 }
 
 async function handleCellBlur(e) {
@@ -1545,138 +1323,18 @@ async function handleCellBlur(e) {
 
 // 保存新增明细（保存到后端并重新加载）
 async function saveDetailNewAuto(row) {
-  const orderId = row.dataset.orderId;
-  const inputs = row.querySelectorAll('.detail-input');
-  const newItem = { orderId };
-
-  inputs.forEach(input => {
-    const col = input.dataset.col;
-    newItem[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
-  });
-
-  console.log('[saveDetailNewAuto] 新增明细:', newItem);
-
-  if (!newItem.herbName && !newItem.name) {
-    return;
-  }
-
-  // 检查是否是入库单且是草稿状态
-  const order = tableData.find(r => String(r.id) === String(orderId));
-  if (currentTable === 'stock_in_orders' && order && order.status !== 'draft') {
-    showToast('已入库的单据不能添加明细', 'error');
-    return;
-  }
-
-  // 收集所有现有明细
-  // 修复：明细数据行使用 data-order-id 属性，不是 class="detail-row"
-  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
-  const items = [];
-  
-  console.log('[saveDetailNewAuto] 查询选择器:', `tr[data-order-id="${orderId}"]`);
-  console.log('[saveDetailNewAuto] 现有明细行数量:', detailRows.length);
-  
-  // 调试：打印所有带有 data-order-id 的行
-  const allRowsWithOrderId = document.querySelectorAll('tr[data-order-id]');
-  console.log('[saveDetailNewAuto] 页面上所有带有 data-order-id 的行数量:', allRowsWithOrderId.length);
-  allRowsWithOrderId.forEach((row, index) => {
-    console.log('[saveDetailNewAuto] 行', index, 'data-order-id:', row.dataset.orderId, 'data-detail-id:', row.dataset.detailId, '匹配结果:', String(row.dataset.orderId) === String(orderId));
-  });
-  
-  // 过滤出明细数据行（不是新增行）
-  effectiveDetailRows = Array.from(detailRows).filter(row => !row.classList.contains('detail-new-row'));
-  
-  console.log('[saveDetailNewAuto] 过滤后的明细行数量（排除新增行）:', effectiveDetailRows.length);
-  
-  effectiveDetailRows.forEach((row, index) => {
-    const inputs = row.querySelectorAll('.detail-input');
-    const item = {};
-    
-    inputs.forEach(input => {
-      const col = input.dataset.col;
-      item[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
-    });
-    
-    if (item.herbName || item.name) {
-      items.push(item);
-      console.log('[saveDetailNewAuto] 现有明细', index, ':', item);
-    }
-  });
-  
-  // 添加新明细
-  items.push(newItem);
-  console.log('[saveDetailNewAuto] 最终明细列表:', items);
-
-  // 保存到后端
-  try {
-    const apiPath = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${orderId}` : `/api/stock/out/orders/${orderId}`;
-    const res = await homeFetch(apiPath, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items })
-    });
-    
-    console.log('[saveDetailNewAuto] 后端响应:', JSON.stringify(res, null, 2));
-    console.log('[saveDetailNewAuto] 后端返回的明细数据:', res.data?.items);
-    
-    if (res.code !== 0) throw new Error(res.message);
-    showToast('添加成功', 'success');
-    
-    // 重新加载表格数据，保持展开状态
-    loadTableData();
-  } catch (err) {
-    console.error('[saveDetailNewAuto] 错误:', err);
-    showToast('添加失败: ' + err.message, 'error');
+  if (window._stockModule && window._stockModule.saveDetailNewAuto) {
+    window._stockModule.saveDetailNewAuto(row);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
   }
 }
 
 async function saveDetailEdit(detailId, orderId, row) {
-  // 收集当前编辑的明细数据
-  const inputs = row.querySelectorAll('.detail-input');
-  const editedItem = {};
-  
-  inputs.forEach(input => {
-    const col = input.dataset.col;
-    editedItem[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
-  });
-  
-  // 收集所有明细（包括当前编辑的行）
-  // 修复：明细数据行使用 data-order-id 属性，不是 class="detail-row"
-  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
-  const items = [];
-  
-  // 过滤出明细数据行（不是新增行）
-  let effectiveDetailRows = Array.from(detailRows).filter(row => !row.classList.contains('detail-new-row'));
-  
-  effectiveDetailRows.forEach(row => {
-    const inputs = row.querySelectorAll('.detail-input');
-    const item = {};
-    
-    inputs.forEach(input => {
-      const col = input.dataset.col;
-      item[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
-    });
-    
-    if (item.herbName || item.name) {
-      items.push(item);
-    }
-  });
-  
-  // 保存到后端
-  try {
-    const apiPath = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${orderId}` : `/api/stock/out/orders/${orderId}`;
-    const res = await homeFetch(apiPath, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items })
-    });
-    
-    if (res.code !== 0) throw new Error(res.message);
-    showToast('保存成功', 'success');
-    
-    // 重新加载表格数据，保持展开状态
-    loadTableData();
-  } catch (err) {
-    showToast('保存失败: ' + err.message, 'error');
+  if (window._stockModule && window._stockModule.saveDetailEdit) {
+    window._stockModule.saveDetailEdit(detailId, orderId, row);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
   }
 }
 
@@ -1901,50 +1559,10 @@ function toggleDetail(rowId) {
 
 // 删除现有明细行（保存到后端）
 async function removeDetailRow(detailId, orderId) {
-  // 修复：明细数据行使用 data-detail-id 属性，不是 class="detail-row"
-  const row = document.querySelector(`tr[data-detail-id="${detailId}"]`);
-  if (row) {
-    row.remove();
-  }
-  
-  // 收集剩余明细并保存到后端
-  // 修复：明细数据行使用 data-order-id 属性，不是 class="detail-row"
-  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
-  const items = [];
-  
-  // 过滤出明细数据行（不是新增行）
-  let effectiveDetailRows = Array.from(detailRows).filter(row => !row.classList.contains('detail-new-row'));
-  
-  effectiveDetailRows.forEach(row => {
-    const inputs = row.querySelectorAll('.detail-input');
-    const item = {};
-    
-    inputs.forEach(input => {
-      const col = input.dataset.col;
-      item[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
-    });
-    
-    if (item.herbName || item.name) {
-      items.push(item);
-    }
-  });
-  
-  // 保存到后端
-  try {
-    const apiPath = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${orderId}` : `/api/stock/out/orders/${orderId}`;
-    const res = await homeFetch(apiPath, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items })
-    });
-    
-    if (res.code !== 0) throw new Error(res.message);
-    showToast('删除成功', 'success');
-    
-    // 重新加载表格数据，保持展开状态
-    loadTableData();
-  } catch (err) {
-    showToast('删除失败: ' + err.message, 'error');
+  if (window._stockModule && window._stockModule.removeDetailRow) {
+    window._stockModule.removeDetailRow(detailId, orderId);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
   }
 }
 
@@ -2184,62 +1802,18 @@ function showAlert(title, message) {
 // ==================== 放大展示执药单明细 ====================
 
 function showZoomDetail(orderId) {
-  const order = tableData.find(r => String(r.id) === String(orderId));
-  if (!order || !order.items || order.items.length === 0) {
-    showToast('没有明细数据', 'error');
-    return;
+  if (window._stockModule && window._stockModule.showZoomDetail) {
+    window._stockModule.showZoomDetail(orderId);
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
   }
-
-  let zoomModal = document.getElementById('zoomModal');
-  if (!zoomModal) {
-    zoomModal = document.createElement('div');
-    zoomModal.id = 'zoomModal';
-    zoomModal.className = 'zoom-modal';
-    zoomModal.innerHTML = `
-      <div class="zoom-content">
-        <div class="zoom-header">
-          <span class="zoom-title">执药单明细</span>
-          <button class="zoom-close" onclick="closeZoomModal()">✕</button>
-        </div>
-        <div class="zoom-body">
-          <table class="zoom-table">
-            <thead>
-              <tr>
-                <th>药材名称</th>
-                <th>货柜号</th>
-                <th>克数</th>
-              </tr>
-            </thead>
-            <tbody id="zoomTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(zoomModal);
-
-    zoomModal.addEventListener('click', (e) => {
-      if (e.target === zoomModal) {
-        closeZoomModal();
-      }
-    });
-  }
-
-  const tbody = document.getElementById('zoomTableBody');
-  tbody.innerHTML = order.items.map(item => `
-    <tr>
-      <td>${escapeHtml(item.herbName || '-')}</td>
-      <td>${escapeHtml(item.cabinetNo || '-')}</td>
-      <td>${escapeHtml(item.quantity || '-')}</td>
-    </tr>
-  `).join('');
-
-  zoomModal.classList.add('show');
 }
 
 function closeZoomModal() {
-  const zoomModal = document.getElementById('zoomModal');
-  if (zoomModal) {
-    zoomModal.classList.remove('show');
+  if (window._stockModule && window._stockModule.closeZoomModal) {
+    window._stockModule.closeZoomModal();
+  } else {
+    console.error('[admin.js] Stock 模块未初始化');
   }
 }
 

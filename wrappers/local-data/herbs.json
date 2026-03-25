@@ -38,7 +38,7 @@
     "stock": 234,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.896Z",
-    "updatedAt": "2026-03-25T22:19:53.033Z",
+    "updatedAt": "2026-03-25T22:31:01.634Z",
     "id": 3,
     "cabinetNo": "435",
     "remark": "",
@@ -50,16 +50,16 @@
     "alias": "34",
     "unit": "克",
     "minValue": "10000",
-    "salePrice": 99.64,
+    "salePrice": 74.56,
     "stock": 266814,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.897Z",
-    "updatedAt": "2026-03-25T22:19:53.034Z",
+    "updatedAt": "2026-03-25T22:31:01.630Z",
     "id": 4,
     "cabinetNo": "BF",
     "remark": "",
     "coefficient": "2",
-    "costPrice": 49.82
+    "costPrice": 37.28
   },
   {
     "name": "苡米仁",
@@ -76,5 +76,17 @@
     "cabinetNo": "12334",
     "coefficient": "2",
     "remark": ""
+  },
+  {
+    "name": "芦根",
+    "alias": "",
+    "unit": "克",
+    "minValue": 0,
+    "salePrice": 22,
+    "stock": 332,
+    "isActive": true,
+    "createdAt": "2026-03-25T22:31:01.637Z",
+    "updatedAt": "2026-03-25T22:31:01.637Z",
+    "id": 6
   }
 ]
