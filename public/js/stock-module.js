@@ -484,7 +484,7 @@ export async function handleHerbNameInput(e) {
   if (herbName && window._herbInfoMap && window._herbInfoMap[herbName]) {
     const herbInfo = window._herbInfoMap[herbName];
     if (hintSpan) {
-      hintSpan.textContent = `(现成本:${herbInfo.costPrice || 0})`;
+      hintSpan.textContent = `(现成本:${(herbInfo.costPrice || 0).toFixed(2)})`;
     }
     
     // 如果克数和进货价已填写，自动计算成本价
@@ -552,15 +552,19 @@ export async function handleCostCalcBlur(e) {
   // 更新灰色提示
   const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
   if (hintSpan) {
-    hintSpan.textContent = `(现成本:${currentCost})`;
+    hintSpan.textContent = `(现成本:${currentCost.toFixed(2)})`;
   }
 }
 
 /**
  * 重新计算某个订单下所有明细的成本价（用于展开时触发）
  * @param {string} orderId - 订单ID
+ * @param {Object} [herbInfoMap] - 可选的药材信息映射（如果不提供则使用缓存）
  */
-export function recalculateCostPricesForOrder(orderId) {
+export function recalculateCostPricesForOrder(orderId, herbInfoMap = null) {
+  // 使用传入的药材信息映射，如果没有则使用全局缓存
+  const infoMap = herbInfoMap || window._herbInfoMap;
+  
   // 获取该订单的所有明细行（不包括新增行）
   const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]:not(.detail-new-row)`);
   
@@ -580,7 +584,7 @@ export function recalculateCostPricesForOrder(orderId) {
     if (!herbName || quantity <= 0 || unitPrice <= 0) return;
     
     // 获取药材当前库存和成本价
-    const herbInfo = window._herbInfoMap && window._herbInfoMap[herbName];
+    const herbInfo = infoMap && infoMap[herbName];
     if (!herbInfo) return;
     
     const currentStock = parseFloat(herbInfo.stock) || 0;
@@ -594,10 +598,45 @@ export function recalculateCostPricesForOrder(orderId) {
     
     // 更新成本价
     costPriceInput.value = newCostPrice.toFixed(2);
-    // 更新灰色提示
+    // 更新灰色提示 - 使用最新的成本价
     const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
     if (hintSpan) {
-      hintSpan.textContent = `(现成本:${currentCost})`;
+      hintSpan.textContent = `(现成本:${currentCost.toFixed(2)})`;
+    }
+  });
+}
+
+/**
+ * 只更新成本价的灰色提示（现成本），不修改成本价输入框的值
+ * 用于在加载和展开时更新现成本提示，但不覆盖用户手动输入的成本价
+ * @param {string} orderId - 订单ID
+ * @param {Object} herbInfoMap - 药材信息映射（可选，如果提供则使用，否则使用全局缓存）
+ */
+export function updateCostPriceHints(orderId, herbInfoMap = null) {
+  // 使用传入的药材信息映射，如果没有则使用全局缓存
+  const infoMap = herbInfoMap || window._herbInfoMap;
+  
+  // 获取该订单的所有明细行（不包括新增行）
+  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]:not(.detail-new-row)`);
+  
+  detailRows.forEach((row) => {
+    const herbNameInput = row.querySelector('input[data-col="herbName"]');
+    const costPriceInput = row.querySelector('input[data-col="costPrice"]');
+    
+    if (!herbNameInput || !costPriceInput) return;
+    
+    const herbName = herbNameInput.value.trim();
+    
+    // 获取药材当前成本价
+    const herbInfo = infoMap && infoMap[herbName];
+    if (!herbInfo) return;
+    
+    const currentCost = parseFloat(herbInfo.costPrice) || 0;
+    
+    // 只更新灰色提示 - 使用最新的成本价
+    const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
+    if (hintSpan) {
+      hintSpan.textContent = `(现成本:${currentCost.toFixed(2)})`;
     }
   });
 }
@@ -836,6 +875,7 @@ if (typeof window !== 'undefined') {
     handleHerbNameInput,
     handleCostCalcBlur,
     recalculateCostPricesForOrder,
+    updateCostPriceHints,
     showZoomDetail,
     closeZoomModal,
     validateNewOrderData,

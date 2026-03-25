@@ -701,10 +701,16 @@ async function loadTableData() {
     updateSelectedCount();
     bindAutoSaveEvents();
 
-    // 入库单：为所有展开的订单计算总金额
+    // 入库单：为所有展开的订单计算总金额并更新现成本提示（不重新计算成本价，避免覆盖手动输入）
     if (currentTable === 'stock_in_orders') {
       expandedRows.forEach(orderId => {
         window._stockModule.calculateOrderTotalAmount(orderId);
+      });
+      
+      // 重新获取最新的药材信息，只更新现成本提示，不覆盖手动输入的成本价
+      const freshHerbInfoMap = await window._stockModule.getHerbInfoMap();
+      expandedRows.forEach(orderId => {
+        window._stockModule.updateCostPriceHints(orderId, freshHerbInfoMap);
       });
     }
 
@@ -925,7 +931,7 @@ function renderOrderDetail(row, config, detailTable) {
           const herbInfo = window._herbInfoMap && window._herbInfoMap[item.herbName];
           const currentCost = herbInfo ? parseFloat(herbInfo.costPrice) || 0 : 0;
           
-          html += `<td class="cell-with-hint"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}${disabledAttr}><span class="field-hint">(现成本:${currentCost})</span></td>`;
+          html += `<td class="cell-with-hint"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}${disabledAttr}><span class="field-hint">(现成本:${currentCost.toFixed(2)})</span></td>`;
         } else {
           html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}${disabledAttr}></td>`;
         }
@@ -1139,10 +1145,12 @@ async function handleDetailBlur(e) {
   const detailId = input.dataset.detailId;
   const colKey = input.dataset.col;
 
-  // 入库单：只在 quantity 和 unitPrice 失焦时计算订单总金额
+  // 入库单：只在 quantity 和 unitPrice 失焦时计算订单总金额和成本价
   if (currentTable === 'stock_in_orders' && orderId) {
     if (colKey === 'quantity' || colKey === 'unitPrice') {
       await window._stockModule.calculateOrderTotalAmount(orderId);
+      // 重新计算该订单的成本价（只针对修改的字段所在的行）
+      window._stockModule.recalculateCostPricesForOrder(orderId);
     }
   }
   
@@ -1358,10 +1366,12 @@ function toggleDetail(rowId) {
   
   loadTableData();
   
-  // 入库单：展开时触发成本价计算
+  // 入库单：展开时只更新现成本提示，不重新计算成本价
   if (isExpanding && currentTable === 'stock_in_orders') {
-    setTimeout(() => {
-      window._stockModule.recalculateCostPricesForOrder(rowId);
+    setTimeout(async () => {
+      // 重新获取最新的药材信息（确保现成本提示是最新的）
+      const freshHerbInfoMap = await window._stockModule.getHerbInfoMap();
+      window._stockModule.updateCostPriceHints(rowId, freshHerbInfoMap);
     }, 100);
   }
 }

@@ -324,18 +324,7 @@ async function createInOrder(data) {
       totalPrice: (item.quantity || 0) * (item.unitPrice || 0),
       remark: item.remark
     });
-    // 同步成本价到药材表，并更新售卖单价
-    if (item.herbName && costPrice !== undefined) {
-      const herb = await Herb.findOne({ where: { name: item.herbName } });
-      if (herb) {
-        const coefficient = parseFloat(herb.coefficient) || 1;
-        const newSalePrice = coefficient * parseFloat(costPrice);
-        await Herb.update(
-          { costPrice: costPrice, salePrice: newSalePrice, updatedAt: getNow() },
-          { where: { name: item.herbName } }
-        );
-      }
-    }
+    // 草稿状态下不更新药材信息，只在确认入库时更新
   }
   
   const created = await getInOrderById(order.id);
@@ -398,18 +387,7 @@ async function updateInOrder(id, data) {
         totalPrice: (item.quantity || 0) * (item.unitPrice || 0),
         remark: item.remark
       });
-      // 同步成本价到药材表，并更新售卖单价
-      if (item.herbName && costPrice !== undefined) {
-        const herb = await Herb.findOne({ where: { name: item.herbName } });
-        if (herb) {
-          const coefficient = parseFloat(herb.coefficient) || 1;
-          const newSalePrice = coefficient * parseFloat(costPrice);
-          await Herb.update(
-            { costPrice: costPrice, salePrice: newSalePrice, updatedAt: getNow() },
-            { where: { name: item.herbName } }
-          );
-        }
-      }
+      // 草稿状态下不更新药材信息，只在确认入库时更新
     }
   }
   
@@ -545,6 +523,20 @@ async function executeStockIn(id, operator = 'system') {
     
     // 添加日志
     await addStockLog('stock_in', order.orderNo || `RK-${id}`, item.herbName, itemQuantity, operator);
+  }
+  
+  // 更新药材表的成本价和售价（只在确认入库时更新）
+  for (const item of items) {
+    const herb = await Herb.findOne({ where: { name: item.herbName } });
+    if (herb && item.costPrice !== undefined && item.costPrice !== null) {
+      const coefficient = parseFloat(herb.coefficient) || 1;
+      const newSalePrice = coefficient * parseFloat(item.costPrice);
+      await Herb.update(
+        { costPrice: item.costPrice, salePrice: newSalePrice, updatedAt: getNow() },
+        { where: { name: item.herbName } }
+      );
+      console.log(`[executeStockIn] 更新药材信息: ${item.herbName}, 成本价: ${item.costPrice}, 售价: ${newSalePrice}`);
+    }
   }
   
   // 更新订单状态
