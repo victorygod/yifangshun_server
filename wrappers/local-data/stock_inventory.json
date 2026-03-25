@@ -13,11 +13,11 @@
   {
     "herbName": "防风",
     "herbAlias": "",
-    "quantity": 32867,
+    "quantity": 0,
     "avgPrice": 230.5250251011653,
     "minValue": 0,
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T23:11:34.368Z",
+    "updatedAt": "2026-03-25T23:28:31.298Z",
     "id": 2,
     "createdAt": "2026-03-22T19:01:53.895Z"
   },
@@ -35,22 +35,22 @@
   {
     "herbName": "车前花",
     "herbAlias": "",
-    "quantity": 266814,
-    "avgPrice": 24.796774890113394,
+    "quantity": 234324,
+    "avgPrice": 24.212670547088724,
     "minValue": 0,
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T23:11:34.366Z",
+    "updatedAt": "2026-03-25T23:28:31.294Z",
     "id": 4,
     "createdAt": "2026-03-22T19:01:53.898Z"
   },
   {
     "herbName": "苡米仁",
     "herbAlias": "",
-    "quantity": 326,
+    "quantity": 0,
     "avgPrice": 2,
     "minValue": 0,
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T23:11:34.372Z",
+    "updatedAt": "2026-03-25T23:28:31.303Z",
     "id": 5,
     "createdAt": "2026-03-25T03:04:46.364Z"
   },
@@ -68,11 +68,11 @@
   {
     "herbName": "金樱子",
     "herbAlias": "",
-    "quantity": 123,
+    "quantity": 0,
     "avgPrice": 7,
     "minValue": 0,
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T23:11:34.370Z",
+    "updatedAt": "2026-03-25T23:28:31.300Z",
     "id": 7,
     "createdAt": "2026-03-25T23:10:59.189Z"
   }

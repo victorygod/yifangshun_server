@@ -56,12 +56,12 @@
     "expiryDate": "342324",
     "quantity": 32432,
     "unitPrice": 233,
-    "costPrice": 138.88,
+    "costPrice": 233,
     "totalPrice": 7556656,
     "remark": "",
     "id": 14,
-    "createdAt": "2026-03-25T23:11:32.244Z",
-    "updatedAt": "2026-03-25T23:11:32.244Z"
+    "createdAt": "2026-03-25T23:28:18.598Z",
+    "updatedAt": "2026-03-25T23:28:18.598Z"
   },
   {
     "orderId": "2",
@@ -72,12 +72,12 @@
     "expiryDate": "324",
     "quantity": 32490,
     "unitPrice": 20,
-    "costPrice": 46.58,
+    "costPrice": 33.88,
     "totalPrice": 649800,
     "remark": "",
     "id": 15,
-    "createdAt": "2026-03-25T23:11:32.245Z",
-    "updatedAt": "2026-03-25T23:11:32.245Z"
+    "createdAt": "2026-03-25T23:28:18.599Z",
+    "updatedAt": "2026-03-25T23:28:18.599Z"
   },
   {
     "orderId": "2",
@@ -92,8 +92,8 @@
     "totalPrice": 20010,
     "remark": "",
     "id": 16,
-    "createdAt": "2026-03-25T23:11:32.247Z",
-    "updatedAt": "2026-03-25T23:11:32.247Z"
+    "createdAt": "2026-03-25T23:28:18.599Z",
+    "updatedAt": "2026-03-25T23:28:18.599Z"
   },
   {
     "orderId": "2",
@@ -108,8 +108,8 @@
     "totalPrice": 861,
     "remark": "",
     "id": 17,
-    "createdAt": "2026-03-25T23:11:32.248Z",
-    "updatedAt": "2026-03-25T23:11:32.248Z"
+    "createdAt": "2026-03-25T23:28:18.600Z",
+    "updatedAt": "2026-03-25T23:28:18.600Z"
   },
   {
     "orderId": "2",
@@ -120,11 +120,11 @@
     "expiryDate": "243",
     "quantity": 326,
     "unitPrice": 2,
-    "costPrice": 20.45,
+    "costPrice": 29,
     "totalPrice": 652,
     "remark": "",
     "id": 18,
-    "createdAt": "2026-03-25T23:11:32.248Z",
-    "updatedAt": "2026-03-25T23:11:32.248Z"
+    "createdAt": "2026-03-25T23:28:18.601Z",
+    "updatedAt": "2026-03-25T23:28:18.601Z"
   }
 ]

@@ -2148,5 +2148,155 @@
     "createdAt": "2026-03-25T23:11:34.373Z",
     "id": 215,
     "updatedAt": "2026-03-25T23:11:34.373Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "防风",
+    "quantity": -32432,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:13:40.735Z",
+    "id": 216,
+    "updatedAt": "2026-03-25T23:13:40.735Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "车前花",
+    "quantity": -32490,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:13:40.737Z",
+    "id": 217,
+    "updatedAt": "2026-03-25T23:13:40.737Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "防风",
+    "quantity": -435,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:13:40.739Z",
+    "id": 218,
+    "updatedAt": "2026-03-25T23:13:40.739Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "金樱子",
+    "quantity": -123,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:13:40.743Z",
+    "id": 219,
+    "updatedAt": "2026-03-25T23:13:40.743Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "苡米仁",
+    "quantity": -326,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:13:40.745Z",
+    "id": 220,
+    "updatedAt": "2026-03-25T23:13:40.745Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "防风",
+    "quantity": 32432,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:28:28.942Z",
+    "id": 221,
+    "updatedAt": "2026-03-25T23:28:28.942Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "车前花",
+    "quantity": 32490,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:28:28.944Z",
+    "id": 222,
+    "updatedAt": "2026-03-25T23:28:28.944Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "防风",
+    "quantity": 435,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:28:28.946Z",
+    "id": 223,
+    "updatedAt": "2026-03-25T23:28:28.946Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "金樱子",
+    "quantity": 123,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:28:28.948Z",
+    "id": 224,
+    "updatedAt": "2026-03-25T23:28:28.948Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "苡米仁",
+    "quantity": 326,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:28:28.950Z",
+    "id": 225,
+    "updatedAt": "2026-03-25T23:28:28.950Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "防风",
+    "quantity": -32432,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:28:31.292Z",
+    "id": 226,
+    "updatedAt": "2026-03-25T23:28:31.292Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "车前花",
+    "quantity": -32490,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:28:31.295Z",
+    "id": 227,
+    "updatedAt": "2026-03-25T23:28:31.295Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "防风",
+    "quantity": -435,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:28:31.299Z",
+    "id": 228,
+    "updatedAt": "2026-03-25T23:28:31.299Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "金樱子",
+    "quantity": -123,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:28:31.301Z",
+    "id": 229,
+    "updatedAt": "2026-03-25T23:28:31.301Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "苡米仁",
+    "quantity": -326,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T23:28:31.304Z",
+    "id": 230,
+    "updatedAt": "2026-03-25T23:28:31.304Z"
   }
 ]

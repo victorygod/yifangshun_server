@@ -701,12 +701,10 @@ async function loadTableData() {
     updateSelectedCount();
     bindAutoSaveEvents();
 
-    // 入库单：为所有展开的订单计算总金额和成本价
+    // 入库单：为所有展开的订单计算总金额
     if (currentTable === 'stock_in_orders') {
       expandedRows.forEach(orderId => {
         window._stockModule.calculateOrderTotalAmount(orderId);
-        // 触发展开订单的成本价计算
-        window._stockModule.recalculateCostPricesForOrder(orderId);
       });
     }
 
@@ -923,26 +921,11 @@ function renderOrderDetail(row, config, detailTable) {
         }
         const disabledAttr = isDisabled ? ' disabled' : '';
         if (currentTable === 'stock_in_orders' && col.key === 'costPrice') {
-          // 入库明细成本价：自动计算默认值
+          // 入库明细成本价：直接使用数据库中保存的值，不重新计算
           const herbInfo = window._herbInfoMap && window._herbInfoMap[item.herbName];
           const currentCost = herbInfo ? parseFloat(herbInfo.costPrice) || 0 : 0;
-          const currentStock = herbInfo ? parseFloat(herbInfo.stock) || 0 : 0;
           
-          // 获取克数和进货单价
-          const quantity = parseFloat(item.quantity) || 0;
-          const unitPrice = parseFloat(item.unitPrice) || 0;
-          
-          // 计算新成本价：(现成本*现库存克数+进货价*进货克数)/(现库存克数+进货克数)
-          let calculatedCost = value;
-          if (item.herbName && quantity > 0 && unitPrice > 0) {
-            const totalQuantity = currentStock + quantity;
-            if (totalQuantity > 0) {
-              calculatedCost = (currentStock * currentCost + quantity * unitPrice) / totalQuantity;
-              calculatedCost = parseFloat(calculatedCost.toFixed(2));
-            }
-          }
-          
-          html += `<td class="cell-with-hint"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(calculatedCost))}"${dataAttrs}${disabledAttr}><span class="field-hint">(现成本:${currentCost})</span></td>`;
+          html += `<td class="cell-with-hint"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}${disabledAttr}><span class="field-hint">(现成本:${currentCost})</span></td>`;
         } else {
           html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input" data-col="${col.key}" value="${escapeHtml(String(value))}"${dataAttrs}${disabledAttr}></td>`;
         }
@@ -1154,12 +1137,18 @@ async function handleDetailBlur(e) {
   const isNew = input.dataset.isNew === 'true';
   const orderId = row.dataset.orderId;
   const detailId = input.dataset.detailId;
+  const colKey = input.dataset.col;
 
-  await window._stockModule.calculateDetailTotalPrice(row);
-
-  // 入库单：重新计算订单总金额
+  // 入库单：只在 quantity 和 unitPrice 失焦时计算订单总金额
   if (currentTable === 'stock_in_orders' && orderId) {
-    window._stockModule.calculateOrderTotalAmount(orderId);
+    if (colKey === 'quantity' || colKey === 'unitPrice') {
+      await window._stockModule.calculateOrderTotalAmount(orderId);
+    }
+  }
+  
+  // 执药单：计算明细总价
+  if (currentTable === 'stock_out_orders') {
+    await window._stockModule.calculateDetailTotalPrice(row);
   }
 }
 
@@ -1359,12 +1348,22 @@ async function deleteRow(rowId) {
 
 function toggleDetail(rowId) {
   const idStr = String(rowId);
-  if (expandedRows.has(idStr)) {
-    expandedRows.delete(idStr);
-  } else {
+  const isExpanding = !expandedRows.has(idStr);
+  
+  if (isExpanding) {
     expandedRows.add(idStr);
+  } else {
+    expandedRows.delete(idStr);
   }
+  
   loadTableData();
+  
+  // 入库单：展开时触发成本价计算
+  if (isExpanding && currentTable === 'stock_in_orders') {
+    setTimeout(() => {
+      window._stockModule.recalculateCostPricesForOrder(rowId);
+    }, 100);
+  }
 }
 
 // ==================== 多选与批量删除 ====================
