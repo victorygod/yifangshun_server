@@ -174,6 +174,13 @@ export async function handleImportFile(e) {
     // 显示导入结果
     showImportResult(importResults);
     
+    // 如果导入的是药材信息，清除药材信息缓存
+    if (Object.keys(importResults).includes('herbs')) {
+      if (typeof window !== 'undefined' && window._stockModule) {
+        window._stockModule.clearHerbInfoCache();
+      }
+    }
+    
     // 刷新表格数据
     await _dependencies.loadTableData();
     

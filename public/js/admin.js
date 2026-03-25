@@ -1213,6 +1213,12 @@ async function saveRow(rowId) {
     showToast('保存成功', 'success');
     editingRowId = null;
     selectedIds = [];
+    
+    // 如果保存的是药材信息，清除药材信息缓存
+    if (currentTable === 'herbs' && window._stockModule) {
+      window._stockModule.clearHerbInfoCache();
+    }
+    
     loadTableData();
     loadStats();
   } catch (err) {
@@ -1270,6 +1276,12 @@ async function saveNewRow() {
     showToast('新增成功', 'success');
     editingRowId = null;
     selectedIds = [];
+    
+    // 如果新增的是药材信息，清除药材信息缓存
+    if (currentTable === 'herbs' && window._stockModule) {
+      window._stockModule.clearHerbInfoCache();
+    }
+    
     loadTableData();
     loadStats();
   } catch (err) {
@@ -1325,6 +1337,12 @@ async function deleteRow(rowId) {
       if (res.code !== 0) throw new Error(res.message);
 
       showToast('删除成功', 'success');
+      
+      // 如果删除的是药材信息，清除药材信息缓存
+      if (currentTable === 'herbs' && window._stockModule) {
+        window._stockModule.clearHerbInfoCache();
+      }
+      
       loadTableData();
       loadStats();
     } catch (err) {
@@ -1354,7 +1372,7 @@ async function deleteRow(rowId) {
 
 // ==================== 展开详情操作 ====================
 
-function toggleDetail(rowId) {
+async function toggleDetail(rowId) {
   const idStr = String(rowId);
   const isExpanding = !expandedRows.has(idStr);
   
@@ -1366,13 +1384,11 @@ function toggleDetail(rowId) {
   
   loadTableData();
   
-  // 入库单：展开时只更新现成本提示，不重新计算成本价
+  // 入库单：展开时立即更新现成本提示
   if (isExpanding && currentTable === 'stock_in_orders') {
-    setTimeout(async () => {
-      // 重新获取最新的药材信息（确保现成本提示是最新的）
-      const freshHerbInfoMap = await window._stockModule.getHerbInfoMap();
-      window._stockModule.updateCostPriceHints(rowId, freshHerbInfoMap);
-    }, 100);
+    // 重新获取最新的药材信息（确保现成本提示是最新的）
+    const freshHerbInfoMap = await window._stockModule.getHerbInfoMap();
+    window._stockModule.updateCostPriceHints(rowId, freshHerbInfoMap);
   }
 }
 
@@ -1448,6 +1464,12 @@ async function batchDelete() {
 
           showToast(`成功删除 ${res.data.deletedCount} 条记录`, 'success');
           selectedIds = [];
+          
+          // 如果删除的是药材信息，清除药材信息缓存
+          if (currentTable === 'herbs' && window._stockModule) {
+            window._stockModule.clearHerbInfoCache();
+          }
+          
           loadTableData();
           loadStats();
         } catch (err) {
@@ -1466,6 +1488,12 @@ async function batchDelete() {
 
           showToast(`成功删除 ${res.data.deletedCount} 条记录`, 'success');
           selectedIds = [];
+          
+          // 如果删除的是药材信息，清除药材信息缓存
+          if (currentTable === 'herbs' && window._stockModule) {
+            window._stockModule.clearHerbInfoCache();
+          }
+          
           loadTableData();
           loadStats();
         } catch (err) {
@@ -1485,6 +1513,12 @@ async function batchDelete() {
 
         showToast(`成功删除 ${res.data.deletedCount} 条记录`, 'success');
         selectedIds = [];
+        
+        // 如果删除的是药材信息，清除药材信息缓存
+        if (currentTable === 'herbs' && window._stockModule) {
+          window._stockModule.clearHerbInfoCache();
+        }
+        
         loadTableData();
         loadStats();
       } catch (err) {

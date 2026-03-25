@@ -16,10 +16,10 @@
     "purchaseDate": "2026-03-24",
     "orderDate": "2026-03-24",
     "supplierName": "32如2人",
-    "status": "draft",
+    "status": "stocked",
     "totalAmount": 8227423,
     "createdAt": "2026-03-25T02:48:27.781Z",
-    "updatedAt": "2026-03-25T23:47:01.099Z",
+    "updatedAt": "2026-03-25T23:53:29.894Z",
     "id": 2
   }
 ]
