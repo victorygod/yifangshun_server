@@ -64,31 +64,50 @@ async function addStockLog(action, orderNo, herbName, quantity, operator) {
 
 // 获取药材列表
 async function getHerbs(options = {}) {
-  const { keyword = '', page = 1, pageSize = 100 } = options;
+  const { keyword = '', page = 1, pageSize = 20 } = options;
   
-  let where = {};
-  if (keyword) {
-    // 本地模式暂不支持模糊查询，返回全部
-    // 后续可以优化
-  }
-  
-  const herbs = await Herb.findAll({
-    where,
-    order: [['createdAt', 'DESC']]
+  // 获取所有数据（按createdAt降序）
+  let allData = await Herb.findAll({
+    order: [['createdAt', 'DESC']],
+    raw: true
   });
   
-  // 过滤关键字
-  let filtered = herbs;
+  // 多维度搜索（与 /api/admin/table/:name 行为一致）
   if (keyword) {
-    filtered = herbs.filter(h => 
-      h.name && h.name.includes(keyword) ||
-      h.alias && h.alias.includes(keyword)
-    );
+    const keywordLower = keyword.toLowerCase();
+    allData = allData.filter(row => {
+      // 遍历所有字段进行匹配
+      for (const key in row) {
+        const value = row[key];
+        if (value !== null && value !== undefined) {
+          const strValue = String(value).toLowerCase();
+          if (strValue.includes(keywordLower)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    });
   }
+  
+  const totalCount = allData.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  
+  // 分页
+  const start = (page - 1) * pageSize;
+  const rows = allData.slice(start, start + pageSize);
   
   return {
     code: 0,
-    data: filtered
+    data: {
+      rows,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages
+      }
+    }
   };
 }
 
@@ -144,7 +163,7 @@ async function updateHerb(id, data) {
     throw new Error('药材不存在');
   }
   
-  const { name, alias, unit, minValue, category, isActive, cabinetNo, salePrice, remark } = data;
+  const { name, alias, unit, minValue, category, isActive, cabinetNo, salePrice, costPrice, coefficient, remark } = data;
   
   // 如果修改名称，检查是否与其他药材重名
   if (name && name !== herb.name) {
@@ -163,6 +182,8 @@ async function updateHerb(id, data) {
   if (isActive !== undefined) updates.isActive = isActive;
   if (cabinetNo !== undefined) updates.cabinetNo = cabinetNo;
   if (salePrice !== undefined) updates.salePrice = salePrice;
+  if (costPrice !== undefined) updates.costPrice = costPrice;
+  if (coefficient !== undefined) updates.coefficient = coefficient;
   if (remark !== undefined) updates.remark = remark;
   updates.updatedAt = getNow();
   

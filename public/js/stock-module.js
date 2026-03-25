@@ -47,9 +47,9 @@ export async function getHerbInfoMap() {
 
   try {
     const res = await _dependencies.homeFetch('/api/stock/herbs');
-    if (res.code === 0 && res.data) {
+    if (res.code === 0 && res.data && res.data.rows) {
       herbInfoCache = {};
-      res.data.forEach(herb => {
+      res.data.rows.forEach(herb => {
         herbInfoCache[herb.name] = {
           salePrice: herb.salePrice || 0,
           cabinetNo: herb.cabinetNo || '',
@@ -857,6 +857,51 @@ export function getOrderLabels(tableType) {
   return { orderLabel: '记录', detailLabel: '明细' };
 }
 
+// ==================== 药材管理API路径 ====================
+
+/**
+ * 获取药材管理的API路径
+ * @param {string} operation - 操作类型 (list, create, update, delete)
+ * @param {string} id - 记录ID（update和delete操作需要）
+ * @returns {string} API路径
+ */
+export function getHerbApiPath(operation, id = null) {
+  switch (operation) {
+    case 'list':
+      return '/api/stock/herbs';
+    case 'create':
+      return '/api/stock/herbs';
+    case 'update':
+      return `/api/stock/herbs/${id}`;
+    case 'delete':
+      return `/api/stock/herbs/${id}`;
+    default:
+      return `/api/stock/herbs`;
+  }
+}
+
+/**
+ * 处理药材批量删除（逐个删除）
+ * @param {Array} ids - 要删除的药材ID数组
+ * @returns {Promise<Object>} { success: boolean, deletedCount: number, error?: string }
+ */
+export async function handleHerbBatchDelete(ids) {
+  try {
+    let deletedCount = 0;
+    
+    for (const id of ids) {
+      const res = await _dependencies.homeFetch(getHerbApiPath('delete', id), { method: 'DELETE' });
+      if (res.code === 0) {
+        deletedCount++;
+      }
+    }
+    
+    return { success: true, deletedCount };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
 // ==================== 导出模块实例供全局访问 ====================
 if (typeof window !== 'undefined') {
   window._stockModule = {
@@ -884,6 +929,8 @@ if (typeof window !== 'undefined') {
     handleDeleteBeforeConfirm,
     getDeleteApiPath,
     handleSpecialDelete,
-    getOrderLabels
+    getOrderLabels,
+    getHerbApiPath,
+    handleHerbBatchDelete
   };
 }

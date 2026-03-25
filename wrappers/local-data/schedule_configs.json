@@ -1,232 +1,52 @@
 [
   {
     "type": "default",
-    "dayOfWeek": 0,
+    "dayOfWeek": 2,
     "session": "morning",
     "isOpen": false,
     "maxBookings": 2,
     "id": 1,
-    "createdAt": "2026-03-22T18:52:10.029Z",
-    "updatedAt": "2026-03-22T18:52:10.029Z"
+    "createdAt": "2026-03-26T00:16:40.863Z",
+    "updatedAt": "2026-03-26T00:16:40.863Z"
   },
   {
     "type": "default",
-    "dayOfWeek": 0,
+    "dayOfWeek": 2,
     "session": "afternoon",
-    "isOpen": true,
+    "isOpen": false,
     "maxBookings": 4,
     "id": 2,
-    "createdAt": "2026-03-22T18:52:10.030Z",
-    "updatedAt": "2026-03-22T18:52:10.030Z"
+    "createdAt": "2026-03-26T00:16:40.863Z",
+    "updatedAt": "2026-03-26T00:16:40.863Z"
+  },
+  {
+    "type": "default",
+    "dayOfWeek": 2,
+    "session": "evening",
+    "isOpen": false,
+    "maxBookings": 2,
+    "id": 3,
+    "createdAt": "2026-03-26T00:16:40.864Z",
+    "updatedAt": "2026-03-26T00:16:40.864Z"
   },
   {
     "type": "default",
     "dayOfWeek": 0,
-    "session": "evening",
-    "isOpen": true,
-    "maxBookings": 2,
-    "id": 3,
-    "createdAt": "2026-03-22T18:52:10.030Z",
-    "updatedAt": "2026-03-22T18:52:10.030Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 1,
     "session": "morning",
     "isOpen": false,
     "maxBookings": 2,
     "id": 4,
-    "createdAt": "2026-03-22T18:52:10.030Z",
-    "updatedAt": "2026-03-22T18:52:10.030Z"
+    "createdAt": "2026-03-26T00:16:40.892Z",
+    "updatedAt": "2026-03-26T00:16:40.892Z"
   },
   {
-    "type": "default",
-    "dayOfWeek": 1,
-    "session": "afternoon",
-    "isOpen": true,
-    "maxBookings": 4,
+    "type": "override",
+    "date": "2026-03-26",
+    "session": "all",
+    "isOpen": false,
+    "reason": "临时停诊测试",
     "id": 5,
-    "createdAt": "2026-03-22T18:52:10.030Z",
-    "updatedAt": "2026-03-22T18:52:10.030Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 1,
-    "session": "evening",
-    "isOpen": true,
-    "maxBookings": 2,
-    "id": 6,
-    "createdAt": "2026-03-22T18:52:10.031Z",
-    "updatedAt": "2026-03-22T18:52:10.031Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 2,
-    "session": "morning",
-    "isOpen": false,
-    "maxBookings": 2,
-    "id": 7,
-    "createdAt": "2026-03-22T18:52:10.031Z",
-    "updatedAt": "2026-03-22T18:52:10.031Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 2,
-    "session": "afternoon",
-    "isOpen": false,
-    "maxBookings": 4,
-    "id": 8,
-    "createdAt": "2026-03-22T18:52:10.031Z",
-    "updatedAt": "2026-03-22T18:52:10.031Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 2,
-    "session": "evening",
-    "isOpen": false,
-    "maxBookings": 2,
-    "id": 9,
-    "createdAt": "2026-03-22T18:52:10.032Z",
-    "updatedAt": "2026-03-22T18:52:10.032Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 3,
-    "session": "morning",
-    "isOpen": false,
-    "maxBookings": 2,
-    "id": 10,
-    "createdAt": "2026-03-22T18:52:10.032Z",
-    "updatedAt": "2026-03-22T18:52:10.032Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 3,
-    "session": "afternoon",
-    "isOpen": true,
-    "maxBookings": 4,
-    "id": 11,
-    "createdAt": "2026-03-22T18:52:10.033Z",
-    "updatedAt": "2026-03-22T18:52:10.033Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 3,
-    "session": "evening",
-    "isOpen": true,
-    "maxBookings": 2,
-    "id": 12,
-    "createdAt": "2026-03-22T18:52:10.033Z",
-    "updatedAt": "2026-03-22T18:52:10.033Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 4,
-    "session": "morning",
-    "isOpen": true,
-    "maxBookings": 2,
-    "id": 13,
-    "createdAt": "2026-03-22T18:52:10.033Z",
-    "updatedAt": "2026-03-22T18:52:10.033Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 4,
-    "session": "afternoon",
-    "isOpen": false,
-    "maxBookings": 4,
-    "id": 14,
-    "createdAt": "2026-03-22T18:52:10.033Z",
-    "updatedAt": "2026-03-22T18:52:10.033Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 4,
-    "session": "evening",
-    "isOpen": true,
-    "maxBookings": 2,
-    "id": 15,
-    "createdAt": "2026-03-22T18:52:10.034Z",
-    "updatedAt": "2026-03-22T18:52:10.034Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 5,
-    "session": "morning",
-    "isOpen": false,
-    "maxBookings": 2,
-    "id": 16,
-    "createdAt": "2026-03-22T18:52:10.034Z",
-    "updatedAt": "2026-03-22T18:52:10.034Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 5,
-    "session": "afternoon",
-    "isOpen": true,
-    "maxBookings": 4,
-    "id": 17,
-    "createdAt": "2026-03-22T18:52:10.034Z",
-    "updatedAt": "2026-03-22T18:52:10.034Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 5,
-    "session": "evening",
-    "isOpen": true,
-    "maxBookings": 2,
-    "id": 18,
-    "createdAt": "2026-03-22T18:52:10.034Z",
-    "updatedAt": "2026-03-22T18:52:10.034Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 6,
-    "session": "morning",
-    "isOpen": false,
-    "maxBookings": 2,
-    "id": 19,
-    "createdAt": "2026-03-22T18:52:10.035Z",
-    "updatedAt": "2026-03-22T18:52:10.035Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 6,
-    "session": "afternoon",
-    "isOpen": true,
-    "maxBookings": 4,
-    "id": 20,
-    "createdAt": "2026-03-22T18:52:10.035Z",
-    "updatedAt": "2026-03-22T18:52:10.035Z"
-  },
-  {
-    "type": "default",
-    "dayOfWeek": 6,
-    "session": "evening",
-    "isOpen": true,
-    "maxBookings": 2,
-    "id": 21,
-    "createdAt": "2026-03-22T18:52:10.035Z",
-    "updatedAt": "2026-03-22T18:52:10.035Z"
-  },
-  {
-    "type": "override",
-    "date": "2026-03-28",
-    "session": "afternoon",
-    "isOpen": false,
-    "reason": "",
-    "id": 22,
-    "createdAt": "2026-03-22T19:07:16.814Z",
-    "updatedAt": "2026-03-22T19:07:16.814Z"
-  },
-  {
-    "type": "override",
-    "date": "2026-03-27",
-    "session": "morning",
-    "isOpen": false,
-    "reason": "",
-    "id": 23,
-    "createdAt": "2026-03-25T23:09:47.427Z",
-    "updatedAt": "2026-03-25T23:09:47.427Z"
+    "createdAt": "2026-03-26T00:16:40.894Z",
+    "updatedAt": "2026-03-26T00:16:40.894Z"
   }
 ]

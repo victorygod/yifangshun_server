@@ -103,7 +103,7 @@ const tableConfigs = {
       { key: 'cabinetNo', label: '柜号', editable: true },
       { key: 'coefficient', label: '系数', editable: true, type: 'number' },
       { key: 'costPrice', label: '成本价', editable: true, type: 'number' },
-      { key: 'salePrice', label: '售卖单价', readonly: true, type: 'number' },
+      { key: 'salePrice', label: '售卖单价', editable: true, type: 'number' },
       { key: 'stock', label: '现有库存', readonly: true, type: 'number' },
       { key: 'minValue', label: '最低库存', editable: true, type: 'number' },
       { key: 'remark', label: '备注', editable: true }
@@ -485,6 +485,12 @@ async function loadTableData() {
       if (res.code !== 0) throw new Error(res.message);
       rows = res.data || [];
       pagination = res.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 };
+    } else if (currentTable === 'herbs') {
+      // 药材管理使用专门的API
+      const res = await homeFetch(`${window._stockModule.getHerbApiPath('list')}?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`);
+      if (res.code !== 0) throw new Error(res.message);
+      rows = res.data.rows;
+      pagination = res.data.pagination;
     } else {
       const url = `/api/admin/table/${currentTable}?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`;
       const res = await homeFetch(url);
@@ -1161,7 +1167,38 @@ async function handleDetailBlur(e) {
 }
 
 async function handleCellBlur(e) {
-  console.log('[handleCellBlur] 失焦事件触发，不自动保存');
+  const input = e.target;
+  const row = input.closest('tr');
+  if (!row) return;
+
+  const colKey = input.dataset.col;
+  
+  console.log('[handleCellBlur] 触发字段:', colKey, '当前表:', currentTable);
+  
+  // 药材表：成本价或系数失焦时自动计算售卖单价
+  if (currentTable === 'herbs' && (colKey === 'costPrice' || colKey === 'coefficient')) {
+    console.log('[handleCellBlur] 触发售卖单价计算');
+    
+    const costPriceInput = row.querySelector('input[data-col="costPrice"]');
+    const coefficientInput = row.querySelector('input[data-col="coefficient"]');
+    const salePriceInput = row.querySelector('input[data-col="salePrice"]');
+    
+    console.log('[handleCellBlur] 输入框:', {
+      costPrice: costPriceInput?.value,
+      coefficient: coefficientInput?.value,
+      salePrice: salePriceInput?.value
+    });
+    
+    if (costPriceInput && coefficientInput && salePriceInput) {
+      const costPrice = parseFloat(costPriceInput.value) || 0;
+      const coefficient = parseFloat(coefficientInput.value) || 1;
+      const newSalePrice = costPrice * coefficient;
+      
+      console.log('[handleCellBlur] 计算:', { costPrice, coefficient, newSalePrice });
+      
+      salePriceInput.value = newSalePrice.toFixed(2);
+    }
+  }
 }
 
 // ==================== 编辑操作 ====================
@@ -1203,7 +1240,13 @@ async function saveRow(rowId) {
   });
 
   try {
-    const res = await homeFetch(`/api/admin/table/${currentTable}/${rowId}`, {
+    // 获取API路径
+    let apiUrl = `/api/admin/table/${currentTable}/${rowId}`;
+    if (currentTable === 'herbs' && window._stockModule) {
+      apiUrl = window._stockModule.getHerbApiPath('update', rowId);
+    }
+    
+    const res = await homeFetch(apiUrl, {
       method: 'PUT',
       body: JSON.stringify(data)
     });
@@ -1259,11 +1302,13 @@ async function saveNewRow() {
   }
 
   try {
-    // 获取创建订单的 API 路径（各模块可能有不同路径）
+    // 获取创建的 API 路径（各模块可能有不同路径）
     let apiUrl = `/api/admin/table/${currentTable}`;
     
     if (currentTable === 'stock_in_orders' && window._stockModule) {
       apiUrl = window._stockModule.getCreateOrderApiPath(currentTable);
+    } else if (currentTable === 'herbs' && window._stockModule) {
+      apiUrl = window._stockModule.getHerbApiPath('create');
     }
     
     const res = await homeFetch(apiUrl, {
@@ -1329,7 +1374,9 @@ async function deleteRow(rowId) {
       // 获取删除 API 路径
       let deleteApi = `/api/admin/table/${currentTable}/${rowId}`;
       
-      if ((currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') && window._stockModule) {
+      if (currentTable === 'herbs' && window._stockModule) {
+        deleteApi = window._stockModule.getHerbApiPath('delete', rowId);
+      } else if ((currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') && window._stockModule) {
         deleteApi = window._stockModule.getDeleteApiPath(rowId, currentTable);
       }
       
@@ -1455,14 +1502,26 @@ async function batchDelete() {
 
       showConfirm('批量删除', message, async () => {
         try {
-          const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
-            method: 'POST',
-            body: JSON.stringify({ ids: selectedIds })
-          });
+          let deletedCount = 0;
+          
+          // 药材表使用专门的批量删除函数
+          if (currentTable === 'herbs' && window._stockModule) {
+            const result = await window._stockModule.handleHerbBatchDelete(selectedIds);
+            if (!result.success) {
+              throw new Error(result.error);
+            }
+            deletedCount = result.deletedCount;
+          } else {
+            const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
+              method: 'POST',
+              body: JSON.stringify({ ids: selectedIds })
+            });
 
-          if (res.code !== 0) throw new Error(res.message);
+            if (res.code !== 0) throw new Error(res.message);
+            deletedCount = res.data.deletedCount;
+          }
 
-          showToast(`成功删除 ${res.data.deletedCount} 条记录`, 'success');
+          showToast(`成功删除 ${deletedCount} 条记录`, 'success');
           selectedIds = [];
           
           // 如果删除的是药材信息，清除药材信息缓存
@@ -1479,14 +1538,26 @@ async function batchDelete() {
     } catch (err) {
       showConfirm('批量删除', `确定要删除选中的 ${selectedIds.length} 条记录吗？`, async () => {
         try {
-          const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
-            method: 'POST',
-            body: JSON.stringify({ ids: selectedIds })
-          });
+          let deletedCount = 0;
+          
+          // 药材表使用专门的批量删除函数
+          if (currentTable === 'herbs' && window._stockModule) {
+            const result = await window._stockModule.handleHerbBatchDelete(selectedIds);
+            if (!result.success) {
+              throw new Error(result.error);
+            }
+            deletedCount = result.deletedCount;
+          } else {
+            const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
+              method: 'POST',
+              body: JSON.stringify({ ids: selectedIds })
+            });
 
-          if (res.code !== 0) throw new Error(res.message);
+            if (res.code !== 0) throw new Error(res.message);
+            deletedCount = res.data.deletedCount;
+          }
 
-          showToast(`成功删除 ${res.data.deletedCount} 条记录`, 'success');
+          showToast(`成功删除 ${deletedCount} 条记录`, 'success');
           selectedIds = [];
           
           // 如果删除的是药材信息，清除药材信息缓存
@@ -1504,14 +1575,26 @@ async function batchDelete() {
   } else {
     showConfirm('批量删除', `确定要删除选中的 ${selectedIds.length} 条记录吗？`, async () => {
       try {
-        const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
-          method: 'POST',
-          body: JSON.stringify({ ids: selectedIds })
-        });
+        let deletedCount = 0;
+        
+        // 药材表使用专门的批量删除函数
+        if (currentTable === 'herbs' && window._stockModule) {
+          const result = await window._stockModule.handleHerbBatchDelete(selectedIds);
+          if (!result.success) {
+            throw new Error(result.error);
+          }
+          deletedCount = result.deletedCount;
+        } else {
+          const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
+            method: 'POST',
+            body: JSON.stringify({ ids: selectedIds })
+          });
 
-        if (res.code !== 0) throw new Error(res.message);
+          if (res.code !== 0) throw new Error(res.message);
+          deletedCount = res.data.deletedCount;
+        }
 
-        showToast(`成功删除 ${res.data.deletedCount} 条记录`, 'success');
+        showToast(`成功删除 ${deletedCount} 条记录`, 'success');
         selectedIds = [];
         
         // 如果删除的是药材信息，清除药材信息缓存

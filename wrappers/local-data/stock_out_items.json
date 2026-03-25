@@ -38,5 +38,35 @@
     "id": 4,
     "createdAt": "2026-03-24T21:52:29.053Z",
     "updatedAt": "2026-03-24T22:14:12.323Z"
+  },
+  {
+    "orderId": 2,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-26T00:16:40.942Z",
+    "id": 5,
+    "updatedAt": "2026-03-26T00:16:40.942Z"
+  },
+  {
+    "orderId": 3,
+    "herbName": "当归",
+    "quantity": 15,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-26T00:16:40.950Z",
+    "id": 6,
+    "updatedAt": "2026-03-26T00:16:40.950Z"
+  },
+  {
+    "orderId": 5,
+    "herbName": "测试药材_1774455400799",
+    "quantity": 100,
+    "unitPrice": 0.06,
+    "totalPrice": 6,
+    "createdAt": "2026-03-26T00:16:43.780Z",
+    "id": 8,
+    "updatedAt": "2026-03-26T00:16:43.780Z"
   }
 ]

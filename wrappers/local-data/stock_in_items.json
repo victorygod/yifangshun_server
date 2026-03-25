@@ -48,6 +48,38 @@
     "updatedAt": "2026-03-25T22:30:58.790Z"
   },
   {
+    "orderId": "3",
+    "herbName": "测试药材_1774455400799",
+    "quality": "",
+    "origin": "",
+    "productionDate": "",
+    "expiryDate": "",
+    "quantity": 600,
+    "unitPrice": 0.06,
+    "costPrice": 0.06,
+    "totalPrice": 36,
+    "remark": "",
+    "id": 19,
+    "createdAt": "2026-03-26T00:21:08.987Z",
+    "updatedAt": "2026-03-26T00:21:08.987Z"
+  },
+  {
+    "orderId": "3",
+    "herbName": "金樱子",
+    "quality": "",
+    "origin": "",
+    "productionDate": "",
+    "expiryDate": "",
+    "quantity": 32,
+    "unitPrice": 2,
+    "costPrice": 5.97,
+    "totalPrice": 64,
+    "remark": "",
+    "id": 20,
+    "createdAt": "2026-03-26T00:21:08.987Z",
+    "updatedAt": "2026-03-26T00:21:08.987Z"
+  },
+  {
     "orderId": "2",
     "herbName": "防风",
     "quality": "32432",
@@ -59,9 +91,9 @@
     "costPrice": 233,
     "totalPrice": 7556656,
     "remark": "",
-    "id": 14,
-    "createdAt": "2026-03-25T23:53:25.125Z",
-    "updatedAt": "2026-03-25T23:53:25.125Z"
+    "id": 21,
+    "createdAt": "2026-03-26T00:35:27.598Z",
+    "updatedAt": "2026-03-26T00:35:27.598Z"
   },
   {
     "orderId": "2",
@@ -72,12 +104,12 @@
     "expiryDate": "324",
     "quantity": 32490,
     "unitPrice": 20,
-    "costPrice": 55.13,
+    "costPrice": 50.85,
     "totalPrice": 649800,
     "remark": "",
-    "id": 15,
-    "createdAt": "2026-03-25T23:53:25.125Z",
-    "updatedAt": "2026-03-25T23:53:25.125Z"
+    "id": 22,
+    "createdAt": "2026-03-26T00:35:27.599Z",
+    "updatedAt": "2026-03-26T00:35:27.599Z"
   },
   {
     "orderId": "2",
@@ -91,9 +123,9 @@
     "costPrice": 46,
     "totalPrice": 20010,
     "remark": "",
-    "id": 16,
-    "createdAt": "2026-03-25T23:53:25.126Z",
-    "updatedAt": "2026-03-25T23:53:25.126Z"
+    "id": 23,
+    "createdAt": "2026-03-26T00:35:27.600Z",
+    "updatedAt": "2026-03-26T00:35:27.600Z"
   },
   {
     "orderId": "2",
@@ -104,12 +136,12 @@
     "expiryDate": "324",
     "quantity": 123,
     "unitPrice": 7,
-    "costPrice": 7,
+    "costPrice": 7.21,
     "totalPrice": 861,
     "remark": "",
-    "id": 17,
-    "createdAt": "2026-03-25T23:53:25.127Z",
-    "updatedAt": "2026-03-25T23:53:25.127Z"
+    "id": 24,
+    "createdAt": "2026-03-26T00:35:27.600Z",
+    "updatedAt": "2026-03-26T00:35:27.600Z"
   },
   {
     "orderId": "2",
@@ -123,8 +155,8 @@
     "costPrice": 3,
     "totalPrice": 96,
     "remark": "",
-    "id": 18,
-    "createdAt": "2026-03-25T23:53:25.128Z",
-    "updatedAt": "2026-03-25T23:53:25.128Z"
+    "id": 25,
+    "createdAt": "2026-03-26T00:35:27.601Z",
+    "updatedAt": "2026-03-26T00:35:27.601Z"
   }
 ]

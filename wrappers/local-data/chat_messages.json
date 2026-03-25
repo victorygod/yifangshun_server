@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "openid": "user_vvdb9bur0k",
+    "content": "你好",
+    "type": "user",
+    "id": 1,
+    "createdAt": "2026-03-26T00:16:42.920Z",
+    "updatedAt": "2026-03-26T00:16:42.920Z"
+  },
+  {
+    "openid": "user_vvdb9bur0k",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 2,
+    "createdAt": "2026-03-26T00:16:42.921Z",
+    "updatedAt": "2026-03-26T00:16:42.921Z"
+  }
+]

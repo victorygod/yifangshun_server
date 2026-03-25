@@ -1,23 +1,12 @@
 [
   {
-    "herbName": "21321",
-    "herbAlias": "",
-    "quantity": 0,
-    "avgPrice": 123,
-    "minValue": 0,
-    "lastStockInDate": "2026-03-22",
-    "updatedAt": "2026-03-22T19:00:52.992Z",
-    "id": 1,
-    "createdAt": "2026-03-22T18:52:05.700Z"
-  },
-  {
     "herbName": "防风",
     "herbAlias": "",
-    "quantity": 32867,
+    "quantity": 0,
     "avgPrice": 230.5250251011653,
     "minValue": 0,
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T23:53:29.884Z",
+    "updatedAt": "2026-03-26T00:24:39.129Z",
     "id": 2,
     "createdAt": "2026-03-22T19:01:53.895Z"
   },
@@ -35,22 +24,22 @@
   {
     "herbName": "车前花",
     "herbAlias": "",
-    "quantity": 266814,
-    "avgPrice": 22.50605230280754,
+    "quantity": 234324,
+    "avgPrice": 22.200889757670414,
     "minValue": 0,
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T23:53:29.881Z",
+    "updatedAt": "2026-03-26T00:24:39.127Z",
     "id": 4,
     "createdAt": "2026-03-22T19:01:53.898Z"
   },
   {
     "herbName": "苡米仁",
     "herbAlias": "",
-    "quantity": 32,
+    "quantity": 0,
     "avgPrice": 3,
-    "minValue": 0,
+    "minValue": "0",
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T23:53:29.890Z",
+    "updatedAt": "2026-03-26T00:26:36.327Z",
     "id": 5,
     "createdAt": "2026-03-25T03:04:46.364Z"
   },
@@ -68,12 +57,34 @@
   {
     "herbName": "金樱子",
     "herbAlias": "",
-    "quantity": 123,
-    "avgPrice": 7,
-    "minValue": 0,
+    "quantity": 32,
+    "avgPrice": 6.786888657648284,
+    "minValue": "0",
     "lastStockInDate": "2026-03-24",
-    "updatedAt": "2026-03-25T23:53:29.886Z",
+    "updatedAt": "2026-03-26T00:36:42.426Z",
     "id": 7,
     "createdAt": "2026-03-25T23:10:59.189Z"
+  },
+  {
+    "herbName": "4t54t2",
+    "herbAlias": "更新后的别名",
+    "quantity": 700,
+    "avgPrice": 0.05714285714285714,
+    "minValue": "1000",
+    "updatedAt": "2026-03-26T00:23:34.731Z",
+    "id": 8,
+    "createdAt": "2026-03-26T00:16:43.753Z",
+    "lastStockInDate": "2026-03-25"
+  },
+  {
+    "herbName": "测试药材_1774455400799",
+    "herbAlias": "",
+    "quantity": 600,
+    "avgPrice": 0.06,
+    "minValue": 0,
+    "lastStockInDate": "2026-03-25",
+    "updatedAt": "2026-03-26T00:21:13.189Z",
+    "id": 9,
+    "createdAt": "2026-03-26T00:21:13.189Z"
   }
 ]
