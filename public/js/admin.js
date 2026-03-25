@@ -103,7 +103,7 @@ const tableConfigs = {
       { key: 'cabinetNo', label: '柜号', editable: true },
       { key: 'coefficient', label: '系数', editable: true, type: 'number' },
       { key: 'costPrice', label: '成本价', editable: true, type: 'number' },
-      { key: 'salePrice', label: '售卖单价', editable: true, type: 'number' },
+      { key: 'salePrice', label: '售卖单价', readonly: true, readonlyInput: true, type: 'number' },
       { key: 'stock', label: '现有库存', readonly: true, type: 'number' },
       { key: 'minValue', label: '最低库存', editable: true, type: 'number' },
       { key: 'remark', label: '备注', editable: true }
@@ -557,6 +557,7 @@ async function loadTableData() {
       columns.forEach(col => {
         const value = row[col.key] ?? '';
         const isReadonly = config.readonly || col.readonly;
+        const isReadonlyInput = col.readonlyInput; // 是否在编辑时显示为只读输入框
 
         if (isEditing && !isReadonly) {
           if (col.type === 'select') {
@@ -568,6 +569,9 @@ async function loadTableData() {
           } else {
             html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="cell-input" data-col="${col.key}" value="${escapeHtml(value)}"></td>`;
           }
+        } else if (isEditing && isReadonly && isReadonlyInput) {
+          // 编辑状态下，标记为 readonlyInput 的字段显示为只读输入框
+          html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="cell-input cell-readonly-input" data-col="${col.key}" value="${escapeHtml(value)}" readonly></td>`;
         } else {
           let displayValue = value;
           if (col.type === 'datetime' && value) {
@@ -1168,34 +1172,23 @@ async function handleDetailBlur(e) {
 
 async function handleCellBlur(e) {
   const input = e.target;
-  const row = input.closest('tr');
-  if (!row) return;
+  const rowElement = input.closest('tr');
+  if (!rowElement) return;
 
   const colKey = input.dataset.col;
   
-  console.log('[handleCellBlur] 触发字段:', colKey, '当前表:', currentTable);
-  
   // 药材表：成本价或系数失焦时自动计算售卖单价
   if (currentTable === 'herbs' && (colKey === 'costPrice' || colKey === 'coefficient')) {
-    console.log('[handleCellBlur] 触发售卖单价计算');
-    
-    const costPriceInput = row.querySelector('input[data-col="costPrice"]');
-    const coefficientInput = row.querySelector('input[data-col="coefficient"]');
-    const salePriceInput = row.querySelector('input[data-col="salePrice"]');
-    
-    console.log('[handleCellBlur] 输入框:', {
-      costPrice: costPriceInput?.value,
-      coefficient: coefficientInput?.value,
-      salePrice: salePriceInput?.value
-    });
+    const costPriceInput = rowElement.querySelector('input[data-col="costPrice"]');
+    const coefficientInput = rowElement.querySelector('input[data-col="coefficient"]');
+    const salePriceInput = rowElement.querySelector('input[data-col="salePrice"]');
     
     if (costPriceInput && coefficientInput && salePriceInput) {
       const costPrice = parseFloat(costPriceInput.value) || 0;
       const coefficient = parseFloat(coefficientInput.value) || 1;
       const newSalePrice = costPrice * coefficient;
       
-      console.log('[handleCellBlur] 计算:', { costPrice, coefficient, newSalePrice });
-      
+      // 直接更新售卖单价 input 的值
       salePriceInput.value = newSalePrice.toFixed(2);
     }
   }

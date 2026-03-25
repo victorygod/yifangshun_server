@@ -365,6 +365,18 @@ body {
   box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
 }
 
+.cell-readonly-input {
+  width: 100%;
+  min-width: 60px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  color: #999;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+}
+
 .cell-select {
   width: 100%;
   min-width: 80px;
