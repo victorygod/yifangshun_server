@@ -1898,5 +1898,85 @@
     "createdAt": "2026-03-25T22:31:01.639Z",
     "id": 190,
     "updatedAt": "2026-03-25T22:31:01.639Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "防风",
+    "quantity": -32432,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T22:40:10.608Z",
+    "id": 191,
+    "updatedAt": "2026-03-25T22:40:10.608Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "车前花",
+    "quantity": -32490,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T22:40:10.610Z",
+    "id": 192,
+    "updatedAt": "2026-03-25T22:40:10.610Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "防风",
+    "quantity": -435,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T22:40:10.612Z",
+    "id": 193,
+    "updatedAt": "2026-03-25T22:40:10.612Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "苡米仁",
+    "quantity": -2356,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T22:40:10.616Z",
+    "id": 194,
+    "updatedAt": "2026-03-25T22:40:10.616Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "防风",
+    "quantity": 32432,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T22:40:17.333Z",
+    "id": 195,
+    "updatedAt": "2026-03-25T22:40:17.333Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "车前花",
+    "quantity": 32490,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T22:40:17.335Z",
+    "id": 196,
+    "updatedAt": "2026-03-25T22:40:17.335Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "防风",
+    "quantity": 435,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T22:40:17.337Z",
+    "id": 197,
+    "updatedAt": "2026-03-25T22:40:17.337Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260324-111",
+    "herbName": "苡米仁",
+    "quantity": 2356,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-25T22:40:17.339Z",
+    "id": 198,
+    "updatedAt": "2026-03-25T22:40:17.339Z"
   }
 ]

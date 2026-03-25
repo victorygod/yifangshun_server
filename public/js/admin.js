@@ -452,7 +452,7 @@ async function loadTableData() {
 
     // 入库单需要先获取药材信息（用于成本价计算）
     if (currentTable === 'stock_in_orders') {
-      window._herbInfoMap = await getHerbInfoMap();
+      window._herbInfoMap = await window._stockModule.getHerbInfoMap();
       const res = await homeFetch(`/api/stock/in/orders?page=${currentPage}&pageSize=${pageSize}`);
       if (res.code !== 0) throw new Error(res.message);
       rows = res.data || [];
@@ -681,9 +681,9 @@ async function loadTableData() {
     // 入库单：为所有展开的订单计算总金额和成本价
     if (currentTable === 'stock_in_orders') {
       expandedRows.forEach(orderId => {
-        calculateOrderTotalAmount(orderId);
+        window._stockModule.calculateOrderTotalAmount(orderId);
         // 触发展开订单的成本价计算
-        recalculateCostPricesForOrder(orderId);
+        window._stockModule.recalculateCostPricesForOrder(orderId);
       });
     }
 
@@ -1118,35 +1118,35 @@ function handleTableClick(e) {
         toggleDetail(id);
         return;
       case 'deleteDetail':
-        removeDetailRow(id, orderId);
+        window._stockModule.removeDetailRow(id, orderId);
         showToast('已删除', 'success');
         return;
       case 'saveDetail':
         const editRow = document.querySelector(`tr[data-detail-id="${id}"]`);
         if (editRow) {
-          saveDetailEdit(id, orderId, editRow);
+          window._stockModule.saveDetailEdit(id, orderId, editRow);
         }
         return;
       case 'saveDetailNew':
         const newRow = document.querySelector(`tr.detail-new-row[data-order-id="${orderId}"]`);
         if (newRow) {
-          saveDetailNewAuto(newRow);
+          window._stockModule.saveDetailNewAuto(newRow);
         }
         return;
       case 'zoomDetail':
-        showZoomDetail(orderId);
+        window._stockModule.showZoomDetail(orderId);
         return;
       case 'settleOrder':
-        settleOutOrder(orderId);
+        window._stockModule.settleOutOrder(orderId);
         return;
       case 'revokeOrder':
-        revokeSettledOrder(orderId);
+        window._stockModule.revokeSettledOrder(orderId);
         return;
       case 'confirmStockIn':
-        confirmStockIn(id);
+        window._stockModule.confirmStockIn(id);
         return;
       case 'revertToDraft':
-        revertToDraft(id);
+        window._stockModule.revertToDraft(id);
         return;
       case 'saveOrderDetails':
         saveOrderDetails(orderId);
@@ -1185,37 +1185,6 @@ function handleTableClick(e) {
   }
 }
 
-// ==================== 入库单操作 ====================
-
-// 确认入库
-async function confirmStockIn(rowId) {
-  if (window._stockModule && window._stockModule.confirmStockIn) {
-    window._stockModule.confirmStockIn(rowId);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
-}
-
-// 退回草稿
-async function revertToDraft(rowId) {
-  if (window._stockModule && window._stockModule.revertToDraft) {
-    window._stockModule.revertToDraft(rowId);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
-}
-
-// ==================== 药材信息缓存 ====================
-
-let herbInfoCache = null;
-
-async function getHerbInfoMap() {
-  if (window._stockModule && window._stockModule.getHerbInfoMap) {
-    return window._stockModule.getHerbInfoMap();
-  }
-  return {};
-}
-
 // ==================== 自动保存事件 ====================
 
 function bindAutoSaveEvents() {
@@ -1233,14 +1202,14 @@ function bindAutoSaveEvents() {
     }
 
     if (input.dataset.col === 'herbName') {
-      input.removeEventListener('input', handleHerbNameInput);
-      input.addEventListener('input', handleHerbNameInput);
+      input.removeEventListener('input', window._stockModule.handleHerbNameInput);
+      input.addEventListener('input', window._stockModule.handleHerbNameInput);
     }
     
     // 入库明细：克数和进货单价失焦时计算成本价
     if (input.dataset.costCalc === 'true') {
-      input.removeEventListener('blur', handleCostCalcBlur);
-      input.addEventListener('blur', handleCostCalcBlur);
+      input.removeEventListener('blur', window._stockModule.handleCostCalcBlur);
+      input.addEventListener('blur', window._stockModule.handleCostCalcBlur);
     }
   });
 
@@ -1251,34 +1220,8 @@ function bindAutoSaveEvents() {
   });
 }
 
-// 入库明细成本价计算：(库存克数*现成本价+进货克数*进货单价)/(库存克数+进货克数)
-function handleCostCalcBlur(e) {
-  if (window._stockModule && window._stockModule.handleCostCalcBlur) {
-    window._stockModule.handleCostCalcBlur(e);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
-}
-
-// 重新计算某个订单下所有明细的成本价（用于展开时触发）
-function recalculateCostPricesForOrder(orderId) {
-  if (window._stockModule && window._stockModule.recalculateCostPricesForOrder) {
-    window._stockModule.recalculateCostPricesForOrder(orderId);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
-}
-
 function handleCalcSourceInput(e) {
   // 不再清除 manuallyModified 标记
-}
-
-function handleHerbNameInput(e) {
-  if (window._stockModule && window._stockModule.handleHerbNameInput) {
-    window._stockModule.handleHerbNameInput(e);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
 }
 
 async function handleDetailBlur(e) {
@@ -1290,52 +1233,16 @@ async function handleDetailBlur(e) {
   const orderId = row.dataset.orderId;
   const detailId = input.dataset.detailId;
 
-  await calculateDetailTotalPrice(row);
+  await window._stockModule.calculateDetailTotalPrice(row);
 
   // 入库单：重新计算订单总金额
   if (currentTable === 'stock_in_orders' && orderId) {
-    calculateOrderTotalAmount(orderId);
-  }
-}
-
-// 计算入库单总金额（所有明细的 克数*进货单价 之和）
-function calculateOrderTotalAmount(orderId) {
-  if (window._stockModule && window._stockModule.calculateOrderTotalAmount) {
     window._stockModule.calculateOrderTotalAmount(orderId);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
-}
-
-async function calculateDetailTotalPrice(row) {
-  if (window._stockModule && window._stockModule.calculateDetailTotalPrice) {
-    await window._stockModule.calculateDetailTotalPrice(row);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
   }
 }
 
 async function handleCellBlur(e) {
   console.log('[handleCellBlur] 失焦事件触发，不自动保存');
-}
-
-// ==================== 明细保存 ====================
-
-// 保存新增明细（保存到后端并重新加载）
-async function saveDetailNewAuto(row) {
-  if (window._stockModule && window._stockModule.saveDetailNewAuto) {
-    window._stockModule.saveDetailNewAuto(row);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
-}
-
-async function saveDetailEdit(detailId, orderId, row) {
-  if (window._stockModule && window._stockModule.saveDetailEdit) {
-    window._stockModule.saveDetailEdit(detailId, orderId, row);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
 }
 
 // ==================== 编辑操作 ====================
@@ -1557,33 +1464,6 @@ function toggleDetail(rowId) {
   loadTableData();
 }
 
-// 删除现有明细行（保存到后端）
-async function removeDetailRow(detailId, orderId) {
-  if (window._stockModule && window._stockModule.removeDetailRow) {
-    window._stockModule.removeDetailRow(detailId, orderId);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
-}
-
-// 结算执药单
-async function settleOutOrder(orderId) {
-  if (window._stockModule && window._stockModule.settleOutOrder) {
-    window._stockModule.settleOutOrder(orderId);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
-}
-
-// 撤销已结算的执药单
-async function revokeSettledOrder(orderId) {
-  if (window._stockModule && window._stockModule.revokeSettledOrder) {
-    window._stockModule.revokeSettledOrder(orderId);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
-}
-
 // ==================== 多选与批量删除 ====================
 
 function toggleSelectAll(checked) {
@@ -1797,24 +1677,6 @@ function showAlert(title, message) {
     if (cancelBtn) cancelBtn.style.display = '';
   };
   document.getElementById('confirmModal').classList.add('show');
-}
-
-// ==================== 放大展示执药单明细 ====================
-
-function showZoomDetail(orderId) {
-  if (window._stockModule && window._stockModule.showZoomDetail) {
-    window._stockModule.showZoomDetail(orderId);
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
-}
-
-function closeZoomModal() {
-  if (window._stockModule && window._stockModule.closeZoomModal) {
-    window._stockModule.closeZoomModal();
-  } else {
-    console.error('[admin.js] Stock 模块未初始化');
-  }
 }
 
 // ==================== 出诊管理 ====================

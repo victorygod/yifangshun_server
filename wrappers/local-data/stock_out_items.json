@@ -93,11 +93,11 @@
     "orderId": 2,
     "herbName": "芦根",
     "quantity": 50,
-    "unitPrice": 0,
-    "totalPrice": 0,
+    "unitPrice": 22,
+    "totalPrice": 1100,
     "id": 10,
     "createdAt": "2026-03-24T21:52:29.112Z",
-    "updatedAt": "2026-03-24T22:14:12.327Z"
+    "updatedAt": "2026-03-25T22:40:01.957Z"
   },
   {
     "orderId": 2,
