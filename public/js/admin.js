@@ -253,6 +253,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('[admin.js] 导入导出模块已初始化');
   }
 
+  // 初始化处方模块
+  if (window._prescriptionModule && window._prescriptionModule.initPrescriptionModule) {
+    window._prescriptionModule.initPrescriptionModule({
+      homeFetch: homeFetch,
+      showToast: showToast,
+      showAlert: showAlert,
+      loadTableData: loadTableData
+    });
+    console.log('[admin.js] 处方模块已初始化');
+  }
+
   // 检查登录状态
   const urlParams = new URLSearchParams(window.location.search);
   const phoneNumber = urlParams.get('phone_number');
@@ -791,14 +802,14 @@ function renderPrescriptionDetail(row) {
       <td><input class="med-input" data-med-field="name" data-med-index="${index}" value="${escapeHtml(medName)}"${disabledAttr} /></td>
       <td><input class="med-input" data-med-field="quantity" data-med-index="${index}" value="${escapeHtml(String(medQuantity))}"${disabledAttr} /></td>
       <td><input class="med-input" data-med-field="note" data-med-index="${index}" value="${escapeHtml(medNote)}"${disabledAttr} /></td>
-      ${!isSettled ? `<td><button class="action-btn action-btn-delete" onclick="removeMedicine(${row.id}, ${index})">删除</button></td>` : ''}
+      ${!isSettled ? `<td><button class="action-btn action-btn-delete" onclick="window._prescriptionModule.removeMedicine(${row.id}, ${index})">删除</button></td>` : ''}
     </tr>`;
   });
   html += `</tbody></table>`;
   
   // 添加药材按钮（待审核状态）
   if (!isSettled) {
-    html += `<button class="action-btn" onclick="addMedicine(${row.id})">+ 添加药材</button>`;
+    html += `<button class="action-btn" onclick="window._prescriptionModule.addMedicine(${row.id})">+ 添加药材</button>`;
   }
   
   html += `</div>`;
@@ -806,113 +817,12 @@ function renderPrescriptionDetail(row) {
   // 保存按钮（待审核状态）
   if (!isSettled) {
     html += `<div class="prescription-actions">`;
-    html += `<button class="btn btn-primary" onclick="savePrescriptionDetail(${row.id})">保存修改</button>`;
+    html += `<button class="btn btn-primary" onclick="window._prescriptionModule.savePrescriptionDetail(${row.id})">保存修改</button>`;
     html += `</div>`;
   }
 
   html += `</div></td></tr>`;
   return html;
-}
-
-// 添加药材
-function addMedicine(rowId) {
-  const tbody = document.getElementById(`medicines-body-${rowId}`);
-  if (!tbody) return;
-  
-  const newIndex = tbody.children.length;
-  const tr = document.createElement('tr');
-  tr.setAttribute('data-med-index', newIndex);
-  tr.innerHTML = `
-    <td>${newIndex + 1}</td>
-    <td><input class="med-input" data-med-field="name" data-med-index="${newIndex}" value="" /></td>
-    <td><input class="med-input" data-med-field="quantity" data-med-index="${newIndex}" value="" /></td>
-    <td><input class="med-input" data-med-field="note" data-med-index="${newIndex}" value="" /></td>
-    <td><button class="action-btn action-btn-delete" onclick="removeMedicine(${rowId}, ${newIndex})">删除</button></td>
-  `;
-  tbody.appendChild(tr);
-}
-
-// 删除药材
-function removeMedicine(rowId, index) {
-  const tbody = document.getElementById(`medicines-body-${rowId}`);
-  if (!tbody) return;
-  
-  const row = tbody.querySelector(`tr[data-med-index="${index}"]`);
-  if (row) {
-    row.remove();
-    // 重新编号
-    Array.from(tbody.children).forEach((tr, i) => {
-      tr.querySelector('td:first-child').textContent = i + 1;
-    });
-  }
-}
-
-// 保存处方详情修改
-async function savePrescriptionDetail(rowId) {
-  const detailRow = document.querySelector(`tr.detail-row[data-parent-id="${rowId}"]`);
-  if (!detailRow) return;
-
-  // 收集表单数据
-  const fields = ['prescriptionId', 'name', 'age', 'date', 'dosage', 'administrationMethod', 'doctor', 'rp'];
-  const data = {};
-  
-  fields.forEach(field => {
-    const input = detailRow.querySelector(`[data-field="${field}"]`);
-    if (input) {
-      data[field] = input.value;
-    }
-  });
-
-  // 收集药材数据
-  const medicines = [];
-  const tbody = document.getElementById(`medicines-body-${rowId}`);
-  if (tbody) {
-    Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
-      const nameInput = tr.querySelector('[data-med-field="name"]');
-      const quantityInput = tr.querySelector('[data-med-field="quantity"]');
-      const noteInput = tr.querySelector('[data-med-field="note"]');
-      if (nameInput && quantityInput) {
-        medicines.push({
-          name: nameInput.value,
-          quantity: quantityInput.value,
-          note: noteInput ? noteInput.value : ''
-        });
-      }
-    });
-  }
-  data.medicines = medicines;
-
-  try {
-    // 先获取当前记录
-    const getRes = await homeFetch(`/api/admin/table/prescriptions/${rowId}`);
-    if (getRes.code !== 0) throw new Error(getRes.message);
-    
-    const currentRecord = getRes.data;
-    let currentData = {};
-    try {
-      currentData = typeof currentRecord.data === 'string' ? JSON.parse(currentRecord.data) : (currentRecord.data || {});
-    } catch (e) {}
-
-    // 合并数据
-    const mergedData = { ...currentData, ...data };
-
-    // 更新处方
-    const updateData = {
-      prescriptionId: data.prescriptionId || currentRecord.prescriptionId,
-      data: JSON.stringify(mergedData)
-    };
-
-    const res = await homeFetch(`/api/admin/table/prescriptions/${rowId}`, {
-      method: 'PUT',
-      body: JSON.stringify(updateData)
-    });
-    
-    if (res.code !== 0) throw new Error(res.message);
-    showToast('保存成功', 'success');
-    loadTableData();
-  } catch (err) {
-    showAlert('保存失败', err.message);
-  }
 }
 
 // 图片预览
