@@ -468,6 +468,21 @@ export async function calculateDetailTotalPrice(row) {
   // 自动更新总价
   totalPriceInput.value = calculatedTotal;
   totalPriceInput.dataset.autoCalc = 'true';
+
+  // 执药单：自动保存到后端
+  if (currentTable === 'stock_out_orders') {
+    const orderId = row.dataset.orderId;
+    const isNew = row.dataset.isNew === 'true';
+
+    // 如果不是新增行，自动保存当前编辑的明细
+    if (!isNew && orderId) {
+      try {
+        await saveDetailEdit(row.dataset.detailId, orderId, row);
+      } catch (err) {
+        console.error('自动保存明细失败:', err);
+      }
+    }
+  }
 }
 
 /**

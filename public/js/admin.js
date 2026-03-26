@@ -1072,7 +1072,6 @@ function handleTableClick(e) {
         return;
       case 'deleteDetail':
         window._stockModule.removeDetailRow(id, orderId);
-        showToast('已删除', 'success');
         return;
       case 'saveDetail':
         const editRow = document.querySelector(`tr[data-detail-id="${id}"]`);
@@ -1196,7 +1195,7 @@ async function handleDetailBlur(e) {
     }
   }
   
-  // 执药单：计算明细总价
+  // 执药单：计算明细总价并自动保存
   if (currentTable === 'stock_out_orders') {
     await window._stockModule.calculateDetailTotalPrice(row);
   }

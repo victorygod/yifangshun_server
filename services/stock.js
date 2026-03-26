@@ -939,7 +939,7 @@ async function createOutOrder(data, operator = 'system', dosage = 1) {
   return {
     code: 0,
     message: '创建成功',
-    data: created
+    data: created.data
   };
 }
 
