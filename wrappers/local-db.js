@@ -132,28 +132,28 @@ class Model {
             }
             if (whereValue[Symbol.for('sequelize:op.gte')] !== undefined) {
               // 日期比较：如果是日期字段，转换为 Date 对象比较
-              if (key === 'createTime' || key === 'createdAt' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
+              if (key === 'createTime' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
                 return toCST(itemValue) >= toCST(whereValue[Symbol.for('sequelize:op.gte')]);
               }
               return itemValue >= whereValue[Symbol.for('sequelize:op.gte')];
             }
             if (whereValue[Symbol.for('sequelize:op.gt')] !== undefined) {
               // 日期比较：如果是日期字段，转换为 Date 对象比较
-              if (key === 'createTime' || key === 'createdAt' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
+              if (key === 'createTime' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
                 return toCST(itemValue) > toCST(whereValue[Symbol.for('sequelize:op.gt')]);
               }
               return itemValue > whereValue[Symbol.for('sequelize:op.gt')];
             }
             if (whereValue[Symbol.for('sequelize:op.lte')] !== undefined) {
               // 日期比较：如果是日期字段，转换为 Date 对象比较
-              if (key === 'createTime' || key === 'createdAt' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
+              if (key === 'createTime' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
                 return toCST(itemValue) <= toCST(whereValue[Symbol.for('sequelize:op.lte')]);
               }
               return itemValue <= whereValue[Symbol.for('sequelize:op.lte')];
             }
             if (whereValue[Symbol.for('sequelize:op.lt')] !== undefined) {
               // 日期比较：如果是日期字段，转换为 Date 对象比较
-              if (key === 'createTime' || key === 'createdAt' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
+              if (key === 'createTime' || key === 'updatedAt' || key === 'modifyDate' || key === 'reviewDate') {
                 return toCST(itemValue) < toCST(whereValue[Symbol.for('sequelize:op.lt')]);
               }
               return itemValue < whereValue[Symbol.for('sequelize:op.lt')];
@@ -243,7 +243,7 @@ class Model {
     const newRecord = {
       ...data,
       id: newId,
-      createdAt: getNowCST(),
+      createTime: getNowCST(),
       updatedAt: getNowCST()
     };
     
