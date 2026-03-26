@@ -875,7 +875,7 @@ async function getOutOrders(options = {}) {
 }
 
 // 创建执药单（从处方导入）
-async function createOutOrder(data, operator = 'system') {
+async function createOutOrder(data, operator = 'system', dosage = 1) {
   const { prescriptionId, prescriptionTime, pharmacist, reviewer, remark, items = [] } = data;
   
   if (items.length === 0) {
@@ -898,7 +898,9 @@ async function createOutOrder(data, operator = 'system') {
     // 获取药材售价
     const herb = await Herb.findOne({ where: { name: item.herbName } });
     const unitPrice = herb ? parseFloat(herb.salePrice) || 0 : 0;
-    totalPrice += parseFloat(item.quantity) * unitPrice;
+    // 实际克数 = 单剂克数 × 剂数
+    const actualQuantity = parseFloat(item.quantity || 0) * dosage;
+    totalPrice += actualQuantity * unitPrice;
   }
   
   const order = await StockOutOrder.create({
@@ -917,19 +919,20 @@ async function createOutOrder(data, operator = 'system') {
   for (const item of items) {
     const herb = await Herb.findOne({ where: { name: item.herbName } });
     const unitPrice = herb ? parseFloat(herb.salePrice) || 0 : 0;
-    const quantity = parseFloat(item.quantity) || 0;
+    const singleQuantity = parseFloat(item.quantity || 0);
+    const actualQuantity = singleQuantity * dosage;  // 实际克数 = 单剂克数 × 剂数
     
     await StockOutItem.create({
       orderId: order.id,
       herbName: item.herbName,
-      quantity,
+      quantity: actualQuantity,
       unitPrice,
-      totalPrice: quantity * unitPrice,
+      totalPrice: actualQuantity * unitPrice,
       createdAt: getNow()
     });
     
     // 添加日志
-    await addStockLog('stock_out', `ZD-${prescriptionId}`, item.herbName, quantity, operator);
+    await addStockLog('stock_out', `ZD-${prescriptionId}`, item.herbName, actualQuantity, operator);
   }
   
   const created = await getOutOrderById(order.id);

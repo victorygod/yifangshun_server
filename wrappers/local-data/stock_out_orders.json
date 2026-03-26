@@ -1,15 +1,15 @@
 [
   {
-    "prescriptionId": "0000255",
+    "prescriptionId": "0052152",
     "prescriptionTime": "2026-03-26",
     "pharmacist": "",
     "reviewer": "home_super_admin",
-    "status": "pending",
+    "status": "settled",
     "remark": "处方审核通过自动生成",
-    "totalPrice": 133560,
-    "createdAt": "2026-03-26T17:15:39.764Z",
-    "updatedAt": "2026-03-27T01:15:39.770Z",
+    "totalPrice": 0,
+    "createdAt": "2026-03-26T17:36:16.565Z",
+    "updatedAt": "2026-03-27T01:36:34.143Z",
     "id": 1,
-    "createTime": "2026-03-27T01:15:39.764Z"
+    "createTime": "2026-03-27T01:36:16.566Z"
   }
 ]
