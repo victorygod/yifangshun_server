@@ -452,7 +452,7 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
             reviewer: reviewer || '',
             status: 'pending',
             remark: '处方上传自动生成',
-            totalAmount: 0,
+            totalPrice: 0,
             createdAt: getNow(),
             updatedAt: getNow()
           });
@@ -460,7 +460,9 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
           // 创建执药明细
           for (const med of medicines) {
             const herbName = med.name || '';
-            const quantity = parseFloat(med.quantity || 0);
+            const singleQuantity = parseFloat(med.quantity || 0);
+            const dosage = parseFloat(convertedData.dosage) || 1;
+            const quantity = singleQuantity * dosage;  // 实际克数 = 单剂克数 × 剂数
 
             if (herbName && quantity > 0) {
               // 获取药材售价
@@ -479,7 +481,15 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
             }
           }
 
-          console.log('执药单自动创建成功:', outOrder.id);
+          // 计算并更新执药单总价
+          const items = await StockOutItem.findAll({ where: { orderId: outOrder.id } });
+          let totalPrice = 0;
+          items.forEach(item => {
+            totalPrice += parseFloat(item.totalPrice) || 0;
+          });
+          await StockOutOrder.update({ totalPrice }, { where: { id: outOrder.id } });
+
+          console.log('执药单自动创建成功:', outOrder.id, '总价:', totalPrice);
         }
       }
     } catch (err) {
@@ -593,9 +603,11 @@ async function updatePrescription(prescriptionId, status, prescriptionData, thum
           await StockOutItem.destroy({ where: { orderId: existingOrder.id } });
 
           // 重新创建明细
+          const dosage = parseFloat(convertedData.dosage) || 1;
           for (const med of medicines) {
             const herbName = med.name || '';
-            const quantity = parseFloat(med.quantity || 0);
+            const singleQuantity = parseFloat(med.quantity || 0);
+            const quantity = singleQuantity * dosage;  // 实际克数 = 单剂克数 × 剂数
 
             if (herbName && quantity > 0) {
               const herb = await Herb.findOne({ where: { name: herbName } });
@@ -613,7 +625,15 @@ async function updatePrescription(prescriptionId, status, prescriptionData, thum
             }
           }
 
-          console.log(`[updatePrescription] 同步执药单成功: ${existingOrder.id}`);
+          // 计算并更新执药单总价
+          const items = await StockOutItem.findAll({ where: { orderId: existingOrder.id } });
+          let totalPrice = 0;
+          items.forEach(item => {
+            totalPrice += parseFloat(item.totalPrice) || 0;
+          });
+          await StockOutOrder.update({ totalPrice, updatedAt: getNow() }, { where: { id: existingOrder.id } });
+
+          console.log(`[updatePrescription] 同步执药单成功: ${existingOrder.id}, 总价: ${totalPrice}`);
         }
       }
     } catch (error) {
@@ -984,15 +1004,17 @@ async function reviewPrescription(prescriptionId, status, action, reviewerOpenid
           reviewer: reviewerName || '',
           status: 'pending',
           remark: '处方审核通过自动生成',
-          totalAmount: 0,
+          totalPrice: 0,
           createdAt: getNow(),
           updatedAt: getNow()
         });
         
         // 创建执药明细
+        const dosage = parseFloat(prescriptionData.dosage || prescriptionData['剂数']) || 1;
         for (const med of medicines) {
           const herbName = med.name || med['药名'] || '';
-          const quantity = parseFloat(med.quantity || med['数量'] || 0);
+          const singleQuantity = parseFloat(med.quantity || med['数量'] || 0);
+          const quantity = singleQuantity * dosage;  // 实际克数 = 单剂克数 × 剂数
           
           if (herbName && quantity > 0) {
             // 获取药材售价
@@ -1009,8 +1031,16 @@ async function reviewPrescription(prescriptionId, status, action, reviewerOpenid
             });
           }
         }
-        
-        console.log('自动创建执药单成功:', outOrder.id, '处方ID:', targetPrescriptionId);
+
+        // 计算并更新执药单总价
+        const items = await StockOutItem.findAll({ where: { orderId: outOrder.id } });
+        let totalPrice = 0;
+        items.forEach(item => {
+          totalPrice += parseFloat(item.totalPrice) || 0;
+        });
+        await StockOutOrder.update({ totalPrice }, { where: { id: outOrder.id } });
+
+        console.log('自动创建执药单成功:', outOrder.id, '处方ID:', targetPrescriptionId, '总价:', totalPrice);
       }
     }
   } catch (error) {
@@ -1164,15 +1194,17 @@ async function confirmPrescriptionApprove(prescriptionId, status, reviewerOpenid
           reviewer: reviewerName || '',
           status: 'pending',
           remark: '处方审核通过自动生成',
-          totalAmount: 0,
+          totalPrice: 0,
           createdAt: getNow(),
           updatedAt: getNow()
         });
         
         // 创建执药明细
+        const dosage = parseFloat(prescriptionData.dosage || prescriptionData['剂数']) || 1;
         for (const med of meds) {
           const herbName = med.name || med['药名'] || '';
-          const quantity = parseFloat(med.quantity || med['数量'] || 0);
+          const singleQuantity = parseFloat(med.quantity || med['数量'] || 0);
+          const quantity = singleQuantity * dosage;  // 实际克数 = 单剂克数 × 剂数
           
           if (herbName && quantity > 0) {
             // 获取药材售价
@@ -1189,8 +1221,16 @@ async function confirmPrescriptionApprove(prescriptionId, status, reviewerOpenid
             });
           }
         }
-        
-        console.log('自动创建执药单成功:', outOrder.id, '处方ID:', targetPrescriptionId);
+
+        // 计算并更新执药单总价
+        const items = await StockOutItem.findAll({ where: { orderId: outOrder.id } });
+        let totalPrice = 0;
+        items.forEach(item => {
+          totalPrice += parseFloat(item.totalPrice) || 0;
+        });
+        await StockOutOrder.update({ totalPrice }, { where: { id: outOrder.id } });
+
+        console.log('自动创建执药单成功:', outOrder.id, '处方ID:', targetPrescriptionId, '总价:', totalPrice);
       }
     }
   } catch (error) {

@@ -1,46 +1,112 @@
 [
   {
-    "orderId": "2",
+    "orderId": 1,
     "herbName": "防风",
-    "quantity": 6,
+    "quantity": 30,
     "unitPrice": 92,
-    "totalPrice": 552,
-    "createdAt": "2026-03-26T17:07:22.633Z",
-    "updatedAt": "2026-03-27T01:07:22.633Z",
+    "totalPrice": 2760,
+    "createdAt": "2026-03-26T17:15:39.764Z",
     "id": 1,
-    "createTime": "2026-03-27T01:07:22.633Z"
+    "createTime": "2026-03-27T01:15:39.765Z",
+    "updatedAt": "2026-03-27T01:15:39.765Z"
   },
   {
-    "orderId": "2",
-    "herbName": "白芷",
-    "quantity": 5,
-    "unitPrice": 5196,
-    "totalPrice": 25980,
-    "createdAt": "2026-03-26T17:07:22.633Z",
-    "updatedAt": "2026-03-27T01:07:22.633Z",
+    "orderId": 1,
+    "herbName": "山楂",
+    "quantity": 40,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-26T17:15:39.765Z",
     "id": 2,
-    "createTime": "2026-03-27T01:07:22.633Z"
+    "createTime": "2026-03-27T01:15:39.765Z",
+    "updatedAt": "2026-03-27T01:15:39.765Z"
   },
   {
-    "orderId": "2",
-    "herbName": "苡米仁",
-    "quantity": 10,
-    "unitPrice": 6,
-    "totalPrice": 60,
-    "createdAt": "2026-03-26T17:07:22.634Z",
-    "updatedAt": "2026-03-27T01:07:22.634Z",
+    "orderId": 1,
+    "herbName": "胖大海",
+    "quantity": 30,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-26T17:15:39.766Z",
     "id": 3,
-    "createTime": "2026-03-27T01:07:22.634Z"
+    "createTime": "2026-03-27T01:15:39.766Z",
+    "updatedAt": "2026-03-27T01:15:39.766Z"
   },
   {
-    "orderId": "2",
-    "herbName": "芦根",
-    "quantity": 10,
-    "unitPrice": 12,
-    "totalPrice": 120,
-    "createdAt": "2026-03-26T17:07:22.634Z",
-    "updatedAt": "2026-03-27T01:07:22.634Z",
+    "orderId": 1,
+    "herbName": "白芷",
+    "quantity": 25,
+    "unitPrice": 5196,
+    "totalPrice": 129900,
+    "createdAt": "2026-03-26T17:15:39.766Z",
     "id": 4,
-    "createTime": "2026-03-27T01:07:22.634Z"
+    "createTime": "2026-03-27T01:15:39.766Z",
+    "updatedAt": "2026-03-27T01:15:39.766Z"
+  },
+  {
+    "orderId": 1,
+    "herbName": "苡米仁",
+    "quantity": 50,
+    "unitPrice": 6,
+    "totalPrice": 300,
+    "createdAt": "2026-03-26T17:15:39.766Z",
+    "id": 5,
+    "createTime": "2026-03-27T01:15:39.766Z",
+    "updatedAt": "2026-03-27T01:15:39.766Z"
+  },
+  {
+    "orderId": 1,
+    "herbName": "芦根",
+    "quantity": 50,
+    "unitPrice": 12,
+    "totalPrice": 600,
+    "createdAt": "2026-03-26T17:15:39.767Z",
+    "id": 6,
+    "createTime": "2026-03-27T01:15:39.767Z",
+    "updatedAt": "2026-03-27T01:15:39.767Z"
+  },
+  {
+    "orderId": 1,
+    "herbName": "丹皮",
+    "quantity": 30,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-26T17:15:39.767Z",
+    "id": 7,
+    "createTime": "2026-03-27T01:15:39.768Z",
+    "updatedAt": "2026-03-27T01:15:39.768Z"
+  },
+  {
+    "orderId": 1,
+    "herbName": "生石膏",
+    "quantity": 100,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-26T17:15:39.768Z",
+    "id": 8,
+    "createTime": "2026-03-27T01:15:39.768Z",
+    "updatedAt": "2026-03-27T01:15:39.768Z"
+  },
+  {
+    "orderId": 1,
+    "herbName": "西瓜翠",
+    "quantity": 150,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-26T17:15:39.768Z",
+    "id": 9,
+    "createTime": "2026-03-27T01:15:39.768Z",
+    "updatedAt": "2026-03-27T01:15:39.768Z"
+  },
+  {
+    "orderId": 1,
+    "herbName": "雪梨干",
+    "quantity": 100,
+    "unitPrice": 0,
+    "totalPrice": 0,
+    "createdAt": "2026-03-26T17:15:39.769Z",
+    "id": 10,
+    "createTime": "2026-03-27T01:15:39.769Z",
+    "updatedAt": "2026-03-27T01:15:39.769Z"
   }
 ]
