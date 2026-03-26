@@ -435,6 +435,59 @@ async function savePrescription(prescriptionData, openid, thumbnail, isAutoSave 
 
   console.log('处方创建成功:', newPrescription);
 
+  // 如果是管理员上传且状态为已审核，自动创建执药单
+  if (status === '已审核') {
+    try {
+      // 检查是否已存在该处方的执药单
+      const existingOrder = await StockOutOrder.findOne({ where: { prescriptionId: prescriptionId } });
+      if (!existingOrder) {
+        // 从处方数据中提取药材明细
+        const medicines = convertedData.medicines || [];
+        if (medicines.length > 0) {
+          // 创建执药单主记录
+          const outOrder = await StockOutOrder.create({
+            prescriptionId: prescriptionId,
+            prescriptionTime: newPrescription.prescriptionDate || getNow(),
+            pharmacist: '',
+            reviewer: reviewer || '',
+            status: 'pending',
+            remark: '处方上传自动生成',
+            totalAmount: 0,
+            createdAt: getNow(),
+            updatedAt: getNow()
+          });
+
+          // 创建执药明细
+          for (const med of medicines) {
+            const herbName = med.name || '';
+            const quantity = parseFloat(med.quantity || 0);
+
+            if (herbName && quantity > 0) {
+              // 获取药材售价
+              const herb = await Herb.findOne({ where: { name: herbName } });
+              const unitPrice = herb ? (herb.salePrice || 0) : 0;
+
+              await StockOutItem.create({
+                orderId: outOrder.id,
+                herbName,
+                quantity,
+                unitPrice,
+                totalPrice: quantity * unitPrice,
+                createdAt: getNow(),
+                updatedAt: getNow()
+              });
+            }
+          }
+
+          console.log('执药单自动创建成功:', outOrder.id);
+        }
+      }
+    } catch (err) {
+      console.error('创建执药单失败:', err);
+      // 不影响处方创建成功
+    }
+  }
+
   return { code: 0, data: newPrescription };
 }
 

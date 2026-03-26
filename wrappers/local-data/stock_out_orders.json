@@ -1,46 +1,38 @@
 [
   {
-    "prescriptionTime": "2026/3/22 08:00:00",
+    "prescriptionId": "0000255",
+    "prescriptionTime": "2026/3/23",
+    "pharmacist": "",
+    "reviewer": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-26T22:48:21.994Z",
+    "updatedAt": "2026-03-26T22:48:21.994Z",
+    "id": 6
+  },
+  {
+    "prescriptionId": "0055030",
+    "prescriptionTime": "2026-03-26",
+    "pharmacist": "",
+    "reviewer": "",
+    "status": "pending",
+    "remark": "处方上传自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-26T22:58:09.509Z",
+    "updatedAt": "2026-03-26T22:58:09.509Z",
+    "id": 7
+  },
+  {
     "prescriptionId": "0052152",
-    "status": "settled",
-    "remark": "处方审核通过自动生成",
-    "id": 1,
-    "createdAt": "2026-03-24T21:43:43.784Z",
-    "updatedAt": "2026-03-24T22:14:12.311Z",
-    "totalPrice": 9720
-  },
-  {
-    "prescriptionId": "APPROVE_TEST_1774455400939",
-    "prescriptionTime": "2026-03-15",
+    "prescriptionTime": "2026-03-26",
     "pharmacist": "",
-    "reviewer": "管理员",
+    "reviewer": "o-eQz3TYzw7PJFltoyjntVijNt88",
     "status": "pending",
     "remark": "处方审核通过自动生成",
     "totalAmount": 0,
-    "createdAt": "2026-03-26T00:16:40.942Z",
-    "updatedAt": "2026-03-26T00:16:40.942Z",
-    "id": 2
-  },
-  {
-    "prescriptionId": "CONFIRM_APPROVE_1774455400946",
-    "prescriptionTime": "2026-03-15",
-    "pharmacist": "",
-    "reviewer": "管理员",
-    "status": "pending",
-    "remark": "处方审核通过自动生成",
-    "totalAmount": 0,
-    "createdAt": "2026-03-26T00:16:40.950Z",
-    "updatedAt": "2026-03-26T00:16:40.950Z",
-    "id": 3
-  },
-  {
-    "prescriptionId": "DUPLICATE_TEST_1774455403781",
-    "prescriptionTime": "2026-03-25T16:16:43.779Z",
-    "pharmacist": "测试药师",
-    "status": "pending",
-    "totalPrice": 6,
-    "createdAt": "2026-03-26T00:16:43.779Z",
-    "updatedAt": "2026-03-26T00:16:43.779Z",
-    "id": 5
+    "createdAt": "2026-03-26T23:01:12.726Z",
+    "updatedAt": "2026-03-26T23:01:12.726Z",
+    "id": 8
   }
 ]
