@@ -58,28 +58,22 @@ export async function savePrescriptionDetail(rowId) {
   data.medicines = medicines;
 
   try {
-    // 先获取当前记录
+    // 获取当前记录的处方ID和状态
     const getRes = await _dependencies.homeFetch(`/api/admin/table/prescriptions/${rowId}`);
     if (getRes.code !== 0) throw new Error(getRes.message);
     
     const currentRecord = getRes.data;
-    let currentData = {};
-    try {
-      currentData = typeof currentRecord.data === 'string' ? JSON.parse(currentRecord.data) : (currentRecord.data || {});
-    } catch (e) {}
+    const prescriptionId = data.prescriptionId || currentRecord.prescriptionId;
+    const status = currentRecord.status;
 
-    // 合并数据
-    const mergedData = { ...currentData, ...data };
-
-    // 更新处方
-    const updateData = {
-      prescriptionId: data.prescriptionId || currentRecord.prescriptionId,
-      data: JSON.stringify(mergedData)
-    };
-
-    const res = await _dependencies.homeFetch(`/api/admin/table/prescriptions/${rowId}`, {
-      method: 'PUT',
-      body: JSON.stringify(updateData)
+    // 调用新的更新API（注意：不要把 data 嵌套一层）
+    const res = await _dependencies.homeFetch('/api/prescription/update', {
+      method: 'POST',
+      body: JSON.stringify({
+        prescriptionId: prescriptionId,
+        status: status,
+        ...data  // 直接展开 data 中的字段
+      })
     });
     
     if (res.code !== 0) throw new Error(res.message);

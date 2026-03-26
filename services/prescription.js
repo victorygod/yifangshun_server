@@ -575,12 +575,18 @@ async function updatePrescription(prescriptionId, status, prescriptionData, thum
   // 已审核状态：同步更新执药单
   if (status === '已审核') {
     try {
+      console.log('[updatePrescription] 准备同步执药单');
+      console.log('  处方ID:', prescriptionId);
+      console.log('  药材数量:', convertedData.medicines?.length || 0);
+      
       const medicines = convertedData.medicines || [];
 
       if (medicines.length > 0) {
         const existingOrder = await StockOutOrder.findOne({
           where: { prescriptionId }
         });
+        
+        console.log('  查询执药单结果:', existingOrder ? `找到执药单 (ID: ${existingOrder.id}, 状态: ${existingOrder.status})` : '未找到执药单');
 
         if (existingOrder && existingOrder.status === 'pending') {
           // 删除旧明细

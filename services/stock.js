@@ -952,10 +952,14 @@ async function deleteOutOrder(id) {
 
   // 将对应处方状态回退为待审核
   try {
-    const { Prescription } = require('./wrappers/db-wrapper');
+    console.log('[deleteOutOrder] 准备回退处方状态');
+    console.log('  执药单处方ID:', order.prescriptionId);
+    
     const prescription = await Prescription.findOne({
       where: { prescriptionId: order.prescriptionId, status: '已审核' }
     });
+    
+    console.log('  查询结果:', prescription ? '找到已审核处方' : '未找到已审核处方');
 
     if (prescription) {
       // 删除已审核记录，创建待审核记录
