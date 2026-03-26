@@ -1093,7 +1093,7 @@ async function revertOutOrder(id, operator = 'system') {
 }
 
 // 结算执药单
-async function settleOutOrder(id) {
+async function settleOutOrder(id, operator = 'admin') {
   const order = await StockOutOrder.findOne({ where: { id } });
   if (!order) {
     throw new Error('执药单不存在');
@@ -1165,7 +1165,11 @@ async function settleOutOrder(id) {
   }
   
   // 更新状态
-  await StockOutOrder.update({ status: 'settled', updatedAt: getNow() }, { where: { id } });
+  await StockOutOrder.update({ 
+    status: 'settled', 
+    pharmacist: operator,
+    updatedAt: getNow() 
+  }, { where: { id } });
   
   // 更新对应处方状态为已结算
   if (order.prescriptionId) {

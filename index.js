@@ -1437,7 +1437,8 @@ app.post("/api/stock/out/orders/:id/revert", requireRole(['admin', 'super_admin'
 // 结算执药单
 app.post("/api/stock/out/orders/:id/settle", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
-    const result = await stock.settleOutOrder(req.params.id);
+    const operator = req.user?.phone || req.user?.openid || 'admin';
+    const result = await stock.settleOutOrder(req.params.id, operator);
     res.json(result);
   } catch (error) {
     res.status(400).json({ code: 1, message: error.message });
