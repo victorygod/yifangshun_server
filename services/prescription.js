@@ -778,7 +778,8 @@ async function getPrescriptionsList({ page = 1, pageSize = 20, keyword = '', sta
       reviewer: p.reviewer,
       reviewDate: p.reviewDate,
       modifyDate: p.modifyDate,
-      createTime: p.createTime,
+      prescriptionDate: convertedData.date || p.prescriptionDate,
+      createTime: p.createTime || p.createdAt,
       updatedAt: p.updatedAt,
     };
   });

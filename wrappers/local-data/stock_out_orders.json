@@ -10,5 +10,17 @@
     "createdAt": "2026-03-27T00:27:08.493Z",
     "updatedAt": "2026-03-27T00:27:08.493Z",
     "id": 1
+  },
+  {
+    "prescriptionId": "0000255",
+    "prescriptionTime": "2026-03-26",
+    "pharmacist": "",
+    "reviewer": "wolf",
+    "status": "pending",
+    "remark": "处方上传自动生成",
+    "totalAmount": 0,
+    "createdAt": "2026-03-27T00:36:19.770Z",
+    "updatedAt": "2026-03-27T00:36:19.770Z",
+    "id": 2
   }
 ]
