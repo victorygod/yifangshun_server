@@ -259,7 +259,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       homeFetch: homeFetch,
       showToast: showToast,
       showAlert: showAlert,
-      loadTableData: loadTableData
+      loadTableData: loadTableData,
+      showConfirm: showConfirm,
+      showImagePreview: showImagePreview,
+      getTableData: () => tableData,
+      getTableConfig: () => tableConfigs
     });
     console.log('[admin.js] 处方模块已初始化');
   }
@@ -661,7 +665,7 @@ async function loadTableData() {
       if (hasDetail && isExpanded) {
         if (currentTable === 'prescriptions') {
           // 处方详情
-          html += renderPrescriptionDetail(row);
+          html += window._prescriptionModule.renderPrescriptionDetail(row);
         } else {
           // 入库单/执药单详情
           html += renderOrderDetail(row, config, detailTable);
@@ -750,108 +754,6 @@ async function loadTableData() {
   } catch (err) {
     tableBody.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><p>${err.message}</p></div>`;
   }
-}
-
-// 渲染处方详情
-function renderPrescriptionDetail(row) {
-  const columns = tableConfigs.prescriptions.columns;
-  let prescriptionData = {};
-
-  // 解析 data 字段
-  try {
-    if (typeof row.data === 'string') {
-      prescriptionData = JSON.parse(row.data);
-    } else if (typeof row.data === 'object') {
-      prescriptionData = row.data;
-    }
-  } catch (e) {
-    console.error('解析处方数据失败:', e);
-  }
-
-  // 药材列表
-  let medicines = prescriptionData.medicines || prescriptionData['药方'] || [];
-  // 确保 medicines 是数组
-  if (!Array.isArray(medicines)) {
-    medicines = [];
-  }
-  const dosage = prescriptionData.dosage || prescriptionData['剂数'] || '';
-  const name = prescriptionData.name || prescriptionData['姓名'] || '';
-  const age = prescriptionData.age || prescriptionData['年龄'] || '';
-  const date = prescriptionData.date || prescriptionData['日期'] || row.prescriptionDate || '';
-  const doctor = prescriptionData.doctor || prescriptionData['医师'] || '';
-  const administrationMethod = prescriptionData.administrationMethod || prescriptionData['服用方式'] || '';
-  const rp = prescriptionData.rp || prescriptionData['Rp'] || '';
-  
-  // 已结算状态不可编辑
-  const isSettled = row.status === '已结算';
-  const disabledAttr = isSettled ? ' disabled' : '';
-
-  let html = `<tr class="detail-row prescription-detail-row" data-parent-id="${row.id}">`;
-  html += `<td colspan="${columns.length + 2}" class="detail-cell">`;
-  html += `<div class="detail-content prescription-detail">`;
-
-  // 缩略图
-  if (row.thumbnail) {
-    html += `<div class="prescription-thumbnail">`;
-    html += `<img src="${row.thumbnail}" class="prescription-thumbnail-img" onclick="showImagePreview('${row.thumbnail}')" />`;
-    html += `</div>`;
-  }
-
-  // 处方基本信息（可编辑）
-  html += `<div class="prescription-info-grid">`;
-  html += `<div class="info-item"><span class="info-label">处方号：</span><input class="info-input" data-field="prescriptionId" value="${escapeHtml(row.prescriptionId || '')}"${disabledAttr} /></div>`;
-  html += `<div class="info-item"><span class="info-label">姓名：</span><input class="info-input" data-field="name" value="${escapeHtml(name)}"${disabledAttr} /></div>`;
-  html += `<div class="info-item"><span class="info-label">年龄：</span><input class="info-input" data-field="age" value="${escapeHtml(String(age))}"${disabledAttr} /></div>`;
-  html += `<div class="info-item"><span class="info-label">日期：</span><input class="info-input" data-field="date" value="${escapeHtml(date)}"${disabledAttr} /></div>`;
-  html += `<div class="info-item"><span class="info-label">剂数：</span><input class="info-input" data-field="dosage" value="${escapeHtml(String(dosage))}"${disabledAttr} /></div>`;
-  html += `<div class="info-item"><span class="info-label">服用方式：</span><input class="info-input" data-field="administrationMethod" value="${escapeHtml(administrationMethod)}"${disabledAttr} /></div>`;
-  html += `<div class="info-item"><span class="info-label">医师：</span><input class="info-input" data-field="doctor" value="${escapeHtml(doctor)}"${disabledAttr} /></div>`;
-  html += `<div class="info-item"><span class="info-label">状态：</span><span class="info-value">${row.status || '-'}</span></div>`;
-  html += `<div class="info-item"><span class="info-label">审核人：</span><span class="info-value">${row.reviewer || '-'}</span></div>`;
-  html += `</div>`;
-
-  // Rp
-  html += `<div class="prescription-rp-section">`;
-  html += `<div class="info-label">Rp：</div>`;
-  html += `<textarea class="info-textarea" data-field="rp"${disabledAttr}>${escapeHtml(rp)}</textarea>`;
-  html += `</div>`;
-
-  // 药材列表（可编辑）
-  html += `<div class="medicines-section">`;
-  html += `<div class="medicines-title">药方 (${medicines.length}味)</div>`;
-  html += `<table class="medicines-table">`;
-  html += `<thead><tr><th>序号</th><th>药名</th><th>剂量</th><th>备注</th>${!isSettled ? '<th>操作</th>' : ''}</tr></thead>`;
-  html += `<tbody id="medicines-body-${row.id}">`;
-  medicines.forEach((med, index) => {
-    const medName = med.name || med['药名'] || '';
-    const medQuantity = med.quantity || med['数量'] || '';
-    const medNote = med.note || med['备注'] || '';
-    html += `<tr data-med-index="${index}">
-      <td>${index + 1}</td>
-      <td><input class="med-input" data-med-field="name" data-med-index="${index}" value="${escapeHtml(medName)}"${disabledAttr} /></td>
-      <td><input class="med-input" data-med-field="quantity" data-med-index="${index}" value="${escapeHtml(String(medQuantity))}"${disabledAttr} /></td>
-      <td><input class="med-input" data-med-field="note" data-med-index="${index}" value="${escapeHtml(medNote)}"${disabledAttr} /></td>
-      ${!isSettled ? `<td><button class="action-btn action-btn-delete" onclick="window._prescriptionModule.removeMedicine(${row.id}, ${index})">删除</button></td>` : ''}
-    </tr>`;
-  });
-  html += `</tbody></table>`;
-  
-  // 添加药材按钮（待审核状态）
-  if (!isSettled) {
-    html += `<button class="action-btn" onclick="window._prescriptionModule.addMedicine(${row.id})">+ 添加药材</button>`;
-  }
-  
-  html += `</div>`;
-
-  // 保存按钮（待审核状态）
-  if (!isSettled) {
-    html += `<div class="prescription-actions">`;
-    html += `<button class="btn btn-primary" onclick="window._prescriptionModule.savePrescriptionDetail(${row.id})">保存修改</button>`;
-    html += `</div>`;
-  }
-
-  html += `</div></td></tr>`;
-  return html;
 }
 
 // 图片预览
@@ -1068,7 +970,7 @@ function handleTableClick(e) {
         toggleDetail(id);
         return;
       case 'reviewPrescription':
-        handlePrescriptionReview(id, btn.dataset.prescriptionId);
+        window._prescriptionModule.handlePrescriptionReview(id, btn.dataset.prescriptionId);
         return;
       case 'deleteDetail':
         window._stockModule.removeDetailRow(id, orderId);
@@ -1201,57 +1103,6 @@ async function handleDetailBlur(e) {
   }
 }
 
-// ==================== 处方审核 ====================
-async function handlePrescriptionReview(rowId, prescriptionId) {
-  const row = tableData.find(r => String(r.id) === String(rowId));
-  if (!row) {
-    showToast('找不到处方数据', 'error');
-    return;
-  }
-
-  showConfirm('审核处方', `确定要审核通过处方 ${prescriptionId} 吗？`, async () => {
-    try {
-      const res = await homeFetch('/api/prescription/review', {
-        method: 'POST',
-        body: JSON.stringify({
-          prescriptionId: prescriptionId,
-          status: '待审核',
-          action: 'approve'
-        })
-      });
-
-      if (res.code === 2) {
-        // 有重复处方，需要确认
-        showConfirm('重复处方', `处方ID "${prescriptionId}" 已存在，是否覆盖？`, async () => {
-          try {
-            const confirmRes = await homeFetch('/api/prescription/confirm-approve', {
-              method: 'POST',
-              body: JSON.stringify({
-                prescriptionId: prescriptionId,
-                status: '待审核'
-              })
-            });
-
-            if (confirmRes.code !== 0) throw new Error(confirmRes.message);
-
-            showToast('审核成功', 'success');
-            loadTableData();
-          } catch (err) {
-            showToast('审核失败: ' + err.message, 'error');
-          }
-        });
-      } else if (res.code !== 0) {
-        throw new Error(res.message);
-      }
-
-      showToast('审核成功', 'success');
-      loadTableData();
-    } catch (err) {
-      showToast('审核失败: ' + err.message, 'error');
-    }
-  });
-}
-
 async function handleCellBlur(e) {
   const input = e.target;
   const rowElement = input.closest('tr');
@@ -1323,46 +1174,15 @@ async function saveRow(rowId) {
       apiUrl = window._stockModule.getHerbApiPath('update', rowId);
     } else if (currentTable === 'prescriptions') {
       // 处方管理使用专门的API
-      apiUrl = '/api/prescription/update';
-      method = 'POST';
-
-      // 处方需要使用复合主键，从 tableData 中获取 prescriptionId 和 status
-      const rowData = tableData.find(r => String(r.id) === String(rowId));
-      if (!rowData) {
-        throw new Error('找不到处方数据');
-      }
-
-      data.prescriptionId = rowData.prescriptionId;
-      data.status = rowData.status; // 状态不能修改，使用原值
-
-      // 处方数据需要转换为 data 字段
-      const prescriptionData = {
-        prescriptionId: data.prescriptionId,
-        name: data.name,
-        age: data.age,
-        date: data.date,
-        rp: data.rp,
-        dosage: data.dosage,
-        administrationMethod: data.administrationMethod,
-        medicines: data.medicines ? JSON.parse(data.medicines) : [],
-        doctor: data.doctor
-      };
-
-      // 清理不需要的字段
-      delete data.id;
-      delete data.prescriptionId;
-      delete data.status;
-      delete data.name;
-      delete data.age;
-      delete data.date;
-      delete data.rp;
-      delete data.dosage;
-      delete data.administrationMethod;
-      delete data.medicines;
-      delete data.doctor;
-
-      // 将处方数据放入 data 字段
-      Object.assign(data, prescriptionData);
+      const res = await window._prescriptionModule.savePrescription(rowId, data);
+      if (res.code !== 0) throw new Error(res.message);
+      
+      showToast('保存成功', 'success');
+      editingRowId = null;
+      selectedIds = [];
+      loadTableData();
+      loadStats();
+      return;
     }
 
     const res = await homeFetch(apiUrl, {
@@ -1498,12 +1318,14 @@ async function deleteRow(rowId) {
       } else if ((currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') && window._stockModule) {
         deleteApi = window._stockModule.getDeleteApiPath(rowId, currentTable);
       } else if (currentTable === 'prescriptions') {
-        // 处方管理使用复合主键
-        const rowData = tableData.find(r => String(r.id) === String(rowId));
-        if (!rowData) {
-          throw new Error('找不到处方数据');
-        }
-        deleteApi = `/api/prescription/${encodeURIComponent(rowData.prescriptionId)}/${encodeURIComponent(rowData.status)}`;
+        // 处方管理使用专门的API
+        const res = await window._prescriptionModule.deletePrescription(rowId);
+        if (res.code !== 0) throw new Error(res.message);
+        
+        showToast('删除成功', 'success');
+        loadTableData();
+        loadStats();
+        return;
       }
 
       const res = await homeFetch(deleteApi, { method: 'DELETE' });
@@ -1638,21 +1460,26 @@ async function batchDelete() {
             }
             deletedCount = result.deletedCount;
           } else if (currentTable === 'prescriptions') {
-            // 处方表使用复合主键逐个删除
+            // 处方表使用专门的批量删除函数
             for (const id of selectedIds) {
-              const rowData = tableData.find(r => String(r.id) === String(id));
-              if (!rowData) continue;
-
-              const deleteApi = `/api/prescription/${encodeURIComponent(rowData.prescriptionId)}/${encodeURIComponent(rowData.status)}`;
-              const res = await homeFetch(deleteApi, { method: 'DELETE' });
-
+              const res = await window._prescriptionModule.deletePrescription(id);
               if (res.code !== 0) {
-                throw new Error(`删除处方 ${rowData.prescriptionId} 失败: ${res.message}`);
+                throw new Error(`删除处方失败: ${res.message}`);
               }
-
+              deletedCount++;
+            }
+          } else if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
+            // 入库单/执药单逐个删除（确保触发级联操作）
+            for (const id of selectedIds) {
+              const deleteApi = window._stockModule.getDeleteApiPath(id, currentTable);
+              const res = await homeFetch(deleteApi, { method: 'DELETE' });
+              if (res.code !== 0) {
+                throw new Error(`删除${currentTable === 'stock_in_orders' ? '入库单' : '执药单'}失败: ${res.message}`);
+              }
               deletedCount++;
             }
           } else {
+            // 其他表使用批量删除API
             const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
               method: 'POST',
               body: JSON.stringify({ ids: selectedIds })
@@ -1689,21 +1516,26 @@ async function batchDelete() {
             }
             deletedCount = result.deletedCount;
           } else if (currentTable === 'prescriptions') {
-            // 处方表使用复合主键逐个删除
+            // 处方表使用专门的批量删除函数
             for (const id of selectedIds) {
-              const rowData = tableData.find(r => String(r.id) === String(id));
-              if (!rowData) continue;
-
-              const deleteApi = `/api/prescription/${encodeURIComponent(rowData.prescriptionId)}/${encodeURIComponent(rowData.status)}`;
-              const res = await homeFetch(deleteApi, { method: 'DELETE' });
-
+              const res = await window._prescriptionModule.deletePrescription(id);
               if (res.code !== 0) {
-                throw new Error(`删除处方 ${rowData.prescriptionId} 失败: ${res.message}`);
+                throw new Error(`删除处方失败: ${res.message}`);
               }
-
+              deletedCount++;
+            }
+          } else if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
+            // 入库单/执药单逐个删除（确保触发级联操作）
+            for (const id of selectedIds) {
+              const deleteApi = window._stockModule.getDeleteApiPath(id, currentTable);
+              const res = await homeFetch(deleteApi, { method: 'DELETE' });
+              if (res.code !== 0) {
+                throw new Error(`删除${currentTable === 'stock_in_orders' ? '入库单' : '执药单'}失败: ${res.message}`);
+              }
               deletedCount++;
             }
           } else {
+            // 其他表使用批量删除API
             const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
               method: 'POST',
               body: JSON.stringify({ ids: selectedIds })
@@ -1740,7 +1572,27 @@ async function batchDelete() {
             throw new Error(result.error);
           }
           deletedCount = result.deletedCount;
+        } else if (currentTable === 'prescriptions') {
+          // 处方表使用专门的批量删除函数
+          for (const id of selectedIds) {
+            const res = await window._prescriptionModule.deletePrescription(id);
+            if (res.code !== 0) {
+              throw new Error(`删除处方失败: ${res.message}`);
+            }
+            deletedCount++;
+          }
+        } else if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
+          // 入库单/执药单逐个删除（确保触发级联操作）
+          for (const id of selectedIds) {
+            const deleteApi = window._stockModule.getDeleteApiPath(id, currentTable);
+            const res = await homeFetch(deleteApi, { method: 'DELETE' });
+            if (res.code !== 0) {
+              throw new Error(`删除${currentTable === 'stock_in_orders' ? '入库单' : '执药单'}失败: ${res.message}`);
+            }
+            deletedCount++;
+          }
         } else {
+          // 其他表使用批量删除API
           const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
             method: 'POST',
             body: JSON.stringify({ ids: selectedIds })
