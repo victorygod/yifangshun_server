@@ -813,8 +813,10 @@ export function handleDeleteBeforeConfirm(rowId, row, tableType) {
  * @returns {string} API 路径
  */
 export function getDeleteApiPath(rowId, tableType) {
-  if (tableType === 'stock_in_orders' || tableType === 'stock_out_orders') {
-    return `/api/${tableType.replace('_', '/')}/${rowId}`;
+  if (tableType === 'stock_in_orders') {
+    return `/api/stock/in/orders/${rowId}`;
+  } else if (tableType === 'stock_out_orders') {
+    return `/api/stock/out/orders/${rowId}`;
   }
   return `/api/admin/table/${tableType}/${rowId}`;
 }

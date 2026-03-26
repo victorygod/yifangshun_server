@@ -10,29 +10,5 @@
     "createdAt": "2026-03-26T22:48:21.994Z",
     "updatedAt": "2026-03-26T22:48:21.994Z",
     "id": 6
-  },
-  {
-    "prescriptionId": "0055030",
-    "prescriptionTime": "2026-03-26",
-    "pharmacist": "",
-    "reviewer": "",
-    "status": "pending",
-    "remark": "处方上传自动生成",
-    "totalAmount": 0,
-    "createdAt": "2026-03-26T22:58:09.509Z",
-    "updatedAt": "2026-03-26T22:58:09.509Z",
-    "id": 7
-  },
-  {
-    "prescriptionId": "0052152",
-    "prescriptionTime": "2026-03-26",
-    "pharmacist": "",
-    "reviewer": "o-eQz3TYzw7PJFltoyjntVijNt88",
-    "status": "pending",
-    "remark": "处方审核通过自动生成",
-    "totalAmount": 0,
-    "createdAt": "2026-03-26T23:01:12.726Z",
-    "updatedAt": "2026-03-26T23:01:12.726Z",
-    "id": 8
   }
 ]

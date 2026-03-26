@@ -14,5 +14,21 @@
     "id": 2,
     "createdAt": "2026-03-26T00:16:42.921Z",
     "updatedAt": "2026-03-26T00:16:42.921Z"
+  },
+  {
+    "openid": "user_zdh4uz6u91",
+    "content": "你好",
+    "type": "user",
+    "id": 3,
+    "createdAt": "2026-03-26T23:17:54.850Z",
+    "updatedAt": "2026-03-26T23:17:54.850Z"
+  },
+  {
+    "openid": "user_zdh4uz6u91",
+    "content": "感谢您的咨询，我们会尽快回复您。",
+    "type": "bot",
+    "id": 4,
+    "createdAt": "2026-03-26T23:17:54.851Z",
+    "updatedAt": "2026-03-26T23:17:54.852Z"
   }
 ]

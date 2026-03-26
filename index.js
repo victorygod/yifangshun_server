@@ -1390,10 +1390,16 @@ app.post("/api/stock/out/orders", requireRole(['admin', 'super_admin']), async (
 });
 
 app.delete("/api/stock/out/orders/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  console.log('========================================');
+  console.log('DELETE /api/stock/out/orders/:id 被调用');
+  console.log('  ID:', req.params.id);
+  console.log('  用户:', req.user);
+  console.log('========================================');
   try {
     const result = await stock.deleteOutOrder(req.params.id);
     res.json(result);
   } catch (error) {
+    console.error('删除执药单失败:', error);
     res.status(400).json({ code: 1, message: error.message });
   }
 });

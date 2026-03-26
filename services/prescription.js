@@ -572,6 +572,50 @@ async function updatePrescription(prescriptionId, status, prescriptionData, thum
   console.log('更新处方 - 准备更新，使用主键:', prescription.id);
   await Prescription.update(updateData, { where: { id: prescription.id } });
 
+  // 已审核状态：同步更新执药单
+  if (status === '已审核') {
+    try {
+      const medicines = convertedData.medicines || [];
+
+      if (medicines.length > 0) {
+        const existingOrder = await StockOutOrder.findOne({
+          where: { prescriptionId }
+        });
+
+        if (existingOrder && existingOrder.status === 'pending') {
+          // 删除旧明细
+          await StockOutItem.destroy({ where: { orderId: existingOrder.id } });
+
+          // 重新创建明细
+          for (const med of medicines) {
+            const herbName = med.name || '';
+            const quantity = parseFloat(med.quantity || 0);
+
+            if (herbName && quantity > 0) {
+              const herb = await Herb.findOne({ where: { name: herbName } });
+              const unitPrice = herb ? (herb.salePrice || 0) : 0;
+
+              await StockOutItem.create({
+                orderId: existingOrder.id,
+                herbName,
+                quantity,
+                unitPrice,
+                totalPrice: quantity * unitPrice,
+                createdAt: getNow(),
+                updatedAt: getNow()
+              });
+            }
+          }
+
+          console.log(`[updatePrescription] 同步执药单成功: ${existingOrder.id}`);
+        }
+      }
+    } catch (error) {
+      console.error('[updatePrescription] 同步执药单失败:', error.message);
+      // 同步失败不影响更新结果
+    }
+  }
+
   return { code: 0, message: "更新成功" };
 }
 
@@ -619,8 +663,31 @@ async function deletePrescription(prescriptionId, status, userInfo) {
     }
   }
 
-  // 管理员可以删除任意状态的处方
+  // 已结算状态不能删除
+  if (prescription.status === '已结算') {
+    throw new Error("已结算处方不可删除");
+  }
+
+  // 管理员可以删除任意状态的处方（除了已结算）
   await prescription.destroy();
+
+  // 级联删除执药单
+  try {
+    const existingOrder = await StockOutOrder.findOne({
+      where: { prescriptionId: prescriptionId }
+    });
+
+    if (existingOrder && existingOrder.status !== 'settled') {
+      // 删除执药明细
+      await StockOutItem.destroy({ where: { orderId: existingOrder.id } });
+      // 删除执药单主记录
+      await StockOutOrder.destroy({ where: { id: existingOrder.id } });
+      console.log(`[deletePrescription] 级联删除执药单: ${existingOrder.id}`);
+    }
+  } catch (error) {
+    console.error('[deletePrescription] 删除执药单失败:', error.message);
+    // 删除执药单失败不影响处方删除结果
+  }
 
   return { code: 0, message: "删除成功" };
 }

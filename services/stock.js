@@ -922,10 +922,13 @@ async function getOutOrderById(id) {
       order.totalPrice = newTotal;
     }
   }
-  
+
   return {
-    ...toPlainObject(order),
-    items: itemsWithCabinetNo
+    code: 0,
+    data: {
+      ...toPlainObject(order),
+      items: itemsWithCabinetNo
+    }
   };
 }
 
@@ -935,13 +938,48 @@ async function deleteOutOrder(id) {
   if (!order) {
     throw new Error('执药单不存在');
   }
-  
+
+  // 已结算状态不能删除
+  if (order.status === 'settled') {
+    throw new Error('已结算执药单不可删除');
+  }
+
   // 删除明细
   await StockOutItem.destroy({ where: { orderId: id } });
-  
-  // 删除主表
+
+  // 删除执药单主记录
   await StockOutOrder.destroy({ where: { id } });
-  
+
+  // 将对应处方状态回退为待审核
+  try {
+    const { Prescription } = require('./wrappers/db-wrapper');
+    const prescription = await Prescription.findOne({
+      where: { prescriptionId: order.prescriptionId, status: '已审核' }
+    });
+
+    if (prescription) {
+      // 删除已审核记录，创建待审核记录
+      await Prescription.create({
+        prescriptionId: order.prescriptionId,
+        openid: prescription.openid,
+        phone: prescription.phone,
+        status: '待审核',
+        data: prescription.data,
+        thumbnail: prescription.thumbnail,
+        prescriptionDate: prescription.prescriptionDate,
+        createdAt: prescription.createTime || getNow(),
+        updatedAt: getNow()
+      });
+
+      // 删除已审核记录
+      await prescription.destroy();
+      console.log(`[deleteOutOrder] 处方状态回退为待审核: ${order.prescriptionId}`);
+    }
+  } catch (error) {
+    console.error('[deleteOutOrder] 处方状态回退失败:', error.message);
+    // 处方状态回退失败不影响执药单删除结果
+  }
+
   return {
     code: 0,
     message: '删除成功'
