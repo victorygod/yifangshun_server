@@ -3308,5 +3308,137 @@
     "createdAt": "2026-03-26T23:22:45.753Z",
     "id": 331,
     "updatedAt": "2026-03-26T23:22:45.753Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260326-670",
+    "herbName": "测试药材_1774538273239",
+    "quantity": -600,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-26T17:02:35.643Z",
+    "id": 332,
+    "createTime": "2026-03-27T01:02:35.645Z",
+    "updatedAt": "2026-03-27T01:02:35.645Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260326-670",
+    "herbName": "测试药材_1774538273239",
+    "quantity": 600,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-26T17:02:47.603Z",
+    "id": 333,
+    "createTime": "2026-03-27T01:02:47.603Z",
+    "updatedAt": "2026-03-27T01:02:47.603Z"
+  },
+  {
+    "action": "revert_in",
+    "orderNo": "RK-20260326-670",
+    "herbName": "测试药材_1774538273239",
+    "quantity": -600,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-26T17:03:13.523Z",
+    "id": 334,
+    "createTime": "2026-03-27T01:03:13.525Z",
+    "updatedAt": "2026-03-27T01:03:13.525Z"
+  },
+  {
+    "action": "stock_in",
+    "orderNo": "RK-20260326-670",
+    "herbName": "测试药材_1774538273239",
+    "quantity": 600,
+    "operator": "home_super_admin",
+    "createdAt": "2026-03-26T17:03:18.166Z",
+    "id": 335,
+    "createTime": "2026-03-27T01:03:18.167Z",
+    "updatedAt": "2026-03-27T01:03:18.167Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-2",
+    "herbName": "防风",
+    "quantity": -6,
+    "operator": "admin",
+    "createdAt": "2026-03-26T17:07:25.889Z",
+    "id": 336,
+    "createTime": "2026-03-27T01:07:25.889Z",
+    "updatedAt": "2026-03-27T01:07:25.889Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-2",
+    "herbName": "白芷",
+    "quantity": -5,
+    "operator": "admin",
+    "createdAt": "2026-03-26T17:07:25.891Z",
+    "id": 337,
+    "createTime": "2026-03-27T01:07:25.892Z",
+    "updatedAt": "2026-03-27T01:07:25.892Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-2",
+    "herbName": "苡米仁",
+    "quantity": -10,
+    "operator": "admin",
+    "createdAt": "2026-03-26T17:07:25.895Z",
+    "id": 338,
+    "createTime": "2026-03-27T01:07:25.895Z",
+    "updatedAt": "2026-03-27T01:07:25.895Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-2",
+    "herbName": "芦根",
+    "quantity": -10,
+    "operator": "admin",
+    "createdAt": "2026-03-26T17:07:25.898Z",
+    "id": 339,
+    "createTime": "2026-03-27T01:07:25.898Z",
+    "updatedAt": "2026-03-27T01:07:25.898Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-2",
+    "herbName": "防风",
+    "quantity": 6,
+    "operator": "system",
+    "createdAt": "2026-03-26T17:07:31.389Z",
+    "id": 340,
+    "createTime": "2026-03-27T01:07:31.390Z",
+    "updatedAt": "2026-03-27T01:07:31.390Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-2",
+    "herbName": "白芷",
+    "quantity": 5,
+    "operator": "system",
+    "createdAt": "2026-03-26T17:07:31.393Z",
+    "id": 341,
+    "createTime": "2026-03-27T01:07:31.393Z",
+    "updatedAt": "2026-03-27T01:07:31.393Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-2",
+    "herbName": "苡米仁",
+    "quantity": 10,
+    "operator": "system",
+    "createdAt": "2026-03-26T17:07:31.395Z",
+    "id": 342,
+    "createTime": "2026-03-27T01:07:31.395Z",
+    "updatedAt": "2026-03-27T01:07:31.395Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-2",
+    "herbName": "芦根",
+    "quantity": 10,
+    "operator": "system",
+    "createdAt": "2026-03-26T17:07:31.397Z",
+    "id": 343,
+    "createTime": "2026-03-27T01:07:31.398Z",
+    "updatedAt": "2026-03-27T01:07:31.398Z"
   }
 ]

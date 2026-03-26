@@ -735,6 +735,66 @@ async function updateOutOrderTotalAmount(orderId) {
   }
 }
 
+// 更新执药单
+async function updateOutOrder(id, data) {
+  const order = await StockOutOrder.findOne({ where: { id } });
+  if (!order) {
+    throw new Error('执药单不存在');
+  }
+  
+  if (order.status !== 'pending') {
+    throw new Error('只有待执药状态的执药单可以修改');
+  }
+  
+  const { prescriptionTime, remark, items } = data;
+  
+  const updates = {};
+  if (prescriptionTime !== undefined) updates.prescriptionTime = prescriptionTime;
+  if (remark !== undefined) updates.remark = remark;
+  updates.updatedAt = getNow();
+  
+  // 如果有明细更新
+  if (items !== undefined) {
+    let totalPrice = 0;
+    items.forEach(item => {
+      totalPrice += (item.quantity || 0) * (item.unitPrice || 0);
+    });
+    updates.totalPrice = totalPrice;
+  }
+  
+  await StockOutOrder.update(updates, { where: { id } });
+  
+  // 更新明细
+  if (items !== undefined) {
+    // 删除旧明细
+    await StockOutItem.destroy({ where: { orderId: id } });
+    
+    // 创建新明细
+    for (const item of items) {
+      const herb = await Herb.findOne({ where: { name: item.herbName } });
+      const unitPrice = herb ? (herb.salePrice || 0) : 0;
+      
+      await StockOutItem.create({
+        orderId: id,
+        herbName: item.herbName,
+        cabinetNo: item.cabinetNo,
+        quantity: item.quantity,
+        unitPrice: unitPrice,
+        totalPrice: (item.quantity || 0) * unitPrice,
+        createdAt: getNow(),
+        updatedAt: getNow()
+      });
+    }
+  }
+  
+  const updated = await getOutOrderById(id);
+  return {
+    code: 0,
+    message: '更新成功',
+    data: updated.data
+  };
+}
+
 // 获取执药单列表
 async function getOutOrders(options = {}) {
   // 确保参数为数字类型
@@ -1333,6 +1393,7 @@ module.exports = {
   getOutOrders,
   getOutOrderById,
   createOutOrder,
+  updateOutOrder,
   deleteOutOrder,
   revertOutOrder,
   settleOutOrder,

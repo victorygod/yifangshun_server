@@ -8,7 +8,7 @@
     "stock": 32867,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.894Z",
-    "updatedAt": "2026-03-26T00:56:16.086Z",
+    "updatedAt": "2026-03-27T01:07:31.388Z",
     "id": 2,
     "cabinetNo": "E",
     "remark": "",
@@ -24,7 +24,7 @@
     "stock": 234,
     "isActive": true,
     "createdAt": "2026-03-22T19:01:53.896Z",
-    "updatedAt": "2026-03-25T22:52:50.607Z",
+    "updatedAt": "2026-03-27T01:07:31.392Z",
     "id": 3,
     "cabinetNo": "435",
     "remark": "",
@@ -56,7 +56,7 @@
     "stock": 32,
     "isActive": true,
     "createdAt": "2026-03-25T03:04:46.363Z",
-    "updatedAt": "2026-03-26T00:56:16.087Z",
+    "updatedAt": "2026-03-27T01:07:31.394Z",
     "id": 5,
     "costPrice": 3,
     "cabinetNo": "12334",
@@ -72,7 +72,7 @@
     "stock": 353,
     "isActive": true,
     "createdAt": "2026-03-25T22:31:01.637Z",
-    "updatedAt": "2026-03-26T00:56:16.088Z",
+    "updatedAt": "2026-03-27T01:07:31.396Z",
     "id": 6,
     "costPrice": 12
   },
@@ -126,13 +126,13 @@
     "unit": "克",
     "minValue": 500,
     "cabinetNo": "B-01",
-    "salePrice": 0.05,
+    "salePrice": 0.52,
     "remark": "测试备注",
     "isActive": true,
     "createdAt": "2026-03-26T23:18:07.204Z",
-    "updatedAt": "2026-03-26T23:22:45.752Z",
+    "updatedAt": "2026-03-27T01:03:18.168Z",
     "id": 10,
     "stock": 700,
-    "costPrice": 0.05
+    "costPrice": 0.52
   }
 ]

@@ -1414,6 +1414,15 @@ app.get("/api/stock/out/orders/:id", requireRole(['admin', 'super_admin']), asyn
   }
 });
 
+app.put("/api/stock/out/orders/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const result = await stock.updateOutOrder(req.params.id, req.body);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
 // 撤销执药单（回滚库存）
 app.post("/api/stock/out/orders/:id/revert", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {

@@ -178,12 +178,17 @@
   {
     "orderId": "4",
     "herbName": "测试药材_1774538273239",
+    "quality": "",
+    "origin": "",
+    "productionDate": "",
+    "expiryDate": "",
     "quantity": 600,
-    "unitPrice": 0.06,
-    "costPrice": 0.06,
-    "totalPrice": 36,
+    "unitPrice": 0.6,
+    "costPrice": 0.52,
+    "totalPrice": 360,
+    "remark": "",
     "id": 27,
-    "createdAt": "2026-03-26T23:18:07.215Z",
-    "updatedAt": "2026-03-26T23:18:07.215Z"
+    "createTime": "2026-03-27T01:02:43.853Z",
+    "updatedAt": "2026-03-27T01:02:43.853Z"
   }
 ]

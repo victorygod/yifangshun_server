@@ -907,7 +907,11 @@ function renderOrderDetail(row, config, detailTable) {
   }
 
   html += `<table class="detail-table">`;
-  html += `<thead><tr>${detailColumns.map(col => `<th>${col.label}</th>`).join('')}<th class="col-action">操作</th></tr></thead>`;
+  // 执药单不显示本药总价列
+  const filteredDetailColumns = currentTable === 'stock_out_orders'
+    ? detailColumns.filter(col => col.key !== 'totalPrice')
+    : detailColumns;
+  html += `<thead><tr>${filteredDetailColumns.map(col => `<th>${col.label}</th>`).join('')}<th class="col-action">操作</th></tr></thead>`;
   html += `<tbody>`;
 
   // 已结算状态的执药单，明细只读
@@ -919,7 +923,13 @@ function renderOrderDetail(row, config, detailTable) {
   // 已有明细
   items.forEach(item => {
     html += `<tr data-detail-id="${item.id}" data-order-id="${row.id}">`;
-    detailColumns.forEach(col => {
+    
+    // 执药单跳过 totalPrice 列
+    const columnsToRender = currentTable === 'stock_out_orders'
+      ? detailColumns.filter(col => col.key !== 'totalPrice')
+      : detailColumns;
+    
+    columnsToRender.forEach(col => {
       const value = item[col.key] ?? '';
       const isReadonly = col.readonly;
       const isDisabled = col.disabled;
@@ -928,13 +938,12 @@ function renderOrderDetail(row, config, detailTable) {
       const isAlwaysReadonly = col.key === 'id' || col.key === 'orderId';
       
       // 草稿状态的入库单：忽略 readonly 配置，允许编辑（但ID和orderId除外）
-      const isActuallyReadonly = isDetailReadonly || isAlwaysReadonly || (isReadonly && !(currentTable === 'stock_in_orders' && row.status === 'draft'));
-
-      // 跳过 totalPrice 列（入库明细不显示总价）
-      if (col.key === 'totalPrice') {
-        html += `<td style="display:none;"></td>`;
-        return;
-      }
+      // 执药单待执药状态：允许编辑药材名称和克数
+      const isInStockDraft = currentTable === 'stock_in_orders' && row.status === 'draft';
+      const isOutStockPending = currentTable === 'stock_out_orders' && row.status === 'pending';
+      const isEditableField = isOutStockPending && (col.key === 'herbName' || col.key === 'quantity');
+      
+      const isActuallyReadonly = isDetailReadonly || isAlwaysReadonly || (isReadonly && !isInStockDraft && !isEditableField);
 
       if (isActuallyReadonly) {
         html += `<td><span class="cell-readonly">${value || '-'}</span></td>`;
@@ -977,19 +986,24 @@ function renderOrderDetail(row, config, detailTable) {
   // 空行用于新增（已结算/已入库状态不显示新增行）
   if (!isDetailReadonly) {
     html += `<tr class="detail-new-row" data-order-id="${row.id}">`;
-    detailColumns.forEach(col => {
+    
+    // 执药单跳过 totalPrice 列
+    const newColumnsToRender = currentTable === 'stock_out_orders'
+      ? detailColumns.filter(col => col.key !== 'totalPrice')
+      : detailColumns;
+    
+    newColumnsToRender.forEach(col => {
       const isReadonly = col.readonly;
       const isDisabled = col.disabled;
       // ID和入库单ID始终只读
       const isAlwaysReadonly = col.key === 'id' || col.key === 'orderId';
       // 草稿状态的入库单：忽略 readonly 配置，允许编辑（但ID和orderId除外）
-      const isActuallyReadonly = isReadonly && !(currentTable === 'stock_in_orders' && row.status === 'draft') || isAlwaysReadonly;
+      // 执药单待执药状态：允许编辑药材名称和克数
+      const isInStockDraft = currentTable === 'stock_in_orders' && row.status === 'draft';
+      const isOutStockPending = currentTable === 'stock_out_orders' && row.status === 'pending';
+      const isEditableField = isOutStockPending && (col.key === 'herbName' || col.key === 'quantity');
       
-      // 跳过 totalPrice 列（入库明细不显示总价）
-      if (col.key === 'totalPrice') {
-        html += `<td style="display:none;"></td>`;
-        return;
-      }
+      const isActuallyReadonly = isReadonly && !isInStockDraft && !isEditableField || isAlwaysReadonly;
       
       if (isActuallyReadonly) {
         html += `<td><span class="cell-readonly">自动</span></td>`;
