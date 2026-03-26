@@ -4430,5 +4430,93 @@
     "id": 433,
     "createTime": "2026-03-27T01:49:19.380Z",
     "updatedAt": "2026-03-27T01:49:19.380Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-1",
+    "herbName": "白芷",
+    "quantity": -1,
+    "operator": "admin",
+    "createdAt": "2026-03-26T18:02:07.415Z",
+    "id": 434,
+    "createTime": "2026-03-27T02:02:07.416Z",
+    "updatedAt": "2026-03-27T02:02:07.416Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-1",
+    "herbName": "车前花",
+    "quantity": -18,
+    "operator": "admin",
+    "createdAt": "2026-03-26T18:02:07.418Z",
+    "id": 435,
+    "createTime": "2026-03-27T02:02:07.418Z",
+    "updatedAt": "2026-03-27T02:02:07.418Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-1",
+    "herbName": "防风",
+    "quantity": -30,
+    "operator": "admin",
+    "createdAt": "2026-03-26T18:02:07.422Z",
+    "id": 436,
+    "createTime": "2026-03-27T02:02:07.423Z",
+    "updatedAt": "2026-03-27T02:02:07.423Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-1",
+    "herbName": "金樱子",
+    "quantity": -30,
+    "operator": "admin",
+    "createdAt": "2026-03-26T18:02:07.425Z",
+    "id": 437,
+    "createTime": "2026-03-27T02:02:07.425Z",
+    "updatedAt": "2026-03-27T02:02:07.425Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-1",
+    "herbName": "白芷",
+    "quantity": 1,
+    "operator": "system",
+    "createdAt": "2026-03-26T18:02:11.903Z",
+    "id": 438,
+    "createTime": "2026-03-27T02:02:11.904Z",
+    "updatedAt": "2026-03-27T02:02:11.904Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-1",
+    "herbName": "车前花",
+    "quantity": 18,
+    "operator": "system",
+    "createdAt": "2026-03-26T18:02:11.906Z",
+    "id": 439,
+    "createTime": "2026-03-27T02:02:11.906Z",
+    "updatedAt": "2026-03-27T02:02:11.906Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-1",
+    "herbName": "防风",
+    "quantity": 30,
+    "operator": "system",
+    "createdAt": "2026-03-26T18:02:11.909Z",
+    "id": 440,
+    "createTime": "2026-03-27T02:02:11.910Z",
+    "updatedAt": "2026-03-27T02:02:11.910Z"
+  },
+  {
+    "action": "revert_out",
+    "orderNo": "ZD-1",
+    "herbName": "金樱子",
+    "quantity": 30,
+    "operator": "system",
+    "createdAt": "2026-03-26T18:02:11.916Z",
+    "id": 441,
+    "createTime": "2026-03-27T02:02:11.917Z",
+    "updatedAt": "2026-03-27T02:02:11.917Z"
   }
 ]

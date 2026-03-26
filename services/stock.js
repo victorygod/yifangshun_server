@@ -986,6 +986,18 @@ async function getOutOrderById(id) {
     }
   }
 
+  // 始终根据明细重新计算总价（确保返回正确的总价）
+  const calculatedTotal = itemsWithCabinetNo.reduce((sum, item) => {
+    return sum + (parseFloat(item.totalPrice) || 0);
+  }, 0);
+  
+  // 如果计算的总价与数据库中的不一致，更新数据库
+  if (calculatedTotal !== parseFloat(order.totalPrice)) {
+    console.log(`[getOutOrderById] 总价不一致，更新: ${order.totalPrice} -> ${calculatedTotal}`);
+    await StockOutOrder.update({ totalPrice: calculatedTotal }, { where: { id } });
+    order.totalPrice = calculatedTotal;
+  }
+
   return {
     code: 0,
     data: {
