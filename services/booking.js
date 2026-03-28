@@ -320,7 +320,9 @@ async function cancelBooking(id, userInfo) {
   }
 
   // 【手机号改造】检查是否是当前用户的预约（使用 phone）
-  if (booking.phone !== userPhone) {
+  // 管理员可以取消任何预约
+  const isAdmin = userInfo.role === 'admin' || userInfo.role === 'super_admin';
+  if (booking.phone !== userPhone && !isAdmin) {
     throw new Error("无权取消该预约");
   }
 
@@ -336,13 +338,13 @@ async function cancelBooking(id, userInfo) {
   const diffTime = bookingDate - today;
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  // 如果预约日期就是今天，不能取消
-  if (bookingDateStr === todayStr) {
+  // 如果预约日期就是今天，不能取消（管理员除外）
+  if (bookingDateStr === todayStr && !isAdmin) {
     throw new Error("预约当天不能取消，请提前一天取消");
   }
 
-  // 如果预约日期在过去，也不能取消
-  if (diffDays < 0) {
+  // 如果预约日期在过去，也不能取消（管理员除外）
+  if (diffDays < 0 && !isAdmin) {
     throw new Error("预约已过期，无法取消");
   }
 
@@ -389,9 +391,102 @@ async function getMyBookings(phone) {
   return { code: 0, data: bookingList };
 }
 
+// 获取所有预约列表（管理员）
+async function getBookingsList({ page = 1, pageSize = 20, keyword = '', status = 'all' } = {}) {
+  // 分页参数校验
+  page = Math.max(1, parseInt(page) || 1);
+  pageSize = Math.min(100, Math.max(1, parseInt(pageSize) || 20));
+
+  let where = {};
+
+  // 状态筛选
+  if (status !== 'all') {
+    where.status = status;
+  }
+
+  let bookings = await Booking.findAll({
+    where,
+    order: [["date", "DESC"], ["createTime", "DESC"]],
+  });
+
+  // 关键词搜索（姓名、手机号、openid）
+  if (keyword) {
+    const keywordLower = keyword.toLowerCase();
+    bookings = bookings.filter(b => {
+      return (
+        (b.name && b.name.toLowerCase().includes(keywordLower)) ||
+        (b.phone && b.phone.includes(keyword)) ||
+        (b.openid && b.openid.toLowerCase().includes(keywordLower))
+      );
+    });
+  }
+
+  // 分页
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedBookings = bookings.slice(startIndex, endIndex);
+
+  const bookingList = paginatedBookings.map(b => ({
+    id: b.id,
+    openid: b.openid,
+    phone: b.phone,
+    name: b.name,
+    date: b.date,
+    session: b.session,
+    sessionName: SESSION_CONFIG[b.session]?.name || '下午',
+    personCount: b.personCount || 1,
+    status: b.status,
+    time: b.time,
+    createTime: b.createTime,
+    updatedAt: b.updatedAt,
+  }));
+
+  return {
+    code: 0,
+    data: bookingList,
+    pagination: {
+      page,
+      pageSize,
+      totalCount: bookings.length,
+      totalPages: Math.ceil(bookings.length / pageSize)
+    }
+  };
+}
+
+// 更新预约状态（管理员）
+const VALID_STATUSES = ['confirmed', 'checked_in', 'cancelled', 'completed'];
+
+async function updateBookingStatus(id, status, userInfo) {
+  if (!id) {
+    throw new Error("缺少预约ID");
+  }
+
+  // 状态值校验
+  if (!VALID_STATUSES.includes(status)) {
+    throw new Error(`无效的状态值，允许的值: ${VALID_STATUSES.join(', ')}`);
+  }
+
+  const booking = await Booking.findOne({ where: { id } });
+  if (!booking) {
+    throw new Error("预约不存在");
+  }
+
+  // 记录操作日志
+  if (userInfo) {
+    console.log(`[updateBookingStatus] 操作者: ${userInfo.phone || userInfo.openid || 'unknown'}, 预约ID: ${id}, 状态变更: ${booking.status} -> ${status}`);
+  }
+
+  await Booking.update({ status, updatedAt: new Date() }, { where: { id } });
+
+  return { code: 0, message: "更新成功" };
+}
+
 module.exports = {
   getAvailableSlots,
   createBooking,
   cancelBooking,
   getMyBookings,
+  getBookingsList,
+  updateBookingStatus,
+  SESSION_CONFIG
 };

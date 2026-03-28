@@ -80,11 +80,12 @@ app.get("/api/home/users", requireRole(['admin', 'super_admin']), async (req, re
       code: 0,
       data: {
         list: users.map(user => ({
+          id: user.id,
           openid: user.openid,
           name: user.name,
           phone: user.phone,
           role: user.role,
-          createdAt: user.createdAt
+          createdAt: user.createdAt || user.createTime
         })),
         pagination: {
           page,
@@ -311,6 +312,40 @@ app.get("/api/my-bookings", requireRole(['user', 'admin', 'super_admin']), async
   } catch (error) {
     console.error("获取我的预约失败:", error);
     return res.status(400).json({ code: 1, message: error.message || "获取我的预约失败" });
+  }
+});
+
+// 获取所有预约列表（管理员）
+app.get("/api/bookings", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 20;
+    const keyword = req.query.keyword || '';
+    const status = req.query.status || 'all';
+
+    const result = await booking.getBookingsList({ page, pageSize, keyword, status });
+    res.json(result);
+  } catch (error) {
+    console.error("获取预约列表失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "获取预约列表失败" });
+  }
+});
+
+// 更新预约状态（管理员）
+app.put("/api/bookings/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({ code: 1, message: "缺少状态参数" });
+    }
+
+    const result = await booking.updateBookingStatus(id, status, req.user);
+    res.json(result);
+  } catch (error) {
+    console.error("更新预约状态失败:", error);
+    res.status(400).json({ code: 1, message: error.message || "更新预约状态失败" });
   }
 });
 
@@ -582,6 +617,38 @@ app.get("/api/admin/tables", requireRole(['admin', 'super_admin']), async (req, 
   } catch (error) {
     console.error("获取表状态失败:", error);
     res.status(500).json({ code: 1, message: error.message || "获取表状态失败" });
+  }
+});
+
+// 获取系统统计（新API，替代 /api/admin/tables）
+app.get("/api/system/stats", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const tables = [];
+
+    for (const [name, model] of Object.entries(TABLE_MODELS)) {
+      try {
+        const count = await model.count();
+        tables.push({
+          name,
+          displayName: TABLE_NAMES[name] || name,
+          exists: true,
+          count
+        });
+      } catch (error) {
+        tables.push({
+          name,
+          displayName: TABLE_NAMES[name] || name,
+          exists: false,
+          count: 0,
+          error: error.message
+        });
+      }
+    }
+
+    res.json({ code: 0, data: { tables } });
+  } catch (error) {
+    console.error("获取系统统计失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "获取系统统计失败" });
   }
 });
 

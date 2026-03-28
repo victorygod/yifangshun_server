@@ -400,10 +400,10 @@ async function renderDashboard() {
   main.innerHTML = `<div class="loading">加载中...</div>`;
 
   try {
-    const res = await homeFetch('/api/admin/tables');
+    const res = await homeFetch('/api/system/stats');
     if (res.code !== 0) throw new Error(res.message);
 
-    const tables = res.data;
+    const tables = res.data.tables;
 
     main.innerHTML = `
       <div class="page-header">
@@ -497,6 +497,18 @@ async function loadTableData() {
       if (res.code !== 0) throw new Error(res.message);
       rows = res.data.rows;
       pagination = res.data.pagination;
+    } else if (currentTable === 'users') {
+      // 用户管理使用专门的API
+      const res = await homeFetch(`/api/home/users?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`);
+      if (res.code !== 0) throw new Error(res.message);
+      rows = res.data.list;
+      pagination = res.data.pagination;
+    } else if (currentTable === 'bookings') {
+      // 预约管理使用专门的API
+      const res = await homeFetch(`/api/bookings?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`);
+      if (res.code !== 0) throw new Error(res.message);
+      rows = res.data;
+      pagination = res.pagination;
     } else if (currentTable === 'prescriptions') {
       // 处方管理使用专门的API
       const res = await homeFetch(`/api/prescription/list?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`);
@@ -1015,6 +1027,45 @@ async function saveRow(rowId) {
 
     if (currentTable === 'herbs' && window._stockModule) {
       apiUrl = window._stockModule.getHerbApiPath('update', rowId);
+    } else if (currentTable === 'users') {
+      // 用户管理使用专门的API（需要openid而非id）
+      const row = tableData.find(r => String(r.id) === String(rowId));
+      if (!row) {
+        showToast('找不到用户数据', 'error');
+        return;
+      }
+
+      // 如果角色有变化，需要单独调用 set-role API
+      if (data.role && data.role !== row.role) {
+        const roleRes = await homeFetch('/api/user/set-role', {
+          method: 'POST',
+          body: JSON.stringify({
+            openid: row.openid,
+            role: data.role
+          })
+        });
+        if (roleRes.code !== 0) throw new Error(roleRes.message);
+      }
+
+      // 更新其他字段（name, phone）
+      const { name, phone } = data;
+      if (name !== undefined || phone !== undefined) {
+        apiUrl = `/api/user/${row.openid}`;
+        // 只传递 name 和 phone
+        Object.keys(data).forEach(key => {
+          if (key !== 'name' && key !== 'phone') delete data[key];
+        });
+      } else {
+        // 没有其他字段需要更新，直接返回成功
+        showToast('保存成功', 'success');
+        editingRowId = null;
+        selectedIds = [];
+        loadTableData();
+        return;
+      }
+    } else if (currentTable === 'bookings') {
+      // 预约管理使用专门的API
+      apiUrl = `/api/bookings/${rowId}`;
     } else if (currentTable === 'prescriptions') {
       // 处方管理使用专门的API
       const res = await window._prescriptionModule.savePrescription(rowId, data);
@@ -1158,6 +1209,12 @@ async function deleteRow(rowId) {
 
       if (currentTable === 'herbs' && window._stockModule) {
         deleteApi = window._stockModule.getHerbApiPath('delete', rowId);
+      } else if (currentTable === 'users') {
+        // 用户删除使用通用API（通过id删除）
+        deleteApi = `/api/admin/table/users/${rowId}`;
+      } else if (currentTable === 'bookings') {
+        // 预约管理使用专门的API
+        deleteApi = `/api/booking/${rowId}`;
       } else if ((currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') && window._stockModule) {
         deleteApi = window._stockModule.getDeleteApiPath(rowId, currentTable);
       } else if (currentTable === 'prescriptions') {
@@ -1483,10 +1540,10 @@ function handleSearch(e) {
 
 async function loadStats() {
   try {
-    const res = await homeFetch('/api/admin/tables');
+    const res = await homeFetch('/api/system/stats');
     if (res.code !== 0) return;
 
-    const tables = res.data;
+    const tables = res.data.tables;
     const userTable = tables.find(t => t.name === 'users');
     const userCount = userTable ? userTable.count : 0;
 

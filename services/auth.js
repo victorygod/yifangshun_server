@@ -207,10 +207,6 @@ async function handleBindUserInfo(openid, name, phone) {
     throw new Error("缺少必要参数");
   }
 
-  if (phone.length !== 11) {
-    throw new Error("手机号格式不正确");
-  }
-
   const user = await User.findOne({ where: { openid } });
 
   if (!user) {
@@ -229,10 +225,6 @@ async function handleBindUserInfo(openid, name, phone) {
 async function handleBindPhone(openid, phone) {
   if (!openid || !phone) {
     throw new Error("缺少必要参数");
-  }
-
-  if (phone.length !== 11) {
-    throw new Error("手机号格式不正确");
   }
 
   // 【手机号改造】检查手机号是否已被其他 openid 绑定
@@ -455,9 +447,6 @@ async function updateUserInfo(openid, name, phone) {
     updates.name = name.trim();
   }
   if (phone !== undefined && phone !== null) {
-    if (typeof phone !== 'string' || phone.length !== 11) {
-      throw new Error("手机号格式不正确");
-    }
     updates.phone = phone;
   }
 
