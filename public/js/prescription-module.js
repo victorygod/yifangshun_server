@@ -77,11 +77,14 @@ export async function savePrescriptionDetail(rowId) {
   data.medicines = medicines;
 
   try {
-    // 获取当前记录的处方ID和状态
-    const getRes = await _dependencies.homeFetch(`/api/admin/table/prescriptions/${rowId}`);
-    if (getRes.code !== 0) throw new Error(getRes.message);
-    
-    const currentRecord = getRes.data;
+    // 从 tableData 获取当前记录的处方ID和状态（不再调用旧API）
+    const tableData = _dependencies.getTableData();
+    const currentRecord = tableData.find(r => String(r.id) === String(rowId));
+
+    if (!currentRecord) {
+      throw new Error('找不到处方数据');
+    }
+
     const prescriptionId = data.prescriptionId || currentRecord.prescriptionId;
     const status = currentRecord.status;
 

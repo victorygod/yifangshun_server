@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "prescriptionId": "0052152",
+    "prescriptionTime": "2026-03-26",
+    "pharmacist": "home_super_admin",
+    "reviewer": "home_super_admin",
+    "status": "pending",
+    "remark": "处方审核通过自动生成",
+    "totalPrice": 32817.56,
+    "createdAt": "2026-03-28T14:03:30.354Z",
+    "updatedAt": "2026-03-28T22:57:17.659Z",
+    "id": 1,
+    "createTime": "2026-03-28T22:03:30.354Z"
+  }
+]
