@@ -49,7 +49,7 @@ async function getSessionConfig(dateStr, session, dayOfWeek) {
 
     // 2. 默认规则（按星期）
     const defaultCfg = await ScheduleConfig.findOne({
-      where: { type: 'default', dayOfWeek, session }
+      where: { type: 'default', dayOfWeek: String(dayOfWeek), session }
     });
 
     if (defaultCfg) {

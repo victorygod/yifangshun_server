@@ -29,11 +29,21 @@ async function runBookingTests(externalTestUsers) {
   // 清理所有预约数据（因为预约检查使用手机号）
   await Booking.destroy({ where: {} });
 
+  // 额外清理测试用户手机号的预约记录（确保测试用户没有未完成的预约）
+  if (testUsers.normalUser && testUsers.normalUser.phone) {
+    await Booking.destroy({ where: { phone: testUsers.normalUser.phone } });
+  }
+
   // 清理 ScheduleConfig 脏数据，重置为正确的默认配置
   await ScheduleConfig.destroy({ where: {} });
-  await ScheduleConfig.create({ type: 'default', dayOfWeek: 2, session: 'morning', isOpen: false, maxBookings: 2 });
-  await ScheduleConfig.create({ type: 'default', dayOfWeek: 2, session: 'afternoon', isOpen: false, maxBookings: 4 });
-  await ScheduleConfig.create({ type: 'default', dayOfWeek: 2, session: 'evening', isOpen: false, maxBookings: 2 });
+
+  // 设置周一到周日的默认配置（周二关闭，其他天开放）
+  for (let day = 0; day <= 6; day++) {
+    const isTuesday = (day === 2);
+    await ScheduleConfig.create({ type: 'default', dayOfWeek: String(day), session: 'morning', isOpen: !isTuesday, maxBookings: 2 });
+    await ScheduleConfig.create({ type: 'default', dayOfWeek: String(day), session: 'afternoon', isOpen: !isTuesday, maxBookings: 4 });
+    await ScheduleConfig.create({ type: 'default', dayOfWeek: String(day), session: 'evening', isOpen: !isTuesday, maxBookings: 2 });
+  }
 
   // GET /api/available-slots
   await test('GET /api/available-slots - 获取可预约日期', async () => {
@@ -64,8 +74,13 @@ async function runBookingTests(externalTestUsers) {
     while (date.getDay() === 2) {
       date.setDate(date.getDate() + 1);
     }
-    const dateStr = date.toISOString().split('T')[0];
+    // 使用本地日期格式（考虑时区）
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
 
+    console.log('测试用户:', testUsers.normalUser);
     const { response, data } = await request('POST', '/api/booking', {
       date: dateStr,
       session: 'afternoon',
@@ -74,19 +89,22 @@ async function runBookingTests(externalTestUsers) {
       'x-openid': testUsers.normalUser.openid
     });
 
+    console.log('创建预约响应:', JSON.stringify(data));
     assertEquals(response.statusCode, 200, '请求成功');
-    assertEquals(data.code, 0, '预约成功');
-    assert(data.data.id, '返回预约ID');
-    assert(data.data.session, '返回场次信息');
-    assert(data.data.personCount, '返回预约人数');
-    testData.bookingId = data.data.id;
+    assertEquals(data.code, 0, '预约成功: ' + data.message);
+    assert(data.data?.id, '返回预约ID');
+    assert(data.data?.session, '返回场次信息');
+    assert(data.data?.personCount, '返回预约人数');
+    testData.bookingId = data.data?.id;
   });
 
   await test('POST /api/booking - 业务规则验证（不支持当日预约）', async () => {
-    const today = new Date().toISOString().split('T')[0];
+    // 使用本地日期格式
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
     const { response, data } = await request('POST', '/api/booking', {
-      date: today,
+      date: todayStr,
       session: 'afternoon',
       personCount: 1
     }, {
@@ -103,7 +121,8 @@ async function runBookingTests(externalTestUsers) {
     while (date.getDay() !== 2) {
       date.setDate(date.getDate() + 1);
     }
-    const dateStr = date.toISOString().split('T')[0];
+    // 使用本地日期格式
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
     const { response, data } = await request('POST', '/api/booking', {
       date: dateStr,
@@ -142,7 +161,7 @@ async function runBookingTests(externalTestUsers) {
 
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
-    assert(Array.isArray(data.data), '返回数组');
+    assert(Array.isArray(data.data?.rows), '返回 { rows, pagination } 格式');
   });
 
   // DELETE /api/booking/:id
@@ -188,7 +207,8 @@ async function runBookingTests(externalTestUsers) {
   await test('POST /api/schedule/config/override - 设置临时调整（管理员权限）', async () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    const dateStr = tomorrow.toISOString().split('T')[0];
+    // 使用本地日期格式
+    const dateStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
     const { response, data } = await request('POST', '/api/schedule/config/override', {
       date: dateStr,
@@ -226,7 +246,8 @@ async function runBookingTests(externalTestUsers) {
     while (date.getDay() === 2) {
       date.setDate(date.getDate() + 1);
     }
-    const dateStr = date.toISOString().split('T')[0];
+    // 使用本地日期格式
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
     const { response, data } = await request('POST', '/api/booking', {
       date: dateStr,
@@ -253,10 +274,10 @@ async function runBookingTests(externalTestUsers) {
 
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
-    assert(Array.isArray(data.data), '返回数组');
+    assert(Array.isArray(data.data?.rows), '返回 { rows, pagination } 格式');
 
-    if (data.data.length > 0) {
-      const booking = data.data[0];
+    if (data.data.rows.length > 0) {
+      const booking = data.data.rows[0];
       if (booking.session) {
         assert(booking.session, '包含场次');
         assert(booking.sessionName, '包含场次名称');

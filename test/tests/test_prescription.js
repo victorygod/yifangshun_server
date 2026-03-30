@@ -240,7 +240,7 @@ async function runPrescriptionTests(testUsers) {
     console.log(`  响应数据：`, JSON.stringify(data).substring(0, 200));
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
-    assert(Array.isArray(data.data), '返回数组');
+    assert(Array.isArray(data.data?.rows), '返回 { rows, pagination } 格式');
   });
   
   // GET /api/prescription/list

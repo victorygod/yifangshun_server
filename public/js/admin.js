@@ -2,13 +2,6 @@
  * 易方顺诊所助手 - 管理后台脚本
  */
 
-// ==================== 全局开关 ====================
-
-// 新旧实现切换开关
-// false: 使用现有 if-else 逻辑
-// true: 使用 tableHandlers 配置驱动的新架构
-const USE_NEW_MODULES = true;
-
 // ==================== 配置 ====================
 
 // 菜单配置
@@ -91,6 +84,50 @@ const tableHandlers = {
         data: rows,
         pagination: res.data?.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 }
       };
+    },
+    // ========== 新架构：渲染钩子 ==========
+    // 是否显示操作列
+    showActionColumn: true,
+    // 渲染行操作按钮（返回HTML字符串）
+    renderRowActions: (row) => {
+      let html = '';
+      if (row.status === 'draft') {
+        html += `<button class="action-btn action-btn-confirm" data-action="confirmStockIn" data-id="${row.id}">确认入库</button>`;
+      } else if (row.status === 'stocked') {
+        html += `<button class="action-btn action-btn-revert" data-action="revertToDraft" data-id="${row.id}">退回草稿</button>`;
+      }
+      return html;
+    },
+    // 是否显示删除按钮
+    canDelete: (row) => row.status === 'draft',
+    // 是否允许编辑：已入库的入库单禁止编辑
+    canEdit: (row) => row.status !== 'stocked',
+    // 渲染详情行
+    renderDetail: (row, config, detailTable) => {
+      return window._stockModule.renderOrderDetail(row, config, detailTable);
+    },
+    // 数据加载后处理
+    afterLoad: (rows) => {
+      // 调试日志
+      rows.forEach((row, index) => {
+        console.log('[loadTableData] 订单', index, 'ID:', row.id, '明细数量:', row.items?.length || 0);
+        if (row.items && row.items.length > 0) {
+          console.log('[loadTableData] 订单', index, '明细数据:', row.items);
+        }
+      });
+    },
+    // 渲染完成后处理
+    afterRender: () => {
+      // 为所有展开的订单计算总金额
+      expandedRows.forEach(orderId => {
+        window._stockModule.calculateOrderTotalAmount(orderId);
+      });
+      // 异步更新所有展开订单的成本价提示
+      if (expandedRows.size > 0) {
+        window._stockModule.updateAllCostPriceHints(expandedRows).catch(err => {
+          console.error('[Admin] 更新成本价提示失败:', err);
+        });
+      }
     }
   },
   stock_out_orders: {
@@ -124,6 +161,28 @@ const tableHandlers = {
         data: rows,
         pagination: res.data?.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 }
       };
+    },
+    // ========== 新架构：渲染钩子 ==========
+    showActionColumn: true,
+    renderRowActions: (row) => {
+      let html = '';
+      if (row.status === 'settled') {
+        html += `<button class="action-btn action-btn-revoke" data-action="revokeOrder" data-id="${row.id}" data-order-id="${row.id}">撤销</button>`;
+      }
+      return html;
+    },
+    // 是否显示删除按钮：settled 状态不显示（因为有撤销按钮）
+    canDelete: (row) => row.status !== 'settled',
+    renderDetail: (row, config, detailTable) => {
+      return window._stockModule.renderOrderDetail(row, config, detailTable);
+    },
+    afterLoad: (rows) => {
+      rows.forEach((row, index) => {
+        console.log('[loadTableData] 订单', index, 'ID:', row.id, '明细数量:', row.items?.length || 0);
+        if (row.items && row.items.length > 0) {
+          console.log('[loadTableData] 订单', index, '明细数据:', row.items);
+        }
+      });
     }
   },
   prescriptions: {
@@ -142,6 +201,21 @@ const tableHandlers = {
         data: res.data?.rows || [],
         pagination: res.data?.pagination || {}
       };
+    },
+    // ========== 新架构：渲染钩子 ==========
+    renderRowActions: (row) => {
+      let html = '';
+      if (row.status === '待审核') {
+        html += `<button class="action-btn action-btn-review" data-action="reviewPrescription" data-id="${row.id}" data-prescription-id="${row.prescriptionId}">审核</button>`;
+      }
+      return html;
+    },
+    // 已结算处方禁止删除
+    canDelete: (row) => row.status !== '已结算',
+    // 已结算处方禁止编辑
+    canEdit: (row) => row.status !== '已结算',
+    renderDetail: (row) => {
+      return window._prescriptionModule.renderPrescriptionDetail(row);
     }
   },
   herbs: {
@@ -158,6 +232,20 @@ const tableHandlers = {
     onCancel: () => window._tableUtil.cancelEdit(),
     onLoad: async (page, pageSize, keyword) => {
       return window._herbsModule.herbsHandlers.onLoad(page, pageSize, keyword);
+    },
+    // ========== 新架构：渲染钩子 ==========
+    // 单元格属性钩子（用于库存预警样式）
+    getCellProps: (row, col) => {
+      if (col.key === 'stock' && row.minValue !== undefined) {
+        const stock = parseFloat(row.stock) || 0;
+        const minValue = parseFloat(row.minValue) || 0;
+        if (stock < minValue) {
+          return {
+            style: 'color: #e74c3c; font-weight: bold;'
+          };
+        }
+      }
+      return {};
     }
   },
   users: {
@@ -761,13 +849,8 @@ async function loadTableData() {
     const columns = config.columns;
 
     // 调试：检查返回的数据是否包含明细
-    if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
-      rows.forEach((row, index) => {
-        console.log('[loadTableData] 订单', index, 'ID:', row.id, '明细数量:', row.items?.length || 0);
-        if (row.items && row.items.length > 0) {
-          console.log('[loadTableData] 订单', index, '明细数据:', row.items);
-        }
-      });
+    if (tableHandlers[currentTable]?.afterLoad) {
+      tableHandlers[currentTable].afterLoad(rows);
     }
 
     if (rows.length === 0 && editingRowId !== 'new') {
@@ -792,7 +875,7 @@ async function loadTableData() {
                 <input type="checkbox" class="checkbox" id="selectAll" onchange="toggleSelectAll(this.checked)">
               </th>` : ''}
               ${columns.map(col => `<th>${col.label}</th>`).join('')}
-              ${(!config.readonly || hasDetail || currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') ? '<th class="col-action">操作</th>' : ''}
+              ${(!config.readonly || hasDetail || tableHandlers[currentTable]?.showActionColumn) ? '<th class="col-action">操作</th>' : ''}
             </tr>
           </thead>
           <tbody>
@@ -880,17 +963,14 @@ async function loadTableData() {
           
           // 药材库存预警：库存低于最低库存时字体变红
           let stockWarning = '';
-          if (currentTable === 'herbs' && col.key === 'stock' && row.minValue !== undefined) {
-            const stock = parseFloat(value) || 0;
-            const minValue = parseFloat(row.minValue) || 0;
-            if (stock < minValue) {
-              stockWarning = 'style="color: #e74c3c; font-weight: bold;"';
-            }
+          const cellProps = tableHandlers[currentTable]?.getCellProps?.(row, col) || {};
+          if (cellProps.style) {
+            stockWarning = `style="${cellProps.style}"`;
           }
-          
-          // 已结算处方禁止编辑
-          const isSettledPrescription = currentTable === 'prescriptions' && row.status === '已结算';
-          const canEdit = !isReadonly && !isSettledPrescription;
+
+          // 判断是否允许编辑
+          const canEditRow = tableHandlers[currentTable]?.canEdit?.(row) !== false;
+          const canEdit = !isReadonly && canEditRow;
 
           html += `<td class="${canEdit ? 'cell-clickable' : ''}" data-row-id="${row.id}" data-col-key="${col.key}">
             <span class="${cellClass} ${isLongText ? 'cell-long' : ''}" ${stockWarning} title="${escapeHtml(String(value))}">${displayValue || '-'}</span>
@@ -899,7 +979,7 @@ async function loadTableData() {
       });
 
       // 操作列（只读表且无详情时隐藏操作列）
-      const showActionCol = !config.readonly || hasDetail || currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders';
+      const showActionCol = !config.readonly || hasDetail || tableHandlers[currentTable]?.showActionColumn;
       if (showActionCol) {
         html += `<td class="col-action">`;
 
@@ -910,30 +990,17 @@ async function loadTableData() {
           </button>`;
         }
 
-        // 处方审核按钮
-        if (currentTable === 'prescriptions' && row.status === '待审核') {
-          html += `<button class="action-btn action-btn-review" data-action="reviewPrescription" data-id="${row.id}" data-prescription-id="${row.prescriptionId}">审核</button>`;
-        }
-
-        // 入库单特殊操作按钮
-        if (currentTable === 'stock_in_orders') {
-          if (row.status === 'draft') {
-            html += `<button class="action-btn action-btn-confirm" data-action="confirmStockIn" data-id="${row.id}">确认入库</button>`;
-          } else if (row.status === 'stocked') {
-            html += `<button class="action-btn action-btn-revert" data-action="revertToDraft" data-id="${row.id}">退回草稿</button>`;
-          }
+        // 使用 renderRowActions 钩子渲染自定义按钮
+        if (tableHandlers[currentTable]?.renderRowActions) {
+          html += tableHandlers[currentTable].renderRowActions(row);
         }
 
         if (isEditing) {
           html += `<button class="action-btn action-btn-save" data-action="save" data-id="${row.id}">保存</button>`;
         } else if (!config.readonly) {
-          // 执药单特殊处理
-          if (currentTable === 'stock_out_orders' && row.status === 'settled') {
-            html += `<button class="action-btn action-btn-revoke" data-action="revokeOrder" data-id="${row.id}" data-order-id="${row.id}">撤销</button>`;
-          } else if ((currentTable !== 'stock_in_orders' || row.status === 'draft') && 
-                     !(currentTable === 'prescriptions' && row.status === '已结算')) {
-            // 入库单已入库状态不显示删除按钮（通过退回草稿后删除）
-            // 已结算处方不显示删除按钮
+          // 使用 canDelete 钩子判断是否显示删除按钮
+          const canDelete = tableHandlers[currentTable]?.canDelete?.(row) !== false;
+          if (canDelete) {
             html += `<button class="action-btn action-btn-delete" data-action="delete" data-id="${row.id}">删除</button>`;
           }
         }
@@ -945,12 +1012,8 @@ async function loadTableData() {
 
       // 详情行
       if (hasDetail && isExpanded) {
-        if (currentTable === 'prescriptions') {
-          // 处方详情
-          html += window._prescriptionModule.renderPrescriptionDetail(row);
-        } else {
-          // 入库单/执药单详情
-          html += window._stockModule.renderOrderDetail(row, config, detailTable);
+        if (tableHandlers[currentTable]?.renderDetail) {
+          html += tableHandlers[currentTable].renderDetail(row, config, detailTable);
         }
       }
     });
@@ -974,18 +1037,8 @@ async function loadTableData() {
     updateSelectedCount();
     bindAutoSaveEvents();
 
-    // 入库单：为所有展开的订单计算总金额
-    if (currentTable === 'stock_in_orders') {
-      expandedRows.forEach(orderId => {
-        window._stockModule.calculateOrderTotalAmount(orderId);
-      });
-    }
-
-    // 入库单：异步更新所有展开订单的成本价提示
-    if (currentTable === 'stock_in_orders' && expandedRows.size > 0) {
-      window._stockModule.updateAllCostPriceHints(expandedRows).catch(err => {
-        console.error('[Admin] 更新成本价提示失败:', err);
-      });
+    if (tableHandlers[currentTable]?.afterRender) {
+      tableHandlers[currentTable].afterRender();
     }
 
     // 自动对焦
@@ -1035,39 +1088,36 @@ function closeImagePreview() {
 function handleTableClick(e) {
   const btn = e.target.closest('[data-action]');
   if (btn) {
-    // 如果启用新模块，使用 tableHandlers
-    if (USE_NEW_MODULES) {
-      const action = btn.dataset.action;
-      // action -> handlerName (save -> onSave)
-      const handlerName = 'on' + action.charAt(0).toUpperCase() + action.slice(1);
-      const handler = tableHandlers[currentTable]?.[handlerName];
+    const action = btn.dataset.action;
+    // action -> handlerName (save -> onSave)
+    const handlerName = 'on' + action.charAt(0).toUpperCase() + action.slice(1);
+    const handler = tableHandlers[currentTable]?.[handlerName];
 
-      if (handler) {
-        // 从 btn 读取必要参数并调用
-        const id = btn.dataset.id;
-        const orderId = btn.dataset.orderId;
-        const page = btn.dataset.page;
-        const prescriptionId = btn.dataset.prescriptionId;
+    if (handler) {
+      // 从 btn 读取必要参数并调用
+      const id = btn.dataset.id;
+      const orderId = btn.dataset.orderId;
+      const page = btn.dataset.page;
+      const prescriptionId = btn.dataset.prescriptionId;
 
-        if (action === 'prevPage' || action === 'nextPage') {
-          handler(parseInt(page));
-        } else if (action === 'saveDetail' || action === 'deleteDetail') {
-          handler(id, orderId);
-        } else if (action === 'saveDetailNew' || action === 'zoomDetail' || action === 'exportDetail' || action === 'settleOrder' || action === 'revokeOrder') {
-          handler(orderId);
-        } else if (action === 'reviewPrescription') {
-          handler(id, prescriptionId);
-        } else if (action === 'confirmStockIn' || action === 'revertToDraft') {
-          handler(id);
-        } else {
-          handler(id);
-        }
-        return;
+      if (action === 'prevPage' || action === 'nextPage') {
+        handler(parseInt(page));
+      } else if (action === 'saveDetail' || action === 'deleteDetail') {
+        handler(id, orderId);
+      } else if (action === 'saveDetailNew' || action === 'zoomDetail' || action === 'exportDetail' || action === 'settleOrder' || action === 'revokeOrder') {
+        handler(orderId);
+      } else if (action === 'reviewPrescription') {
+        handler(id, prescriptionId);
+      } else if (action === 'confirmStockIn' || action === 'revertToDraft') {
+        handler(id);
+      } else {
+        handler(id);
       }
-
-      // 未找到 handler，输出错误
-      console.error(`未配置的操作: ${action} for table ${currentTable}`);
+      return;
     }
+
+    // 未找到 handler，输出错误
+    console.error(`未配置的操作: ${action} for table ${currentTable}`);
   }  // end if (btn)
 
   // 单元格点击进入编辑模式
@@ -1075,25 +1125,14 @@ function handleTableClick(e) {
   if (cell && editingRowId !== 'new') {
     const rowId = cell.dataset.rowId;
     const colKey = cell.dataset.colKey;
-    
-    // 已结算处方禁止编辑
-    if (currentTable === 'prescriptions') {
-      const row = tableData.find(r => String(r.id) === String(rowId));
-      if (row && row.status === '已结算') {
-        showToast('已结算处方不可编辑', 'error');
-        return;
-      }
+
+    // 检查是否允许编辑
+    const row = tableData.find(r => String(r.id) === String(rowId));
+    if (row && tableHandlers[currentTable]?.canEdit?.(row) === false) {
+      showToast('该记录不可编辑', 'error');
+      return;
     }
-    
-    // 已入库的入库单禁止编辑
-    if (currentTable === 'stock_in_orders') {
-      const row = tableData.find(r => String(r.id) === String(rowId));
-      if (row && row.status === 'stocked') {
-        showToast('已入库的入库单不可编辑', 'error');
-        return;
-      }
-    }
-    
+
     if (String(editingRowId) !== String(rowId)) {
       pendingFocusCol = colKey;
       startEdit(rowId);

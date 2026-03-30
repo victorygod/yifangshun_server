@@ -79,8 +79,10 @@ async function runDataManagementTests(externalTestUsers) {
 
   await test("创建处方（待审核）", async () => {
     const prescriptionId = "TEST_RX_" + Date.now();
-    const openid = testUsers.adminUser.openid;
-    const res = await superAdminRequest("POST", "/api/prescription/save", {
+    // 使用普通用户创建处方，这样状态才会是"待审核"
+    // admin用户创建会自动变成"已审核"
+    const openid = testUsers.normalUser.openid;
+    const res = await request("POST", "/api/prescription/save", {
       openid,
       prescriptionId,
       name: "测试患者",
@@ -90,23 +92,27 @@ async function runDataManagementTests(externalTestUsers) {
         { name: "黄芪", quantity: "10" },
         { name: "当归", quantity: "15" }
       ]
+    }, {
+      'x-openid': testUsers.normalUser.openid
     });
     assert(res.data.code === 0, "创建处方失败: " + JSON.stringify(res.data));
     testData.prescriptionId = prescriptionId;
   });
 
-  await test("验证openid可为空", async () => {
+  await test("验证openid正确保存", async () => {
     const res = await superAdminRequest("GET", `/api/prescription/list?keyword=${testData.prescriptionId}`);
     const prescription = res.data.data.rows.find(p => p.prescriptionId === testData.prescriptionId);
     assert(prescription, "未找到处方记录");
-    assert(prescription.openid === null || prescription.openid === undefined || prescription.openid === "", "openid应为空");
+    assert(prescription.openid, "openid应有值");
   });
 
   await test("验证处方状态为待审核", async () => {
     const res = await superAdminRequest("GET", `/api/prescription/list?keyword=${testData.prescriptionId}`);
+    console.log("处方列表查询结果:", JSON.stringify(res.data).substring(0, 200));
     const prescription = res.data.data.rows.find(p => p.prescriptionId === testData.prescriptionId);
+    console.log("找到的处方:", prescription);
     assert(prescription, "未找到处方记录");
-    assertEquals(prescription.status, "待审核", "状态应为待审核");
+    assertEquals(prescription.status, "待审核", "状态应为待审核，实际为: " + prescription.status);
   });
 
   console.log("\n🧹 清理测试数据...");
