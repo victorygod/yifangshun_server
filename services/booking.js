@@ -357,24 +357,40 @@ async function cancelBooking(id, userInfo) {
 }
 
 // 获取我的预约 - 返回场次信息（【手机号改造】改用 phone 查询）
-async function getMyBookings(phone) {
+async function getMyBookings(phone, { page, pageSize } = {}) {
   if (!phone) {
     throw new Error("缺少用户标识");
   }
 
+  // 如果没有传分页参数，返回所有数据（兼容小程序）
+  const usePagination = page !== undefined && pageSize !== undefined;
+  if (!usePagination) {
+    page = 1;
+    pageSize = 10000; // 返回足够大的数量
+  } else {
+    // 分页参数校验
+    page = Math.max(1, parseInt(page) || 1);
+    pageSize = Math.min(100, Math.max(1, parseInt(pageSize) || 20));
+  }
+
   // 查询所有有效预约（confirmed 和 checked_in）
   const bookings = await Booking.findAll({
-    where: { 
+    where: {
       phone,  // 【手机号改造】改用 phone 查询
       status: { [Op.in]: ["confirmed", "checked_in"] }
     },
     order: [["date", "ASC"]],
   });
 
-  const bookingList = bookings.map((booking) => {
+  // 分页
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedBookings = bookings.slice(startIndex, endIndex);
+
+  const bookingList = paginatedBookings.map((booking) => {
     const session = booking.session || 'afternoon'; // 兼容旧数据
     const sessionConfig = SESSION_CONFIG[session];
-    
+
     return {
       id: booking.id,
       date: booking.date,
@@ -388,7 +404,18 @@ async function getMyBookings(phone) {
     };
   });
 
-  return { code: 0, data: bookingList };
+  return {
+    code: 0,
+    data: {
+      rows: bookingList,
+      pagination: {
+        page,
+        pageSize,
+        totalCount: bookings.length,
+        totalPages: Math.ceil(bookings.length / pageSize)
+      }
+    }
+  };
 }
 
 // 获取所有预约列表（管理员）

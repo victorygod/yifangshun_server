@@ -308,52 +308,27 @@ async function runReadonlyApiTests() {
     }
   });
 
-  // ==================== 5. 对比测试：readonly API vs admin/table API ====================
-  console.log('\n--- 对比测试 ---');
+  // ==================== 5. 格式验证测试 ====================
+  console.log('\n--- 格式验证测试 ---');
 
-  await test('对比：stock_in_items 返回格式一致', async () => {
-    const readonlyResult = await adminRequest('GET', '/api/readonly/stock_in_items?page=1&pageSize=5');
-    const tableResult = await adminRequest('GET', '/api/admin/table/stock_in_items?page=1&pageSize=5');
-
-    // 两者返回格式应该一致
-    assert(
-      readonlyResult.data?.data?.rows !== undefined && tableResult.data?.data?.rows !== undefined,
-      '两者都应返回 { rows, pagination } 格式'
-    );
-    assert(
-      readonlyResult.data?.data?.pagination !== undefined && tableResult.data?.data?.pagination !== undefined,
-      '两者都应包含分页信息'
-    );
+  await test('stock_in_items 返回格式正确', async () => {
+    const result = await adminRequest('GET', '/api/readonly/stock_in_items?page=1&pageSize=5');
+    assert(result.data?.data?.rows !== undefined, '应返回 { rows, pagination } 格式');
+    assert(result.data?.data?.pagination !== undefined, '应包含分页信息');
   });
 
-  await test('对比：stock_out_items 返回格式一致', async () => {
-    const readonlyResult = await adminRequest('GET', '/api/readonly/stock_out_items?page=1&pageSize=5');
-    const tableResult = await adminRequest('GET', '/api/admin/table/stock_out_items?page=1&pageSize=5');
-
-    // 两者返回格式应该一致
-    assert(
-      readonlyResult.data?.data?.rows !== undefined && tableResult.data?.data?.rows !== undefined,
-      '两者都应返回 { rows, pagination } 格式'
-    );
-
-    // 检查cabinetNo字段都存在
-    if (readonlyResult.data.data.rows.length > 0) {
-      assert(readonlyResult.data.data.rows[0].cabinetNo !== undefined, 'readonly API返回cabinetNo');
-    }
-    if (tableResult.data.data.rows.length > 0) {
-      assert(tableResult.data.data.rows[0].cabinetNo !== undefined, 'admin/table API返回cabinetNo');
+  await test('stock_out_items 返回格式正确', async () => {
+    const result = await adminRequest('GET', '/api/readonly/stock_out_items?page=1&pageSize=5');
+    assert(result.data?.data?.rows !== undefined, '应返回 { rows, pagination } 格式');
+    // 检查cabinetNo字段存在
+    if (result.data.data.rows.length > 0) {
+      assert(result.data.data.rows[0].cabinetNo !== undefined, '应返回cabinetNo');
     }
   });
 
-  await test('对比：stock_logs 返回格式一致', async () => {
-    const readonlyResult = await adminRequest('GET', '/api/readonly/stock_logs?page=1&pageSize=5');
-    const tableResult = await adminRequest('GET', '/api/admin/table/stock_logs?page=1&pageSize=5');
-
-    // 两者返回格式应该一致
-    assert(
-      readonlyResult.data?.data?.rows !== undefined && tableResult.data?.data?.rows !== undefined,
-      '两者都应返回 { rows, pagination } 格式'
-    );
+  await test('stock_logs 返回格式正确', async () => {
+    const result = await adminRequest('GET', '/api/readonly/stock_logs?page=1&pageSize=5');
+    assert(result.data?.data?.rows !== undefined, '应返回 { rows, pagination } 格式');
   });
 
   // 清理测试数据

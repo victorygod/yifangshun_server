@@ -43,7 +43,7 @@ async function runPermissionTests(externalTestUsers) {
 
     assertEquals(response.statusCode, 200, '应返回200成功');
     assertEquals(data.code, 0, '应返回成功码');
-    assert(Array.isArray(data.data), '应返回数组');
+    assert(Array.isArray(data.data?.rows), '应返回 { rows, pagination } 格式');
     console.log(`  管理员成功获取处方列表`);
   });
 
@@ -54,7 +54,7 @@ async function runPermissionTests(externalTestUsers) {
 
     assertEquals(response.statusCode, 200, '应返回200成功');
     assertEquals(data.code, 0, '应返回成功码');
-    assert(Array.isArray(data.data), '应返回数组');
+    assert(Array.isArray(data.data?.rows), '应返回 { rows, pagination } 格式');
     console.log(`  超级管理员成功获取处方列表`);
   });
 

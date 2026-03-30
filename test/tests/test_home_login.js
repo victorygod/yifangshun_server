@@ -1,5 +1,6 @@
 const http = require('http');
 const assert = require('assert');
+const { User } = require('../../wrappers/db-wrapper');
 
 const BASE_URL = 'http://localhost:80';
 
@@ -135,52 +136,47 @@ async function runHomeLoginTests() {
   
   // 测试 5: 使用默认超管设置用户角色
   await test('POST /api/user/set-role - 默认超管设置角色', async () => {
-    // 先通过管理员 API 创建一个测试用户
+    // 直接在数据库创建测试用户
     const testOpenid = 'test_home_login_' + Date.now();
-    const createResult = await request('POST', '/api/admin/table/users', {
+    const testPhone = '138' + Date.now();
+    await User.create({
       openid: testOpenid,
       name: '测试用户',
-      phone: '138' + Date.now(),
-      role: 'user'
-    }, {
-      'x-phone': 'home_super_admin'
+      phone: testPhone,
+      role: 'user',
+      isNewUser: false
     });
-    
-    assertEquals(createResult.data.code, 0, '创建用户成功');
-    
+
     const result = await request('POST', '/api/user/set-role', {
       openid: testOpenid,
       role: 'admin'
     }, {
       'x-phone': 'home_super_admin'
     });
-    
+
     assertEquals(result.statusCode, 200, '应返回 200 成功');
     assertEquals(result.data.code, 0, '应返回成功码');
     console.log('  默认超管成功设置用户角色');
   });
-  
+
   // 测试 6: 普通用户禁止登录主页
   await test('POST /api/home-login - 普通用户禁止登录', async () => {
-    // 先通过管理员 API 创建一个普通用户
+    // 直接在数据库创建普通用户
     const testOpenid = 'test_home_user_' + Date.now();
     const testPhone = '139' + Date.now();
-    const createResult = await request('POST', '/api/admin/table/users', {
+    await User.create({
       openid: testOpenid,
       name: '普通用户',
       phone: testPhone,
-      role: 'user'
-    }, {
-      'x-phone': 'home_super_admin'
+      role: 'user',
+      isNewUser: false
     });
-    
-    assertEquals(createResult.data.code, 0, '创建普通用户成功');
-    
+
     // 尝试用普通用户登录
     const loginResult = await request('POST', '/api/home-login', {
       phone: testPhone
     });
-    
+
     assertEquals(loginResult.statusCode, 403, '应返回 403 禁止访问');
     assertEquals(loginResult.data.code, 1, '应返回错误码');
     assert(loginResult.data.message.includes('禁止') || loginResult.data.message.includes('普通用户'), '提示普通用户禁止登录');

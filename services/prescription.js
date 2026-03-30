@@ -211,15 +211,26 @@ async function handlePrescriptionOCR(image, openid, thumbnail) {
 // 获取处方历史
 // 【手机号改造】参数改为 phone（从 req.user.phone 传入）
 // 处方表存的是 openid，需要先查用户获取 openid
-async function getPrescriptionHistory(phone) {
+async function getPrescriptionHistory(phone, { page, pageSize } = {}) {
   if (!phone) {
     throw new Error("缺少用户标识");
+  }
+
+  // 如果没有传分页参数，返回所有数据（兼容小程序）
+  const usePagination = page !== undefined && pageSize !== undefined;
+  if (!usePagination) {
+    page = 1;
+    pageSize = 10000; // 返回足够大的数量
+  } else {
+    // 分页参数校验
+    page = Math.max(1, parseInt(page) || 1);
+    pageSize = Math.min(100, Math.max(1, parseInt(pageSize) || 20));
   }
 
   // 根据 phone 查询用户的 openid
   const user = await User.findOne({ where: { phone } });
   if (!user) {
-    return { code: 0, data: [] };  // 用户不存在，返回空列表
+    return { code: 0, data: { rows: [], pagination: { page, pageSize, totalCount: 0, totalPages: 0 } } };
   }
 
   const prescriptions = await Prescription.findAll({
@@ -227,9 +238,14 @@ async function getPrescriptionHistory(phone) {
     order: [["updatedAt", "DESC"]],
   });
 
-  const prescriptionList = prescriptions.map((p) => {
+  // 分页
+  const startIndex = (page - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedPrescriptions = prescriptions.slice(startIndex, endIndex);
+
+  const prescriptionList = paginatedPrescriptions.map((p) => {
     const data = p.data ? JSON.parse(p.data) : {};
-    
+
     // 中文键名到英文键名的映射（与 getPrescriptionsList 保持一致）
     const keyMap = {
       '处方号': 'prescriptionId',
@@ -269,7 +285,18 @@ async function getPrescriptionHistory(phone) {
     };
   });
 
-  return { code: 0, data: prescriptionList };
+  return {
+    code: 0,
+    data: {
+      rows: prescriptionList,
+      pagination: {
+        page,
+        pageSize,
+        totalCount: prescriptions.length,
+        totalPages: Math.ceil(prescriptions.length / pageSize)
+      }
+    }
+  };
 }
 
 // 保存处方

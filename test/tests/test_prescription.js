@@ -235,7 +235,7 @@ async function runPrescriptionTests(testUsers) {
     const { response, data } = await request('GET', `/api/prescription/user-history`, null, {
       'x-openid': testUsers.normalUser.openid
     });
-    
+
     console.log(`  响应状态码：${response.statusCode}, data.code: ${data.code}`);
     console.log(`  响应数据：`, JSON.stringify(data).substring(0, 200));
     assertEquals(response.statusCode, 200, '请求成功');
@@ -251,8 +251,8 @@ async function runPrescriptionTests(testUsers) {
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
-    assert(Array.isArray(data.data), '返回数组');
-    assert(data.pagination, '返回分页信息');
+    assert(Array.isArray(data.data?.rows), '返回 { rows, pagination } 格式');
+    assert(data.data?.pagination, '返回分页信息');
   });
   
   // POST /api/prescription/update - 双键查询
