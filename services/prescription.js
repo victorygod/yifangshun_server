@@ -763,12 +763,14 @@ async function getPrescriptionsList({ page = 1, pageSize = 20, keyword = '', sta
 
   return {
     code: 0,
-    data: prescriptionList,
-    pagination: {
-      page,
-      pageSize,
-      totalCount: prescriptions.length,
-      totalPages: Math.ceil(prescriptions.length / pageSize)
+    data: {
+      rows: prescriptionList,
+      pagination: {
+        page,
+        pageSize,
+        totalCount: prescriptions.length,
+        totalPages: Math.ceil(prescriptions.length / pageSize)
+      }
     }
   };
 }

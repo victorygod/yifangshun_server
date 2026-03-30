@@ -161,7 +161,7 @@ async function setOverride(date, session, isOpen, reason = '') {
  * 删除临时调整
  */
 async function deleteOverride(id) {
-  const config = await ScheduleConfig.findByPk(id);
+  const config = await ScheduleConfig.findOne({ where: { id } });
   
   if (!config) {
     throw new Error('配置不存在');

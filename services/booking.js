@@ -443,12 +443,14 @@ async function getBookingsList({ page = 1, pageSize = 20, keyword = '', status =
 
   return {
     code: 0,
-    data: bookingList,
-    pagination: {
-      page,
-      pageSize,
-      totalCount: bookings.length,
-      totalPages: Math.ceil(bookings.length / pageSize)
+    data: {
+      rows: bookingList,
+      pagination: {
+        page,
+        pageSize,
+        totalCount: bookings.length,
+        totalPages: Math.ceil(bookings.length / pageSize)
+      }
     }
   };
 }

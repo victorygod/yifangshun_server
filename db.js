@@ -75,6 +75,10 @@ const Booking = sequelize.define("Booking", {
     allowNull: false,
     index: true,  // 查询优化
   },
+  openid: {
+    type: DataTypes.STRING,
+    allowNull: true,
+  },
   date: {
     type: DataTypes.DATEONLY,
     allowNull: false,

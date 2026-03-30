@@ -115,30 +115,32 @@ async function getHerbs(options = {}) {
   
   return {
     code: 0,
-    data: rows,
-    pagination: {
-      page,
-      pageSize,
-      totalCount,
-      totalPages
+    data: {
+      rows,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages
+      }
     }
   };
 }
 
 // 创建药材
 async function createHerb(data) {
-  const { name, alias, unit = '克', minValue = 0, category, cabinetNo, salePrice, remark } = data;
-  
+  const { name, alias, unit = '克', minValue = 0, category, cabinetNo, coefficient, costPrice, salePrice, remark } = data;
+
   if (!name) {
     throw new Error('药材名称不能为空');
   }
-  
+
   // 检查是否已存在
   const existing = await Herb.findOne({ where: { name } });
   if (existing) {
     throw new Error('药材名称已存在');
   }
-  
+
   const herb = await Herb.create({
     name,
     alias,
@@ -146,6 +148,8 @@ async function createHerb(data) {
     minValue,
     category,
     cabinetNo,
+    coefficient,
+    costPrice,
     salePrice,
     remark,
     isActive: true,
@@ -324,12 +328,14 @@ async function getInOrders(options = {}) {
 
   return {
     code: 0,
-    data: ordersWithItems,
-    pagination: {
-      page,
-      pageSize,
-      totalCount,
-      totalPages
+    data: {
+      rows: ordersWithItems,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages
+      }
     }
   };
 }
@@ -933,12 +939,14 @@ async function getOutOrders(options = {}) {
 
   return {
     code: 0,
-    data: ordersWithItems,
-    pagination: {
-      page,
-      pageSize,
-      totalCount,
-      totalPages
+    data: {
+      rows: ordersWithItems,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages
+      }
     }
   };
 }

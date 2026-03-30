@@ -42,16 +42,23 @@ let _herbInfoMap = null; // 导出给外部使用
 
 /**
  * 获取药材信息映射表
+ * @param {boolean} forceRefresh - 是否强制刷新缓存
  * @returns {Promise<Object>} 药材信息映射表 {herbName: {salePrice, cabinetNo, costPrice, stock}}
  */
-export async function getHerbInfoMap() {
-  if (herbInfoCache) return herbInfoCache;
+export async function getHerbInfoMap(forceRefresh = false) {
+  if (!forceRefresh && herbInfoCache && Object.keys(herbInfoCache).length > 0) {
+    return herbInfoCache;
+  }
 
   try {
-    const res = await _dependencies.homeFetch('/api/stock/herbs');
-    if (res.code === 0 && res.data && Array.isArray(res.data)) {
+    // 获取所有药材，不分页
+    const res = await _dependencies.homeFetch('/api/stock/herbs?pageSize=1000');
+    // API 返回格式: { code: 0, data: { rows: [...], pagination: {...} } }
+    const herbsData = res.data?.rows || res.data || [];
+    console.log('[StockModule] 获取药材信息, count:', herbsData.length);
+    if (res.code === 0 && Array.isArray(herbsData)) {
       herbInfoCache = {};
-      res.data.forEach(herb => {
+      herbsData.forEach(herb => {
         herbInfoCache[herb.name] = {
           salePrice: herb.salePrice || 0,
           cabinetNo: herb.cabinetNo || '',
@@ -66,6 +73,7 @@ export async function getHerbInfoMap() {
         window._herbInfoMap = herbInfoCache;
       }
       _herbInfoMap = herbInfoCache;
+      console.log('[StockModule] 药材信息缓存已更新, count:', Object.keys(herbInfoCache).length);
     }
   } catch (err) {
     console.error('[StockModule] 获取药材信息失败:', err);
@@ -94,6 +102,26 @@ export function clearHerbInfoCache() {
 export async function confirmStockIn(rowId) {
   _dependencies.showConfirm('确认入库', '确认入库后，库存将自动增加，成本价将自动更新。确定要入库吗？', async () => {
     try {
+      const orderId = rowId;
+
+      // 1. 先保存所有编辑中的明细（新增行 + 编辑行）
+      // 查找新增行（有数据的新增行）
+      const newRow = document.querySelector(`tr.detail-new-row[data-order-id="${orderId}"]`);
+      if (newRow) {
+        const inputs = newRow.querySelectorAll('.detail-input');
+        const hasData = Array.from(inputs).some(input => input.value.trim() !== '');
+        if (hasData) {
+          await saveDetailNewAuto(newRow);
+        }
+      }
+
+      // 查找所有编辑行（已有明细的行）
+      const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]:not(.detail-new-row)`);
+      for (const row of detailRows) {
+        await saveDetailEdit(row.dataset.detailId, orderId, row);
+      }
+
+      // 2. 再执行入库操作
       const res = await _dependencies.homeFetch(`/api/stock/in/orders/${rowId}/status`, {
         method: 'PUT',
         body: JSON.stringify({ status: 'stocked' })
@@ -586,49 +614,170 @@ export async function handleCostCalcBlur(e) {
  * @param {string} orderId - 订单ID
  * @param {Object} [herbInfoMap] - 可选的药材信息映射（如果不提供则使用缓存）
  */
+/**
+ * 获取单个药材的信息（用于成本价计算）
+ * @param {string} herbName - 药材名称
+ * @returns {Promise<Object>} 药材信息 {salePrice, cabinetNo, costPrice, stock}
+ */
+export async function getHerbInfo(herbName) {
+  if (!herbName) return null;
+
+  try {
+    const res = await _dependencies.homeFetch(`/api/stock/herbs?keyword=${encodeURIComponent(herbName)}&pageSize=1`);
+    const herbsData = res.data?.rows || res.data || [];
+    if (res.code === 0 && herbsData.length > 0) {
+      const herb = herbsData[0];
+      return {
+        salePrice: herb.salePrice || 0,
+        cabinetNo: herb.cabinetNo || '',
+        costPrice: herb.costPrice || 0,
+        stock: herb.stock || 0,
+        unit: herb.unit || '克'
+      };
+    }
+  } catch (err) {
+    console.error('[StockModule] 获取药材信息失败:', err);
+  }
+  return null;
+}
+
 export function recalculateCostPricesForOrder(orderId, herbInfoMap = null) {
-  // 使用传入的药材信息映射，如果没有则使用全局缓存
-  const infoMap = herbInfoMap || window._herbInfoMap;
-  
-  // 获取该订单的所有明细行（不包括新增行）
-  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]:not(.detail-new-row)`);
-  
-  detailRows.forEach((row, index) => {
+  // 获取该订单的所有明细行（包括新增行）
+  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
+
+  // 收集需要查询的药材名称
+  const herbsToQuery = [];
+  const herbInputsMap = new Map(); // herbName -> {row, input}
+
+  detailRows.forEach((row) => {
     const herbNameInput = row.querySelector('input[data-col="herbName"]');
     const quantityInput = row.querySelector('input[data-col="quantity"]');
     const unitPriceInput = row.querySelector('input[data-col="unitPrice"]');
     const costPriceInput = row.querySelector('input[data-col="costPrice"]');
-    
+
     if (!herbNameInput || !quantityInput || !unitPriceInput || !costPriceInput) return;
-    
+
     const herbName = herbNameInput.value.trim();
     const quantity = parseFloat(quantityInput.value) || 0;
     const unitPrice = parseFloat(unitPriceInput.value) || 0;
-    
+
     // 只有当克数和进货单价都有值时才计算
     if (!herbName || quantity <= 0 || unitPrice <= 0) return;
-    
-    // 获取药材当前库存和成本价
-    const herbInfo = infoMap && infoMap[herbName];
+
+    herbsToQuery.push(herbName);
+    herbInputsMap.set(herbName, { row, quantity, unitPrice, costPriceInput, herbNameInput });
+  });
+
+  // 并发查询所有需要的药材信息
+  const queries = herbsToQuery.map(async (herbName) => {
+    const info = await getHerbInfo(herbName);
+    return { herbName, info };
+  });
+
+  Promise.all(queries).then(results => {
+    // 构建 infoMap
+    const infoMap = {};
+    results.forEach(({ herbName, info }) => {
+      if (info) infoMap[herbName] = info;
+    });
+
+    // 计算成本价
+    results.forEach(({ herbName, info }) => {
+      if (!info) return;
+
+      const data = herbInputsMap.get(herbName);
+      if (!data) return;
+
+      const { row, quantity, unitPrice, costPriceInput, herbNameInput } = data;
+
+      const currentStock = parseFloat(info.stock) || 0;
+      const currentCost = parseFloat(info.costPrice) || 0;
+
+      // 计算新成本价：(库存克数*现成本价+进货克数*进货单价)/(库存克数+进货克数)
+      const totalQuantity = currentStock + quantity;
+      if (totalQuantity <= 0) return;
+
+      const newCostPrice = (currentStock * currentCost + quantity * unitPrice) / totalQuantity;
+
+      // 更新成本价
+      costPriceInput.value = newCostPrice.toFixed(2);
+      // 更新灰色提示
+      const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
+      if (hintSpan) {
+        hintSpan.textContent = `(现成本:${currentCost.toFixed(2)})`;
+      }
+    });
+  });
+}
+
+/**
+ * 异步更新成本价的灰色提示（现成本），动态获取药材信息
+ * 用于在加载和展开时更新现成本提示，但不覆盖用户手动输入的成本价
+ * @param {string} orderId - 订单ID
+ */
+export async function updateCostPriceHintsAsync(orderId) {
+  // 获取该订单的所有明细行
+  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
+
+  // 收集需要查询的药材名称（去重）
+  const herbsToQuery = new Set();
+  detailRows.forEach((row) => {
+    const herbNameInput = row.querySelector('input[data-col="herbName"]');
+    if (herbNameInput && herbNameInput.value.trim()) {
+      herbsToQuery.add(herbNameInput.value.trim());
+    }
+  });
+
+  if (herbsToQuery.size === 0) return;
+
+  // 并发查询所有需要的药材信息
+  const queries = Array.from(herbsToQuery).map(async (herbName) => {
+    const info = await getHerbInfo(herbName);
+    return { herbName, info };
+  });
+
+  const results = await Promise.all(queries);
+
+  // 构建 infoMap
+  const infoMap = {};
+  results.forEach(({ herbName, info }) => {
+    if (info) infoMap[herbName] = info;
+  });
+
+  // 更新每个明细行的成本价提示
+  detailRows.forEach((row) => {
+    const herbNameInput = row.querySelector('input[data-col="herbName"]');
+    const costPriceInput = row.querySelector('input[data-col="costPrice"]');
+
+    if (!herbNameInput || !costPriceInput) return;
+
+    const herbName = herbNameInput.value.trim();
+    if (!herbName) return;
+
+    // 获取药材当前成本价
+    const herbInfo = infoMap[herbName];
     if (!herbInfo) return;
-    
-    const currentStock = parseFloat(herbInfo.stock) || 0;
+
     const currentCost = parseFloat(herbInfo.costPrice) || 0;
-    
-    // 计算新成本价：(库存克数*现成本价+进货克数*进货单价)/(库存克数+进货克数)
-    const totalQuantity = currentStock + quantity;
-    if (totalQuantity <= 0) return;
-    
-    const newCostPrice = (currentStock * currentCost + quantity * unitPrice) / totalQuantity;
-    
-    // 更新成本价
-    costPriceInput.value = newCostPrice.toFixed(2);
-    // 更新灰色提示 - 使用最新的成本价
+
+    // 只更新灰色提示 - 使用最新的成本价
     const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
     if (hintSpan) {
       hintSpan.textContent = `(现成本:${currentCost.toFixed(2)})`;
     }
   });
+}
+
+/**
+ * 异步更新所有展开订单的成本价提示
+ * @param {Set} expandedRows - 展开行的订单ID集合
+ */
+export async function updateAllCostPriceHints(expandedRows) {
+  const promises = [];
+  expandedRows.forEach(orderId => {
+    promises.push(updateCostPriceHintsAsync(orderId));
+  });
+  await Promise.all(promises);
 }
 
 /**
@@ -640,24 +789,25 @@ export function recalculateCostPricesForOrder(orderId, herbInfoMap = null) {
 export function updateCostPriceHints(orderId, herbInfoMap = null) {
   // 使用传入的药材信息映射，如果没有则使用全局缓存
   const infoMap = herbInfoMap || window._herbInfoMap;
-  
-  // 获取该订单的所有明细行（不包括新增行）
-  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]:not(.detail-new-row)`);
-  
+
+  // 获取该订单的所有明细行（包括新增行）
+  const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
+
   detailRows.forEach((row) => {
     const herbNameInput = row.querySelector('input[data-col="herbName"]');
     const costPriceInput = row.querySelector('input[data-col="costPrice"]');
-    
+
     if (!herbNameInput || !costPriceInput) return;
-    
+
     const herbName = herbNameInput.value.trim();
-    
+    if (!herbName) return;
+
     // 获取药材当前成本价
     const herbInfo = infoMap && infoMap[herbName];
     if (!herbInfo) return;
-    
+
     const currentCost = parseFloat(herbInfo.costPrice) || 0;
-    
+
     // 只更新灰色提示 - 使用最新的成本价
     const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
     if (hintSpan) {
@@ -956,10 +1106,13 @@ export function renderOrderDetail(row, config, detailTable) {
     if (isPending) {
       html += `<button class="action-btn action-btn-settle" data-action="settleOrder" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">确认结算</button>`;
     }
-    html += `<button class="action-btn action-btn-zoom" data-action="zoomDetail" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">放大展示</button></div>`;
+    html += `<button class="action-btn action-btn-zoom" data-action="zoomDetail" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">放大展示</button>`;
+    html += `<button class="action-btn action-btn-export" data-action="exportDetail" data-order-id="${row.id}">导出</button></div>`;
   } else if (currentTable === 'stock_in_orders') {
     // 入库单明细
-    html += `<div class="detail-header"><span>明细信息</span></div>`;
+    html += `<div class="detail-header"><span>明细信息</span>`;
+    html += `<button class="action-btn action-btn-zoom" data-action="zoomDetail" data-order-id="${row.id}">放大展示</button>`;
+    html += `<button class="action-btn action-btn-export" data-action="exportDetail" data-order-id="${row.id}">导出</button></div>`;
   } else {
     html += `<div class="detail-header">明细信息</div>`;
   }
@@ -1104,6 +1257,7 @@ if (typeof window !== 'undefined') {
   window._stockModule = {
     initStockModule,
     getHerbInfoMap,
+    getHerbInfo,
     clearHerbInfoCache,
     confirmStockIn,
     revertToDraft,
@@ -1118,6 +1272,8 @@ if (typeof window !== 'undefined') {
     handleCostCalcBlur,
     recalculateCostPricesForOrder,
     updateCostPriceHints,
+    updateCostPriceHintsAsync,
+    updateAllCostPriceHints,
     showZoomDetail,
     closeZoomModal,
     validateNewOrderData,

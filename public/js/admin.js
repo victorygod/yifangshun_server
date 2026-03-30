@@ -2,6 +2,13 @@
  * 易方顺诊所助手 - 管理后台脚本
  */
 
+// ==================== 全局开关 ====================
+
+// 新旧实现切换开关
+// false: 使用现有 if-else 逻辑
+// true: 使用 tableHandlers 配置驱动的新架构
+const USE_NEW_MODULES = true;
+
 // ==================== 配置 ====================
 
 // 菜单配置
@@ -35,6 +42,207 @@ const menuConfig = [
   }
 ];
 
+// ==================== 事件处理器配置 ====================
+
+/**
+ * 表格事件处理器配置
+ * 每个表需要配置 onSave、onDelete、onToggleDetail、onPrevPage、onNextPage、onCancel 等通用操作
+ * 以及各表特有的操作（如入库单的 onConfirmStockIn、执药单的 onSettleOrder 等）
+ */
+// ==================== 事件处理器配置 ====================
+
+/**
+ * 表格事件处理器配置
+ * key 直接对应按钮的 data-action 值映射，如 save -> onSave
+ * 值是 lambda 函数，参数在调用时传入
+ */
+const tableHandlers = {
+  stock_in_orders: {
+    // 入库单特有操作
+    onConfirmStockIn: (id) => window._stockModule.confirmStockIn(id),
+    onRevertToDraft: (id) => window._stockModule.revertToDraft(id),
+    onZoomDetail: (orderId) => window._stockModule.showZoomDetail(orderId),
+    onExportDetail: (orderId) => window._importExportModule.exportOrderDetail(orderId),
+    onSaveDetail: (id, orderId) => {
+      const row = document.querySelector(`tr[data-detail-id="${id}"]`);
+      if (row) window._stockModule.saveDetailEdit(id, orderId, row);
+    },
+    onDeleteDetail: (id, orderId) => window._stockModule.removeDetailRow(id, orderId),
+    onSaveDetailNew: (orderId) => {
+      const row = document.querySelector(`tr.detail-new-row[data-order-id="${orderId}"]`);
+      if (row) window._stockModule.saveDetailNewAuto(row);
+    },
+    // 通用操作
+    onSaveNew: () => saveNewRow(),
+    onSave: (id) => saveRow(id),
+    onDelete: (id) => deleteRow(id),
+    onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
+    onPrevPage: (page) => window._tableUtil.goToPage(page),
+    onNextPage: (page) => window._tableUtil.goToPage(page),
+    onCancel: () => window._tableUtil.cancelEdit(),
+    onLoad: async (page, pageSize, keyword) => {
+      // 入库单不需要预加载药材信息，失焦时会单独查询
+      const config = tableConfigs[currentTable];
+      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+      const res = await homeFetch(`/api/stock/in/orders?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}${searchFieldsParam}`);
+      if (res.code !== 0) throw new Error(res.message);
+      const rows = res.data?.rows || [];
+      return {
+        data: rows,
+        pagination: res.data?.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 }
+      };
+    }
+  },
+  stock_out_orders: {
+    onSettleOrder: (orderId) => window._stockModule.settleOutOrder(orderId),
+    onRevokeOrder: (orderId) => window._stockModule.revokeSettledOrder(orderId),
+    onZoomDetail: (orderId) => window._stockModule.showZoomDetail(orderId),
+    onExportDetail: (orderId) => window._importExportModule.exportOrderDetail(orderId),
+    onSaveDetail: (id, orderId) => {
+      const editRow = document.querySelector(`tr[data-detail-id="${id}"]`);
+      if (editRow) window._stockModule.saveDetailEdit(id, orderId, editRow);
+    },
+    onDeleteDetail: (id, orderId) => window._stockModule.removeDetailRow(id, orderId),
+    onSaveDetailNew: (orderId) => {
+      const newRow = document.querySelector(`tr.detail-new-row[data-order-id="${orderId}"]`);
+      if (newRow) window._stockModule.saveDetailNewAuto(newRow);
+    },
+    onSaveNew: () => saveNewRow(),
+    onSave: (id) => saveRow(id),
+    onDelete: (id) => deleteRow(id),
+    onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
+    onPrevPage: (page) => window._tableUtil.goToPage(page),
+    onNextPage: (page) => window._tableUtil.goToPage(page),
+    onCancel: () => window._tableUtil.cancelEdit(),
+    onLoad: async (page, pageSize, keyword) => {
+      const config = tableConfigs[currentTable];
+      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+      const res = await homeFetch(`/api/stock/out/orders?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}${searchFieldsParam}`);
+      if (res.code !== 0) throw new Error(res.message);
+      const rows = res.data?.rows || [];
+      return {
+        data: rows,
+        pagination: res.data?.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 }
+      };
+    }
+  },
+  prescriptions: {
+    onReviewPrescription: (id, prescriptionId) => window._prescriptionModule.handlePrescriptionReview(id, prescriptionId),
+    onSaveNew: () => saveNewRow(),
+    onSave: (id) => saveRow(id),
+    onDelete: (id) => deleteRow(id),
+    onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
+    onPrevPage: (page) => window._tableUtil.goToPage(page),
+    onNextPage: (page) => window._tableUtil.goToPage(page),
+    onCancel: () => window._tableUtil.cancelEdit(),
+    onLoad: async (page, pageSize, keyword) => {
+      const res = await homeFetch(`/api/prescription/list?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}`);
+      if (res.code !== 0) throw new Error(res.message);
+      return {
+        data: res.data?.rows || [],
+        pagination: res.data?.pagination || {}
+      };
+    }
+  },
+  herbs: {
+    // 使用 herbs-module 的 handlers
+    onSaveNew: () => saveNewRow(),
+    onSave: (id) => {
+      const row = window._tableUtil.getRowElement(id);
+      if (row) window._herbsModule.herbsHandlers.onSave(id, row);
+    },
+    onDelete: (id) => window._herbsModule.herbsHandlers.onDelete(id),
+    onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
+    onPrevPage: (page) => window._tableUtil.goToPage(page),
+    onNextPage: (page) => window._tableUtil.goToPage(page),
+    onCancel: () => window._tableUtil.cancelEdit(),
+    onLoad: async (page, pageSize, keyword) => {
+      return window._herbsModule.herbsHandlers.onLoad(page, pageSize, keyword);
+    }
+  },
+  users: {
+    // 使用 users-module 的 handlers
+    onSaveNew: () => saveNewRow(),
+    onSave: (id) => {
+      const row = window._tableUtil.getRowElement(id);
+      if (row) window._usersModule.usersHandlers.onSave(id, row, tableData);
+    },
+    onDelete: (id) => window._usersModule.usersHandlers.onDelete(id),
+    onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
+    onPrevPage: (page) => window._tableUtil.goToPage(page),
+    onNextPage: (page) => window._tableUtil.goToPage(page),
+    onCancel: () => window._tableUtil.cancelEdit(),
+    onLoad: async (page, pageSize, keyword) => {
+      return window._usersModule.usersHandlers.onLoad(page, pageSize, keyword);
+    }
+  },
+  bookings: {
+    // 使用 bookings-module 的 handlers
+    onSaveNew: () => saveNewRow(),
+    onSave: (id) => {
+      const row = window._tableUtil.getRowElement(id);
+      if (row) window._bookingsModule.bookingsHandlers.onSave(id, row);
+    },
+    onDelete: (id) => window._bookingsModule.bookingsHandlers.onDelete(id),
+    onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
+    onPrevPage: (page) => window._tableUtil.goToPage(page),
+    onNextPage: (page) => window._tableUtil.goToPage(page),
+    onCancel: () => window._tableUtil.cancelEdit(),
+    onLoad: async (page, pageSize, keyword) => {
+      return window._bookingsModule.bookingsHandlers.onLoad(page, pageSize, keyword);
+    }
+  },
+  // 只读表 - 使用通用 API
+  stock_in_items: {
+    onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
+    onPrevPage: (page) => window._tableUtil.goToPage(page),
+    onNextPage: (page) => window._tableUtil.goToPage(page),
+    onCancel: () => window._tableUtil.cancelEdit(),
+    onLoad: async (page, pageSize, keyword) => {
+      const config = tableConfigs.stock_in_items;
+      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+      const res = await homeFetch(`/api/readonly/stock_in_items?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}${searchFieldsParam}`);
+      if (res.code !== 0) throw new Error(res.message);
+      return { data: res.data?.rows || [], pagination: res.data?.pagination || {} };
+    }
+  },
+  stock_out_items: {
+    onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
+    onPrevPage: (page) => window._tableUtil.goToPage(page),
+    onNextPage: (page) => window._tableUtil.goToPage(page),
+    onCancel: () => window._tableUtil.cancelEdit(),
+    onLoad: async (page, pageSize, keyword) => {
+      const config = tableConfigs.stock_out_items;
+      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+      const res = await homeFetch(`/api/readonly/stock_out_items?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}${searchFieldsParam}`);
+      if (res.code !== 0) throw new Error(res.message);
+      return { data: res.data?.rows || [], pagination: res.data?.pagination || {} };
+    }
+  },
+  stock_logs: {
+    onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
+    onPrevPage: (page) => window._tableUtil.goToPage(page),
+    onNextPage: (page) => window._tableUtil.goToPage(page),
+    onCancel: () => window._tableUtil.cancelEdit(),
+    onLoad: async (page, pageSize, keyword) => {
+      const config = tableConfigs.stock_logs;
+      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+      const res = await homeFetch(`/api/readonly/stock_logs?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}${searchFieldsParam}`);
+      if (res.code !== 0) throw new Error(res.message);
+      return { data: res.data?.rows || [], pagination: res.data?.pagination || {} };
+    }
+  }
+};
+
+// 全局事件分发器
+function dispatch(action, ...args) {
+  const handler = tableHandlers[currentTable]?.[action];
+  if (handler) {
+    return handler(...args);
+  }
+  console.error(`未配置的操作: ${action} for table ${currentTable}`);
+}
+
 // 表配置
 const tableConfigs = {
   users: {
@@ -59,20 +267,25 @@ const tableConfigs = {
     displayName: '预约记录',
     columns: [
       { key: 'id', label: 'ID', readonly: true },
-      { key: 'name', label: '姓名', readonly: true },
-      { key: 'phone', label: '手机号', readonly: true },
-      { key: 'openid', label: 'OpenID', readonly: true },
-      { key: 'date', label: '预约日期', readonly: true },
-      { key: 'time', label: '预约时间', readonly: true },
+      { key: 'phone', label: '手机号', editable: true, required: true },
+      { key: 'openid', label: 'OpenID', editable: true },
+      { key: 'date', label: '预约日期', editable: true, required: true, type: 'date' },
+      { key: 'session', label: '场次', editable: true, type: 'select', options: [
+        { value: 'morning', label: '上午' },
+        { value: 'afternoon', label: '下午' },
+        { value: 'evening', label: '晚上' }
+      ]},
+      { key: 'personCount', label: '预约人数', editable: true, type: 'number', defaultValue: 1 },
+      { key: 'time', label: '预约时间', editable: true, type: 'time' },
       {
-        key: 'status', label: '状态', type: 'select', options: [
+        key: 'status', label: '状态', type: 'select', editable: true, options: [
           { value: 'confirmed', label: '待签到', badge: 'badge-active' },
           { value: 'checked_in', label: '已签到', badge: 'badge-reviewed' }
         ]
       },
       { key: 'createTime', label: '创建时间', readonly: true, type: 'datetime' }
     ],
-    searchFields: ['openid', 'date', 'name', 'phone']
+    searchFields: ['phone', 'openid', 'date', 'session']
   },
   prescriptions: {
     displayName: '处方记录',
@@ -231,6 +444,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log('[admin.js] Stock 模块已初始化');
   }
 
+  // 初始化表格工具模块
+  if (window._tableUtil && window._tableUtil.initTableUtil) {
+    window._tableUtil.initTableUtil({
+      getCurrentPage: () => currentPage,
+      setCurrentPage: (page) => { currentPage = page; },
+      getEditingRowId: () => editingRowId,
+      setEditingRowId: (id) => { editingRowId = id; },
+      getSelectedIds: () => selectedIds,
+      setSelectedIds: (ids) => { selectedIds = ids; },
+      getExpandedRows: () => expandedRows,
+      setExpandedRows: (rows) => { expandedRows = rows; },
+      loadTableData: loadTableData
+    });
+    console.log('[admin.js] 表格工具模块已初始化');
+  }
+
   // 初始化导入导出模块
   if (window._importExportModule && window._importExportModule.initImportExportModule) {
     window._importExportModule.initImportExportModule({
@@ -256,6 +485,57 @@ document.addEventListener('DOMContentLoaded', async () => {
       getTableConfig: () => tableConfigs
     });
     console.log('[admin.js] 处方模块已初始化');
+  }
+
+  // 初始化药材模块
+  if (window._herbsModule && window._herbsModule.initHerbsModule) {
+    window._herbsModule.initHerbsModule({
+      homeFetch: homeFetch,
+      showToast: showToast,
+      showConfirm: showConfirm,
+      loadTableData: loadTableData,
+      loadStats: loadStats,
+      getTableData: () => tableData,
+      getCurrentTable: () => currentTable,
+      getEditingRowId: () => editingRowId,
+      setEditingRowId: (id) => { editingRowId = id; },
+      clearSelectedIds: () => { selectedIds = []; }
+    });
+    console.log('[admin.js] 药材模块已初始化');
+  }
+
+  // 初始化用户模块
+  if (window._usersModule && window._usersModule.initUsersModule) {
+    window._usersModule.initUsersModule({
+      homeFetch: homeFetch,
+      showToast: showToast,
+      showConfirm: showConfirm,
+      loadTableData: loadTableData,
+      loadStats: loadStats,
+      getTableData: () => tableData,
+      getCurrentTable: () => currentTable,
+      getEditingRowId: () => editingRowId,
+      setEditingRowId: (id) => { editingRowId = id; },
+      clearSelectedIds: () => { selectedIds = []; }
+    });
+    console.log('[admin.js] 用户模块已初始化');
+  }
+
+  // 初始化预约模块
+  if (window._bookingsModule && window._bookingsModule.initBookingsModule) {
+    window._bookingsModule.initBookingsModule({
+      homeFetch: homeFetch,
+      showToast: showToast,
+      showConfirm: showConfirm,
+      loadTableData: loadTableData,
+      loadStats: loadStats,
+      getTableData: () => tableData,
+      getCurrentTable: () => currentTable,
+      getEditingRowId: () => editingRowId,
+      setEditingRowId: (id) => { editingRowId = id; },
+      clearSelectedIds: () => { selectedIds = []; }
+    });
+    console.log('[admin.js] 预约模块已初始化');
   }
 
   // 检查登录状态
@@ -464,59 +744,18 @@ async function loadTableData() {
   const config = tableConfigs[currentTable];
   const tableBody = document.getElementById('tableBody');
 
+  console.log(`[loadTableData] currentTable=${currentTable}, currentPage=${currentPage}, pageSize=${pageSize}, keyword=${searchKeyword}`);
+
   try {
     let rows, pagination;
 
-    // 入库单需要先获取药材信息（用于成本价计算）
-    if (currentTable === 'stock_in_orders') {
-      window._herbInfoMap = await window._stockModule.getHerbInfoMap();
-      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
-      const res = await homeFetch(`/api/stock/in/orders?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}${searchFieldsParam}`);
-      if (res.code !== 0) throw new Error(res.message);
-      rows = res.data || [];
-      pagination = res.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 };
-    } else if (currentTable === 'stock_out_orders') {
-      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
-      const res = await homeFetch(`/api/stock/out/orders?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}${searchFieldsParam}`);
-      if (res.code !== 0) throw new Error(res.message);
-      rows = res.data || [];
-      pagination = res.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 };
-    } else if (currentTable === 'herbs') {
-      // 药材管理使用专门的API
-      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
-      const res = await homeFetch(`${window._stockModule.getHerbApiPath('list')}?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}${searchFieldsParam}`);
-      if (res.code !== 0) throw new Error(res.message);
-      rows = res.data;
-      pagination = res.pagination;
-    } else if (currentTable === 'users') {
-      // 用户管理使用专门的API
-      const res = await homeFetch(`/api/home/users?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`);
-      if (res.code !== 0) throw new Error(res.message);
-      rows = res.data;
-      pagination = res.pagination;
-    } else if (currentTable === 'bookings') {
-      // 预约管理使用专门的API
-      const res = await homeFetch(`/api/bookings?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`);
-      if (res.code !== 0) throw new Error(res.message);
-      rows = res.data;
-      pagination = res.pagination;
-    } else if (currentTable === 'prescriptions') {
-      // 处方管理使用专门的API
-      const res = await homeFetch(`/api/prescription/list?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`);
-      if (res.code !== 0) throw new Error(res.message);
-      rows = res.data; // 处方API直接返回数组
-      pagination = res.pagination;
-    } else if (['stock_in_items', 'stock_out_items', 'stock_logs'].includes(currentTable)) {
-      // 只读表使用通用只读API
-      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
-      const res = await homeFetch(`/api/readonly/${currentTable}?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}${searchFieldsParam}`);
-      if (res.code !== 0) throw new Error(res.message);
-      rows = res.data;
-      pagination = res.pagination;
-    } else {
-      // 未知表类型
-      throw new Error(`未知的表类型: ${currentTable}`);
+    // 使用 tableHandlers 的 onLoad
+    if (!tableHandlers[currentTable]?.onLoad) {
+      throw new Error(`表 ${currentTable} 未配置 onLoad 处理器`);
     }
+    const result = await tableHandlers[currentTable].onLoad(currentPage, pageSize, searchKeyword);
+    rows = result.data;
+    pagination = result.pagination;
 
     tableData = rows;
     const columns = config.columns;
@@ -735,16 +974,17 @@ async function loadTableData() {
     updateSelectedCount();
     bindAutoSaveEvents();
 
-    // 入库单：为所有展开的订单计算总金额并更新现成本提示（不重新计算成本价，避免覆盖手动输入）
+    // 入库单：为所有展开的订单计算总金额
     if (currentTable === 'stock_in_orders') {
       expandedRows.forEach(orderId => {
         window._stockModule.calculateOrderTotalAmount(orderId);
       });
-      
-      // 重新获取最新的药材信息，只更新现成本提示，不覆盖手动输入的成本价
-      const freshHerbInfoMap = await window._stockModule.getHerbInfoMap();
-      expandedRows.forEach(orderId => {
-        window._stockModule.updateCostPriceHints(orderId, freshHerbInfoMap);
+    }
+
+    // 入库单：异步更新所有展开订单的成本价提示
+    if (currentTable === 'stock_in_orders' && expandedRows.size > 0) {
+      window._stockModule.updateAllCostPriceHints(expandedRows).catch(err => {
+        console.error('[Admin] 更新成本价提示失败:', err);
       });
     }
 
@@ -795,68 +1035,40 @@ function closeImagePreview() {
 function handleTableClick(e) {
   const btn = e.target.closest('[data-action]');
   if (btn) {
-    const action = btn.dataset.action;
-    const id = btn.dataset.id;
-    const orderId = btn.dataset.orderId;
+    // 如果启用新模块，使用 tableHandlers
+    if (USE_NEW_MODULES) {
+      const action = btn.dataset.action;
+      // action -> handlerName (save -> onSave)
+      const handlerName = 'on' + action.charAt(0).toUpperCase() + action.slice(1);
+      const handler = tableHandlers[currentTable]?.[handlerName];
 
-    switch (action) {
-      case 'delete':
-        deleteRow(id);
-        return;
-      case 'save':
-        saveRow(id);
-        return;
-      case 'saveNew':
-        saveNewRow();
-        return;
-      case 'cancel':
-        cancelEdit();
-        return;
-      case 'prevPage':
-      case 'nextPage':
-        goToPage(parseInt(btn.dataset.page));
-        return;
-      case 'toggleDetail':
-        toggleDetail(id);
-        return;
-      case 'reviewPrescription':
-        window._prescriptionModule.handlePrescriptionReview(id, btn.dataset.prescriptionId);
-        return;
-      case 'deleteDetail':
-        window._stockModule.removeDetailRow(id, orderId);
-        return;
-      case 'saveDetail':
-        const editRow = document.querySelector(`tr[data-detail-id="${id}"]`);
-        if (editRow) {
-          window._stockModule.saveDetailEdit(id, orderId, editRow);
+      if (handler) {
+        // 从 btn 读取必要参数并调用
+        const id = btn.dataset.id;
+        const orderId = btn.dataset.orderId;
+        const page = btn.dataset.page;
+        const prescriptionId = btn.dataset.prescriptionId;
+
+        if (action === 'prevPage' || action === 'nextPage') {
+          handler(parseInt(page));
+        } else if (action === 'saveDetail' || action === 'deleteDetail') {
+          handler(id, orderId);
+        } else if (action === 'saveDetailNew' || action === 'zoomDetail' || action === 'exportDetail' || action === 'settleOrder' || action === 'revokeOrder') {
+          handler(orderId);
+        } else if (action === 'reviewPrescription') {
+          handler(id, prescriptionId);
+        } else if (action === 'confirmStockIn' || action === 'revertToDraft') {
+          handler(id);
+        } else {
+          handler(id);
         }
         return;
-      case 'saveDetailNew':
-        const newRow = document.querySelector(`tr.detail-new-row[data-order-id="${orderId}"]`);
-        if (newRow) {
-          window._stockModule.saveDetailNewAuto(newRow);
-        }
-        return;
-      case 'zoomDetail':
-        window._stockModule.showZoomDetail(orderId);
-        return;
-      case 'settleOrder':
-        window._stockModule.settleOutOrder(orderId);
-        return;
-      case 'revokeOrder':
-        window._stockModule.revokeSettledOrder(orderId);
-        return;
-      case 'confirmStockIn':
-        window._stockModule.confirmStockIn(id);
-        return;
-      case 'revertToDraft':
-        window._stockModule.revertToDraft(id);
-        return;
-      case 'saveOrderDetails':
-        saveOrderDetails(orderId);
-        return;
+      }
+
+      // 未找到 handler，输出错误
+      console.error(`未配置的操作: ${action} for table ${currentTable}`);
     }
-  }
+  }  // end if (btn)
 
   // 单元格点击进入编辑模式
   const cell = e.target.closest('.cell-clickable');
@@ -893,6 +1105,7 @@ function handleTableClick(e) {
 
 function bindAutoSaveEvents() {
   const detailInputs = document.querySelectorAll('.detail-input');
+  console.log(`[bindAutoSaveEvents] 绑定 ${detailInputs.length} 个明细输入框事件`);
 
   detailInputs.forEach(input => {
     const col = input.dataset.col;
@@ -931,16 +1144,22 @@ function handleCalcSourceInput(e) {
 async function handleDetailBlur(e) {
   const input = e.target;
   const row = input.closest('tr');
-  if (!row) return;
+  if (!row) {
+    console.log('[handleDetailBlur] row not found');
+    return;
+  }
 
   const isNew = input.dataset.isNew === 'true';
   const orderId = row.dataset.orderId;
   const detailId = input.dataset.detailId;
   const colKey = input.dataset.col;
 
+  console.log(`[handleDetailBlur] currentTable=${currentTable}, orderId=${orderId}, colKey=${colKey}`);
+
   // 入库单：只在 quantity 和 unitPrice 失焦时计算订单总金额和成本价
   if (currentTable === 'stock_in_orders' && orderId) {
     if (colKey === 'quantity' || colKey === 'unitPrice') {
+      console.log(`[handleDetailBlur] 触发成本价计算, orderId=${orderId}`);
       await window._stockModule.calculateOrderTotalAmount(orderId);
       // 重新计算该订单的成本价（只针对修改的字段所在的行）
       window._stockModule.recalculateCostPricesForOrder(orderId);
@@ -1118,8 +1337,17 @@ async function saveNewRow() {
 
   const data = {};
   inputs.forEach(input => {
+    // 收集所有有值的字段
     if (input.value.trim()) {
       data[input.dataset.col] = input.value.trim();
+    }
+  });
+
+  // 对于数字类型字段，如果没有值但有默认值，使用默认值
+  const config = tableConfigs[currentTable];
+  config.columns.forEach(col => {
+    if (col.type === 'number' && data[col.key] === undefined && col.defaultValue !== undefined) {
+      data[col.key] = col.defaultValue;
     }
   });
 
@@ -1147,6 +1375,8 @@ async function saveNewRow() {
       apiUrl = window._stockModule.getCreateOrderApiPath(currentTable);
     } else if (currentTable === 'herbs' && window._stockModule) {
       apiUrl = window._stockModule.getHerbApiPath('create');
+    } else if (currentTable === 'bookings') {
+      apiUrl = '/api/booking';
     } else {
       throw new Error(`未知的表类型: ${currentTable}`);
     }
@@ -1288,12 +1518,7 @@ async function toggleDetail(rowId) {
   
   loadTableData();
   
-  // 入库单：展开时立即更新现成本提示
-  if (isExpanding && currentTable === 'stock_in_orders') {
-    // 重新获取最新的药材信息（确保现成本提示是最新的）
-    const freshHerbInfoMap = await window._stockModule.getHerbInfoMap();
-    window._stockModule.updateCostPriceHints(rowId, freshHerbInfoMap);
-  }
+  // 入库单：展开时不需要特殊处理，成本价在失焦时计算
 }
 
 // ==================== 多选与批量删除 ====================
@@ -1420,6 +1645,7 @@ async function batchDelete() {
           loadStats();
         } catch (err) {
           showToast('批量删除失败: ' + err.message, 'error');
+          loadTableData();
         }
       });
     } catch (err) {
@@ -1487,6 +1713,7 @@ async function batchDelete() {
           loadStats();
         } catch (err) {
           showToast('批量删除失败: ' + err.message, 'error');
+          loadTableData();
         }
       });
     }
@@ -1555,6 +1782,7 @@ async function batchDelete() {
         loadStats();
       } catch (err) {
         showToast('批量删除失败: ' + err.message, 'error');
+        loadTableData();
       }
     });
   }

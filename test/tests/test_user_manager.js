@@ -63,7 +63,7 @@ async function runUserManagerTests(externalTestUsers) {
     assert(response.statusCode === 200, '请求应成功，状态码: ' + response.statusCode);
     assert(data.code === 0, '返回应成功，code: ' + data.code);
 
-    const user = data.data.list.find(u => u.openid === testUsers.normalUser.openid);
+    const user = data.data.rows.find(u => u.openid === testUsers.normalUser.openid);
     assert(user, '应找到测试用户，openid: ' + testUsers.normalUser.openid);
     assert(user.name === '测试用户_最终姓名', '姓名应已更新，实际: ' + (user ? user.name : 'N/A'));
     assert(user.phone === '13900000002', '手机号应已更新，实际: ' + (user ? user.phone : 'N/A'));

@@ -221,11 +221,79 @@ function showImportResult(results) {
   alert(message);
 }
 
+/**
+ * 导出订单明细
+ * @param {string} orderId - 订单ID
+ */
+export async function exportOrderDetail(orderId) {
+  const currentTable = _dependencies.getCurrentTable();
+  const tableConfigs = _dependencies.getTableConfigs();
+  const config = tableConfigs[currentTable];
+
+  if (!config) {
+    _dependencies.showToast('无法获取表格配置', 'error');
+    return;
+  }
+
+  try {
+    _dependencies.showToast('正在导出...', 'info');
+
+    // 获取订单详情
+    const apiPath = currentTable === 'stock_in_orders'
+      ? `/api/stock/in/orders/${orderId}`
+      : `/api/stock/out/orders/${orderId}`;
+    const res = await _dependencies.homeFetch(apiPath);
+    if (res.code !== 0) throw new Error(res.message);
+
+    const order = res.data;
+    const items = order.items || [];
+
+    // 创建工作簿
+    const wb = XLSX.utils.book_new();
+
+    // Sheet1: 订单信息
+    const orderInfo = [
+      ['订单信息'],
+      ['订单ID', order.id],
+      ['供应商/处方ID', order.supplierName || order.prescriptionId || ''],
+      ['下单日期', order.purchaseDate || ''],
+      ['入库日期/处方时间', order.orderDate || order.prescriptionTime || ''],
+      ['总价', order.totalPrice || 0],
+      ['状态', order.status === 'draft' ? '草稿' : order.status === 'stocked' ? '已入库' : order.status === 'pending' ? '待执药' : order.status === 'settled' ? '已结算' : order.status]
+    ];
+    const orderWs = XLSX.utils.aoa_to_sheet(orderInfo);
+    XLSX.utils.book_append_sheet(wb, orderWs, '订单信息');
+
+    // Sheet2: 明细数据
+    const detailConfig = tableConfigs[config.detailTable];
+    const detailColumns = detailConfig ? detailConfig.columns : [];
+    const headers = detailColumns.map(col => col.label);
+    const rows = items.map(item =>
+      detailColumns.map(col => {
+        const value = item[col.key];
+        return value === null || value === undefined ? '' : value;
+      })
+    );
+    const detailWs = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    XLSX.utils.book_append_sheet(wb, detailWs, '明细');
+
+    // 下载文件
+    const orderType = currentTable === 'stock_in_orders' ? '入库单明细' : '执药单明细';
+    const filename = `${orderType}_${orderId}.xlsx`;
+    XLSX.writeFile(wb, filename);
+
+    _dependencies.showToast('导出成功', 'success');
+  } catch (err) {
+    _dependencies.showToast('导出失败: ' + err.message, 'error');
+  }
+}
+
 // ==================== 导出模块实例供全局访问 ====================
 if (typeof window !== 'undefined') {
   window._importExportModule = {
     initImportExportModule,
     exportTableData,
-    handleImportFile
+    handleImportFile,
+    exportOrderDetail
   };
 }

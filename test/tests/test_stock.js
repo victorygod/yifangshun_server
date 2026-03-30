@@ -162,14 +162,20 @@ async function runStockTests(users) {
       name: testData.herbName,
       alias: '测试别名|测试药',
       cabinetNo: 'A-01',
+      coefficient: 1.5,
+      costPrice: 10,
       salePrice: 0.05,
       minValue: 100,
       remark: '测试备注'
     });
-    
+
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
     assert(data.data.id, '返回药材ID');
+    // 验证新增字段被正确保存
+    assertEquals(data.data.cabinetNo, 'A-01', '柜号正确保存');
+    assertEquals(data.data.coefficient, 1.5, '系数正确保存');
+    assertEquals(data.data.costPrice, 10, '成本价正确保存');
     testData.herbId = data.data.id;
   });
   
@@ -203,10 +209,10 @@ async function runStockTests(users) {
   
   await test('GET /api/stock/in/orders - 获取入库单列表', async () => {
     const { response, data } = await adminRequest('GET', '/api/stock/in/orders');
-    
+
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
-    assert(Array.isArray(data.data), '返回数组');
+    assert(Array.isArray(data.data.rows), '返回数组');
   });
   
   await test('POST /api/stock/in/orders - 创建入库单（草稿）', async () => {
@@ -286,10 +292,10 @@ async function runStockTests(users) {
   
   await test('GET /api/stock/out/orders - 获取出库单列表', async () => {
     const { response, data } = await adminRequest('GET', '/api/stock/out/orders');
-    
+
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
-    assert(Array.isArray(data.data), '返回数组');
+    assert(Array.isArray(data.data.rows), '返回数组');
   });
   
   await test('POST /api/stock/out/orders - 创建执药单', async () => {

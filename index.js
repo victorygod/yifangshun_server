@@ -78,19 +78,21 @@ app.get("/api/home/users", requireRole(['admin', 'super_admin']), async (req, re
 
     res.json({
       code: 0,
-      data: users.map(user => ({
-        id: user.id,
-        openid: user.openid,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-        createdAt: user.createdAt || user.createTime
-      })),
-      pagination: {
-        page,
-        pageSize,
-        totalCount,
-        totalPages
+      data: {
+        rows: users.map(user => ({
+          id: user.id,
+          openid: user.openid,
+          name: user.name,
+          phone: user.phone,
+          role: user.role,
+          createdAt: user.createdAt || user.createTime
+        })),
+        pagination: {
+          page,
+          pageSize,
+          totalCount,
+          totalPages
+        }
       }
     });
   } catch (error) {
@@ -293,9 +295,21 @@ app.get("/api/available-slots", async (req, res) => {
 // 创建预约 - 支持场次和人数（需要登录）
 app.post("/api/booking", requireRole(['user', 'admin', 'super_admin']), async (req, res) => {
   try {
-    const { date, session, personCount } = req.body;
+    let { date, session, personCount, phone } = req.body;
+
+    // 设置默认值
+    session = session || 'afternoon';
+    personCount = personCount || 1;
+
+    // 管理员可以指定 phone，普通用户使用自己的手机号
+    let userInfo = { ...req.user };
+    if (phone && (req.user.role === 'admin' || req.user.role === 'super_admin')) {
+      // 管理员指定了手机号，使用指定的手机号
+      userInfo.phone = phone;
+    }
+
     // 【手机号改造】使用 req.user.phone 而非 openid
-    const result = await booking.createBooking(date, session, personCount, req.user);
+    const result = await booking.createBooking(date, session, personCount, userInfo);
     res.json(result);
   } catch (error) {
     console.error("创建预约失败:", error);
@@ -344,21 +358,35 @@ app.get("/api/bookings", requireRole(['admin', 'super_admin']), async (req, res)
   }
 });
 
-// 更新预约状态（管理员）
+// 更新预约信息（管理员）
 app.put("/api/bookings/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { phone, openid, date, session, personCount, time, status } = req.body;
 
-    if (!status) {
-      return res.status(400).json({ code: 1, message: "缺少状态参数" });
+    const booking = await Booking.findOne({ where: { id } });
+    if (!booking) {
+      return res.status(404).json({ code: 1, message: "预约不存在" });
     }
 
-    const result = await booking.updateBookingStatus(id, status, req.user);
-    res.json(result);
+    // 构建更新数据
+    const updateData = {};
+    if (phone) updateData.phone = phone;
+    if (openid !== undefined) updateData.openid = openid;
+    if (date) updateData.date = date;
+    if (session) updateData.session = session;
+    if (personCount) updateData.personCount = personCount;
+    if (time) updateData.time = time;
+    if (status) updateData.status = status;
+
+    await booking.update(updateData);
+
+    // 重新获取更新后的数据
+    const updatedBooking = await Booking.findOne({ where: { id } });
+    res.json({ code: 0, message: "更新成功", data: updatedBooking });
   } catch (error) {
-    console.error("更新预约状态失败:", error);
-    res.status(400).json({ code: 1, message: error.message || "更新预约状态失败" });
+    console.error("更新预约失败:", error);
+    res.status(400).json({ code: 1, message: error.message || "更新预约失败" });
   }
 });
 
@@ -716,12 +744,14 @@ app.get("/api/readonly/:table", requireRole(['admin', 'super_admin']), async (re
 
     res.json({
       code: 0,
-      data: rows,
-      pagination: {
-        page,
-        pageSize,
-        totalCount,
-        totalPages
+      data: {
+        rows,
+        pagination: {
+          page,
+          pageSize,
+          totalCount,
+          totalPages
+        }
       }
     });
   } catch (error) {

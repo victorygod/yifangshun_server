@@ -219,7 +219,24 @@ class Model {
   // 根据条件查找一条记录
   async findOne(options = {}) {
     const results = await this.findAll(options);
-    return results.length > 0 ? results[0] : null;
+    if (results.length === 0) return null;
+
+    const item = results[0];
+    // 为返回的对象添加实例方法（兼容 Sequelize）
+    const itemWithMethods = { ...item };
+    const primaryKeyValue = item[this.primaryKey];
+    itemWithMethods.update = async (updates) => {
+      return await this.update(updates, { where: { [this.primaryKey]: primaryKeyValue } });
+    };
+    itemWithMethods.destroy = async () => {
+      return await this.destroy({ where: { [this.primaryKey]: primaryKeyValue } });
+    };
+    itemWithMethods.save = async () => {
+      // save 等同于 update，使用当前对象的数据
+      return await this.update(itemWithMethods, { where: { [this.primaryKey]: primaryKeyValue } });
+    };
+
+    return itemWithMethods;
   }
 
   // 创建记录

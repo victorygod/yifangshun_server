@@ -35,28 +35,29 @@ async function runDataManagementTests(externalTestUsers) {
     assert(res.data.code === 0, "创建药材失败");
   });
 
-  await test("创建入库单", async () => {
-    const res = await superAdminRequest("POST", "/api/admin/table/stock_in_orders", {
+  await test("创建入库单（含明细）", async () => {
+    const res = await superAdminRequest("POST", "/api/stock/in/orders", {
       orderDate: new Date().toISOString().split("T")[0],
-      supplier: "测试供应商",
-      phone: "13800138000",
-      status: "draft",
-      totalPrice: 0
+      supplierName: "测试供应商",
+      items: [
+        {
+          herbName: "级联删除测试药材",
+          quantity: 100,
+          unitPrice: 10,
+          costPrice: 10
+        }
+      ]
     });
     assert(res.data.code === 0, "创建入库单失败: " + JSON.stringify(res.data));
     testData.inOrderId = res.data.data.id;
   });
 
-  await test("创建入库明细", async () => {
-    const res = await superAdminRequest("POST", "/api/admin/table/stock_in_items", {
-      orderId: testData.inOrderId,
-      herbName: "级联删除测试药材",
-      quantity: 100,
-      unitPrice: 10,
-      totalPrice: 1000
-    });
-    assert(res.data.code === 0, "创建入库明细失败");
-    testData.inItemId = res.data.data.id;
+  await test("验证明细已创建", async () => {
+    // 通过查询入库单详情确认明细已创建
+    const res = await superAdminRequest("GET", `/api/stock/in/orders/${testData.inOrderId}`);
+    assert(res.data.code === 0, "查询入库单详情失败");
+    assert(res.data.data.items && res.data.data.items.length > 0, "入库明细应存在");
+    testData.inItemId = res.data.data.items[0].id;
   });
 
   await test("验证明细已创建", async () => {
@@ -64,7 +65,7 @@ async function runDataManagementTests(externalTestUsers) {
   });
 
   await test("删除入库单", async () => {
-    const res = await superAdminRequest("DELETE", "/api/admin/table/stock_in_orders/" + testData.inOrderId);
+    const res = await superAdminRequest("DELETE", "/api/stock/in/orders/" + testData.inOrderId);
     assert(res.data.code === 0, "删除入库单失败");
   });
 

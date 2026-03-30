@@ -143,7 +143,7 @@ async function runSystemTests(testUsers) {
     
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
-    assert(Array.isArray(data.data.list), '返回数组');
+    assert(Array.isArray(data.data.rows), '返回数组');
   });
   
   console.log('\n📊 系统测试结果');
