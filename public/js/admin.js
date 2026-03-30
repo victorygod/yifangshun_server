@@ -117,7 +117,7 @@ const tableConfigs = {
       { key: 'purchaseDate', label: '下单日期', editable: true, type: 'date', defaultValue: 'today' },
       { key: 'orderDate', label: '入库日期', editable: true, type: 'date', defaultValue: 'today' },
       { key: 'supplierName', label: '供应商', editable: true, required: true },
-      { key: 'totalAmount', label: '总价', readonly: true, type: 'number' },
+      { key: 'totalPrice', label: '总价', readonly: true, type: 'number' },
       {
         key: 'status', label: '状态', type: 'select', readonly: true, options: [
           { value: 'draft', label: '草稿', badge: 'badge-draft' },
@@ -134,7 +134,7 @@ const tableConfigs = {
     columns: [
       { key: 'id', label: 'ID', readonly: true },
       { key: 'prescriptionTime', label: '处方时间', readonly: true, type: 'datetime' },
-      { key: 'prescriptionId', label: '处方ID', readonly: true },
+      { key: 'prescriptionId', label: '处方ID', editable: true },
       { key: 'pharmacist', label: '药师', editable: true },
       { key: 'reviewer', label: '审核人', readonly: true },
       {
@@ -149,19 +149,6 @@ const tableConfigs = {
     searchFields: ['prescriptionId', 'pharmacist'],
     hasDetail: true,
     detailTable: 'stock_out_items'
-  },
-  stock_inventory: {
-    displayName: '库存统计',
-    columns: [
-      { key: 'id', label: 'ID', readonly: true },
-      { key: 'herbName', label: '药材名称', editable: true },
-      { key: 'herbAlias', label: '别名', editable: true },
-      { key: 'quantity', label: '库存数量', editable: true, type: 'number' },
-      { key: 'avgPrice', label: '均价', editable: true, type: 'number' },
-      { key: 'minValue', label: '最低库存', editable: true, type: 'number' },
-      { key: 'updatedAt', label: '更新时间', readonly: true, type: 'datetime' }
-    ],
-    searchFields: ['herbName', 'herbAlias']
   },
   stock_in_items: {
     displayName: '入库明细',
@@ -205,6 +192,7 @@ const tableConfigs = {
       { key: 'quantity', label: '数量', readonly: true, type: 'number' },
       { key: 'createdAt', label: '操作时间', readonly: true, type: 'datetime' }
     ],
+    searchFields: ['herbName', 'orderNo', 'action'],
     readonly: true
   }
 };
@@ -482,27 +470,30 @@ async function loadTableData() {
     // 入库单需要先获取药材信息（用于成本价计算）
     if (currentTable === 'stock_in_orders') {
       window._herbInfoMap = await window._stockModule.getHerbInfoMap();
-      const res = await homeFetch(`/api/stock/in/orders?page=${currentPage}&pageSize=${pageSize}`);
+      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+      const res = await homeFetch(`/api/stock/in/orders?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}${searchFieldsParam}`);
       if (res.code !== 0) throw new Error(res.message);
       rows = res.data || [];
       pagination = res.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 };
     } else if (currentTable === 'stock_out_orders') {
-      const res = await homeFetch(`/api/stock/out/orders?page=${currentPage}&pageSize=${pageSize}`);
+      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+      const res = await homeFetch(`/api/stock/out/orders?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}${searchFieldsParam}`);
       if (res.code !== 0) throw new Error(res.message);
       rows = res.data || [];
       pagination = res.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 };
     } else if (currentTable === 'herbs') {
       // 药材管理使用专门的API
-      const res = await homeFetch(`${window._stockModule.getHerbApiPath('list')}?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`);
+      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+      const res = await homeFetch(`${window._stockModule.getHerbApiPath('list')}?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}${searchFieldsParam}`);
       if (res.code !== 0) throw new Error(res.message);
-      rows = res.data.rows;
-      pagination = res.data.pagination;
+      rows = res.data;
+      pagination = res.pagination;
     } else if (currentTable === 'users') {
       // 用户管理使用专门的API
       const res = await homeFetch(`/api/home/users?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`);
       if (res.code !== 0) throw new Error(res.message);
-      rows = res.data.list;
-      pagination = res.data.pagination;
+      rows = res.data;
+      pagination = res.pagination;
     } else if (currentTable === 'bookings') {
       // 预约管理使用专门的API
       const res = await homeFetch(`/api/bookings?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`);
@@ -515,12 +506,16 @@ async function loadTableData() {
       if (res.code !== 0) throw new Error(res.message);
       rows = res.data; // 处方API直接返回数组
       pagination = res.pagination;
-    } else {
-      const url = `/api/admin/table/${currentTable}?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}`;
-      const res = await homeFetch(url);
+    } else if (['stock_in_items', 'stock_out_items', 'stock_logs'].includes(currentTable)) {
+      // 只读表使用通用只读API
+      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+      const res = await homeFetch(`/api/readonly/${currentTable}?page=${currentPage}&pageSize=${pageSize}&keyword=${encodeURIComponent(searchKeyword)}${searchFieldsParam}`);
       if (res.code !== 0) throw new Error(res.message);
-      rows = res.data.rows;
-      pagination = res.data.pagination;
+      rows = res.data;
+      pagination = res.pagination;
+    } else {
+      // 未知表类型
+      throw new Error(`未知的表类型: ${currentTable}`);
     }
 
     tableData = rows;
@@ -563,6 +558,40 @@ async function loadTableData() {
           </thead>
           <tbody>
     `;
+
+    // 新增行（在第一行显示）
+    if (editingRowId === 'new' && !config.readonly) {
+      html += `<tr class="editing" data-id="new">`;
+      html += `<td class="col-checkbox"><input type="checkbox" class="checkbox" disabled></td>`;
+      columns.forEach(col => {
+        const isReadonly = config.readonly || col.readonly;
+        if (isReadonly) {
+          html += `<td><span class="cell-readonly">自动</span></td>`;
+        } else if (col.type === 'select') {
+          html += `<td>
+            <select class="cell-select" data-col="${col.key}">
+              ${col.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('')}
+            </select>
+          </td>`;
+        } else if (col.type === 'date') {
+          // 日期类型使用 type="date"
+          let dateValue = '';
+          if (col.defaultValue === 'today') {
+            const today = new Date();
+            dateValue = today.toISOString().split('T')[0]; // YYYY-MM-DD 格式
+          }
+          html += `<td><input type="date" class="cell-input" data-col="${col.key}" value="${dateValue}"></td>`;
+        } else if (col.type === 'number') {
+          html += `<td><input type="number" class="cell-input" data-col="${col.key}" placeholder="${col.label}"></td>`;
+        } else {
+          html += `<td><input type="text" class="cell-input" data-col="${col.key}" placeholder="${col.label}"></td>`;
+        }
+      });
+      html += `<td class="col-action">
+        <button class="action-btn action-btn-save" data-action="saveNew">保存</button>
+        <button class="action-btn action-btn-cancel" data-action="cancel">取消</button>
+      </td></tr>`;
+    }
 
     rows.forEach((row, rowIndex) => {
       const isEditing = String(editingRowId) === String(row.id);
@@ -686,40 +715,6 @@ async function loadTableData() {
         }
       }
     });
-
-    // 新增行
-    if (editingRowId === 'new' && !config.readonly) {
-      html += `<tr class="editing" data-id="new">`;
-      html += `<td class="col-checkbox"><input type="checkbox" class="checkbox" disabled></td>`;
-      columns.forEach(col => {
-        const isReadonly = config.readonly || col.readonly;
-        if (isReadonly) {
-          html += `<td><span class="cell-readonly">自动</span></td>`;
-        } else if (col.type === 'select') {
-          html += `<td>
-            <select class="cell-select" data-col="${col.key}">
-              ${col.options.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join('')}
-            </select>
-          </td>`;
-        } else if (col.type === 'date') {
-          // 日期类型使用 type="date"
-          let dateValue = '';
-          if (col.defaultValue === 'today') {
-            const today = new Date();
-            dateValue = today.toISOString().split('T')[0]; // YYYY-MM-DD 格式
-          }
-          html += `<td><input type="date" class="cell-input" data-col="${col.key}" value="${dateValue}"></td>`;
-        } else if (col.type === 'number') {
-          html += `<td><input type="number" class="cell-input" data-col="${col.key}" placeholder="${col.label}"></td>`;
-        } else {
-          html += `<td><input type="text" class="cell-input" data-col="${col.key}" placeholder="${col.label}"></td>`;
-        }
-      });
-      html += `<td class="col-action">
-        <button class="action-btn action-btn-save" data-action="saveNew">保存</button>
-        <button class="action-btn action-btn-cancel" data-action="cancel">取消</button>
-      </td></tr>`;
-    }
 
     html += `</tbody></table></div>`;
 
@@ -1022,7 +1017,7 @@ async function saveRow(rowId) {
 
   try {
     // 获取API路径
-    let apiUrl = `/api/admin/table/${currentTable}/${rowId}`;
+    let apiUrl;
     let method = 'PUT';
 
     if (currentTable === 'herbs' && window._stockModule) {
@@ -1066,17 +1061,25 @@ async function saveRow(rowId) {
     } else if (currentTable === 'bookings') {
       // 预约管理使用专门的API
       apiUrl = `/api/bookings/${rowId}`;
+    } else if (currentTable === 'stock_in_orders') {
+      // 入库单使用专门的API
+      apiUrl = `/api/stock/in/orders/${rowId}`;
+    } else if (currentTable === 'stock_out_orders') {
+      // 执药单使用专门的API
+      apiUrl = `/api/stock/out/orders/${rowId}`;
     } else if (currentTable === 'prescriptions') {
       // 处方管理使用专门的API
       const res = await window._prescriptionModule.savePrescription(rowId, data);
       if (res.code !== 0) throw new Error(res.message);
-      
+
       showToast('保存成功', 'success');
       editingRowId = null;
       selectedIds = [];
       loadTableData();
       loadStats();
       return;
+    } else {
+      throw new Error(`未知的表类型: ${currentTable}`);
     }
 
     const res = await homeFetch(apiUrl, {
@@ -1135,15 +1138,19 @@ async function saveNewRow() {
   }
 
   try {
-    // 获取创建的 API 路径（各模块可能有不同路径）
-    let apiUrl = `/api/admin/table/${currentTable}`;
-    
+    // 获取创建的 API 路径
+    let apiUrl;
+
     if (currentTable === 'stock_in_orders' && window._stockModule) {
+      apiUrl = window._stockModule.getCreateOrderApiPath(currentTable);
+    } else if (currentTable === 'stock_out_orders' && window._stockModule) {
       apiUrl = window._stockModule.getCreateOrderApiPath(currentTable);
     } else if (currentTable === 'herbs' && window._stockModule) {
       apiUrl = window._stockModule.getHerbApiPath('create');
+    } else {
+      throw new Error(`未知的表类型: ${currentTable}`);
     }
-    
+
     const res = await homeFetch(apiUrl, {
       method: 'POST',
       body: JSON.stringify(data)
@@ -1154,12 +1161,12 @@ async function saveNewRow() {
     showToast('新增成功', 'success');
     editingRowId = null;
     selectedIds = [];
-    
+
     // 如果新增的是药材信息，清除药材信息缓存
     if (currentTable === 'herbs' && window._stockModule) {
       window._stockModule.clearHerbInfoCache();
     }
-    
+
     loadTableData();
     loadStats();
   } catch (err) {
@@ -1205,13 +1212,13 @@ async function deleteRow(rowId) {
   let deleteAction = async () => {
     try {
       // 获取删除 API 路径
-      let deleteApi = `/api/admin/table/${currentTable}/${rowId}`;
+      let deleteApi;
 
       if (currentTable === 'herbs' && window._stockModule) {
         deleteApi = window._stockModule.getHerbApiPath('delete', rowId);
       } else if (currentTable === 'users') {
-        // 用户删除使用通用API（通过id删除）
-        deleteApi = `/api/admin/table/users/${rowId}`;
+        // 用户删除使用专门API
+        deleteApi = `/api/user/${rowId}`;
       } else if (currentTable === 'bookings') {
         // 预约管理使用专门的API
         deleteApi = `/api/booking/${rowId}`;
@@ -1221,11 +1228,13 @@ async function deleteRow(rowId) {
         // 处方管理使用专门的API
         const res = await window._prescriptionModule.deletePrescription(rowId);
         if (res.code !== 0) throw new Error(res.message);
-        
+
         showToast('删除成功', 'success');
         loadTableData();
         loadStats();
         return;
+      } else {
+        throw new Error(`未知的表类型: ${currentTable}`);
       }
 
       const res = await homeFetch(deleteApi, { method: 'DELETE' });
@@ -1334,14 +1343,13 @@ async function batchDelete() {
   // 检查是否是入库单或执药单，需要统计明细数量
   if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
     try {
-      const detailTable = currentTable === 'stock_in_orders' ? 'stock_in_items' : 'stock_out_items';
       const tableLabel = currentTable === 'stock_in_orders' ? '入库单' : '执药单';
       const detailLabel = currentTable === 'stock_in_orders' ? '入库明细' : '执药明细';
 
       let totalDetailCount = 0;
       for (const id of selectedIds) {
-        const res = await homeFetch(`/api/admin/table/${detailTable}?search=${encodeURIComponent(JSON.stringify({ orderId: id }))}&pageSize=1`);
-        totalDetailCount += res.data?.total || 0;
+        // 使用 stock-module 中的专用函数获取明细数量
+        totalDetailCount += await window._stockModule.getOrderDetailCount(id, currentTable);
       }
 
       const message = totalDetailCount > 0
@@ -1378,15 +1386,26 @@ async function batchDelete() {
               }
               deletedCount++;
             }
+          } else if (currentTable === 'users') {
+            // 用户逐个删除
+            for (const id of selectedIds) {
+              const res = await homeFetch(`/api/user/${id}`, { method: 'DELETE' });
+              if (res.code !== 0) {
+                throw new Error(`删除用户失败: ${res.message}`);
+              }
+              deletedCount++;
+            }
+          } else if (currentTable === 'bookings') {
+            // 预约逐个删除
+            for (const id of selectedIds) {
+              const res = await homeFetch(`/api/booking/${id}`, { method: 'DELETE' });
+              if (res.code !== 0) {
+                throw new Error(`删除预约失败: ${res.message}`);
+              }
+              deletedCount++;
+            }
           } else {
-            // 其他表使用批量删除API
-            const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
-              method: 'POST',
-              body: JSON.stringify({ ids: selectedIds })
-            });
-
-            if (res.code !== 0) throw new Error(res.message);
-            deletedCount = res.data.deletedCount;
+            throw new Error(`未知的表类型: ${currentTable}`);
           }
 
           showToast(`成功删除 ${deletedCount} 条记录`, 'success');
@@ -1434,15 +1453,26 @@ async function batchDelete() {
               }
               deletedCount++;
             }
+          } else if (currentTable === 'users') {
+            // 用户逐个删除
+            for (const id of selectedIds) {
+              const res = await homeFetch(`/api/user/${id}`, { method: 'DELETE' });
+              if (res.code !== 0) {
+                throw new Error(`删除用户失败: ${res.message}`);
+              }
+              deletedCount++;
+            }
+          } else if (currentTable === 'bookings') {
+            // 预约逐个删除
+            for (const id of selectedIds) {
+              const res = await homeFetch(`/api/booking/${id}`, { method: 'DELETE' });
+              if (res.code !== 0) {
+                throw new Error(`删除预约失败: ${res.message}`);
+              }
+              deletedCount++;
+            }
           } else {
-            // 其他表使用批量删除API
-            const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
-              method: 'POST',
-              body: JSON.stringify({ ids: selectedIds })
-            });
-
-            if (res.code !== 0) throw new Error(res.message);
-            deletedCount = res.data.deletedCount;
+            throw new Error(`未知的表类型: ${currentTable}`);
           }
 
           showToast(`成功删除 ${deletedCount} 条记录`, 'success');
@@ -1491,15 +1521,26 @@ async function batchDelete() {
             }
             deletedCount++;
           }
+        } else if (currentTable === 'users') {
+          // 用户逐个删除
+          for (const id of selectedIds) {
+            const res = await homeFetch(`/api/user/${id}`, { method: 'DELETE' });
+            if (res.code !== 0) {
+              throw new Error(`删除用户失败: ${res.message}`);
+            }
+            deletedCount++;
+          }
+        } else if (currentTable === 'bookings') {
+          // 预约逐个删除
+          for (const id of selectedIds) {
+            const res = await homeFetch(`/api/booking/${id}`, { method: 'DELETE' });
+            if (res.code !== 0) {
+              throw new Error(`删除预约失败: ${res.message}`);
+            }
+            deletedCount++;
+          }
         } else {
-          // 其他表使用批量删除API
-          const res = await homeFetch(`/api/admin/table/${currentTable}/batch-delete`, {
-            method: 'POST',
-            body: JSON.stringify({ ids: selectedIds })
-          });
-
-          if (res.code !== 0) throw new Error(res.message);
-          deletedCount = res.data.deletedCount;
+          throw new Error(`未知的表类型: ${currentTable}`);
         }
 
         showToast(`成功删除 ${deletedCount} 条记录`, 'success');

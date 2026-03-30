@@ -64,7 +64,7 @@ async function addStockLog(action, orderNo, herbName, quantity, operator) {
 
 // 获取药材列表
 async function getHerbs(options = {}) {
-  const { keyword = '', page = 1, pageSize = 20 } = options;
+  const { keyword = '', page = 1, pageSize = 20, searchFields } = options;
   
   // 获取所有数据（按createdAt降序）
   let allData = await Herb.findAll({
@@ -72,17 +72,33 @@ async function getHerbs(options = {}) {
     raw: true
   });
   
-  // 多维度搜索（与 /api/admin/table/:name 行为一致）
+  // 多维度搜索
   if (keyword) {
     const keywordLower = keyword.toLowerCase();
+    // 如果指定了搜索字段，只在这些字段中搜索
+    const fieldsToSearch = searchFields ? searchFields.split(',').map(f => f.trim()) : null;
+
     allData = allData.filter(row => {
-      // 遍历所有字段进行匹配
-      for (const key in row) {
-        const value = row[key];
-        if (value !== null && value !== undefined) {
-          const strValue = String(value).toLowerCase();
-          if (strValue.includes(keywordLower)) {
-            return true;
+      if (fieldsToSearch) {
+        // 只在指定字段中搜索
+        for (const key of fieldsToSearch) {
+          const value = row[key];
+          if (value !== null && value !== undefined) {
+            const strValue = String(value).toLowerCase();
+            if (strValue.includes(keywordLower)) {
+              return true;
+            }
+          }
+        }
+      } else {
+        // 遍历所有字段进行匹配
+        for (const key in row) {
+          const value = row[key];
+          if (value !== null && value !== undefined) {
+            const strValue = String(value).toLowerCase();
+            if (strValue.includes(keywordLower)) {
+              return true;
+            }
           }
         }
       }
@@ -99,14 +115,12 @@ async function getHerbs(options = {}) {
   
   return {
     code: 0,
-    data: {
-      rows,
-      pagination: {
-        page,
-        pageSize,
-        totalCount,
-        totalPages
-      }
+    data: rows,
+    pagination: {
+      page,
+      pageSize,
+      totalCount,
+      totalPages
     }
   };
 }
@@ -244,33 +258,70 @@ async function getInOrders(options = {}) {
   const page = parseInt(options.page) || 1;
   const pageSize = parseInt(options.pageSize) || 20;
   const status = options.status || 'all';
-  
+  const keyword = (options.keyword || '').trim();
+  const searchFields = options.searchFields;
+
   let where = {};
   if (status !== 'all') {
     where.status = status;
   }
-  
-  const orders = await StockInOrder.findAll({
+
+  let orders = await StockInOrder.findAll({
     where,
-    order: [['createdAt', 'DESC']]
+    order: [['createdAt', 'DESC']],
+    raw: true
   });
-  
+
+  // 多维度搜索
+  if (keyword) {
+    const keywordLower = keyword.toLowerCase();
+    // 如果指定了搜索字段，只在这些字段中搜索
+    const fieldsToSearch = searchFields ? searchFields.split(',').map(f => f.trim()) : null;
+
+    orders = orders.filter(row => {
+      if (fieldsToSearch) {
+        // 只在指定字段中搜索
+        for (const key of fieldsToSearch) {
+          const value = row[key];
+          if (value !== null && value !== undefined) {
+            const strValue = String(value).toLowerCase();
+            if (strValue.includes(keywordLower)) {
+              return true;
+            }
+          }
+        }
+      } else {
+        // 遍历所有字段进行匹配
+        for (const key in row) {
+          const value = row[key];
+          if (value !== null && value !== undefined) {
+            const strValue = String(value).toLowerCase();
+            if (strValue.includes(keywordLower)) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    });
+  }
+
   // 分页
   const totalCount = orders.length;
   const totalPages = Math.ceil(totalCount / pageSize);
   const start = (page - 1) * pageSize;
   const pagedOrders = orders.slice(start, start + pageSize);
-  
+
   // 获取每个订单的明细（使用宽松比较匹配orderId）
   const allItems = await StockInItem.findAll();
   const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
     const items = allItems.filter(item => item.orderId == order.id);
     return {
-      ...toPlainObject(order),
+      ...order,
       items
     };
   }));
-  
+
   return {
     code: 0,
     data: ordersWithItems,
@@ -312,9 +363,9 @@ async function createInOrder(data) {
   const orderNo = generateOrderNo('RK');
   
   // 计算总金额
-  let totalAmount = 0;
+  let totalPrice = 0;
   items.forEach(item => {
-    totalAmount += (item.quantity || 0) * (item.unitPrice || 0);
+    totalPrice += (item.quantity || 0) * (item.unitPrice || 0);
   });
   
   const order = await StockInOrder.create({
@@ -324,7 +375,7 @@ async function createInOrder(data) {
     supplierName,
     status: 'draft',
     remark,
-    totalAmount,
+    totalPrice,
     createdAt: getNow(),
     updatedAt: getNow()
   });
@@ -378,11 +429,11 @@ async function updateInOrder(id, data) {
   
   // 如果有明细更新
   if (items !== undefined) {
-    let totalAmount = 0;
+    let totalPrice = 0;
     items.forEach(item => {
-      totalAmount += (item.quantity || 0) * (item.unitPrice || 0);
+      totalPrice += (item.quantity || 0) * (item.unitPrice || 0);
     });
-    updates.totalAmount = totalAmount;
+    updates.totalPrice = totalPrice;
   }
   
   await StockInOrder.update(updates, { where: { id } });
@@ -440,27 +491,6 @@ async function deleteInOrder(id) {
   return {
     code: 0,
     message: '删除成功'
-  };
-}
-
-// 确认入库单
-async function confirmInOrder(id) {
-  const order = await StockInOrder.findOne({ where: { id } });
-  if (!order) {
-    throw new Error('入库单不存在');
-  }
-  
-  if (order.status !== 'draft') {
-    throw new Error('只有草稿状态可以确认');
-  }
-  
-  await StockInOrder.update({ status: 'confirmed', updatedAt: getNow() }, { where: { id } });
-  
-  const updated = await getInOrderById(id);
-  return {
-    code: 0,
-    message: '确认成功',
-    data: updated.data
   };
 }
 
@@ -741,15 +771,17 @@ async function updateOutOrder(id, data) {
   if (!order) {
     throw new Error('执药单不存在');
   }
-  
+
   if (order.status !== 'pending') {
     throw new Error('只有待执药状态的执药单可以修改');
   }
-  
-  const { prescriptionTime, remark, items } = data;
-  
+
+  const { prescriptionId, prescriptionTime, pharmacist, remark, items } = data;
+
   const updates = {};
+  if (prescriptionId !== undefined) updates.prescriptionId = prescriptionId || null;
   if (prescriptionTime !== undefined) updates.prescriptionTime = prescriptionTime;
+  if (pharmacist !== undefined) updates.pharmacist = pharmacist;
   if (remark !== undefined) updates.remark = remark;
   updates.updatedAt = getNow();
   
@@ -801,28 +833,65 @@ async function getOutOrders(options = {}) {
   const page = parseInt(options.page) || 1;
   const pageSize = parseInt(options.pageSize) || 20;
   const status = options.status || 'all';
-  
+  const keyword = (options.keyword || '').trim();
+  const searchFields = options.searchFields;
+
   let where = {};
   if (status !== 'all') {
     where.status = status;
   }
-  
-  const orders = await StockOutOrder.findAll({
+
+  let orders = await StockOutOrder.findAll({
     where,
-    order: [['prescriptionTime', 'DESC'], ['createdAt', 'DESC']]
+    order: [['prescriptionTime', 'DESC'], ['createdAt', 'DESC']],
+    raw: true
   });
-  
+
+  // 多维度搜索
+  if (keyword) {
+    const keywordLower = keyword.toLowerCase();
+    // 如果指定了搜索字段，只在这些字段中搜索
+    const fieldsToSearch = searchFields ? searchFields.split(',').map(f => f.trim()) : null;
+
+    orders = orders.filter(row => {
+      if (fieldsToSearch) {
+        // 只在指定字段中搜索
+        for (const key of fieldsToSearch) {
+          const value = row[key];
+          if (value !== null && value !== undefined) {
+            const strValue = String(value).toLowerCase();
+            if (strValue.includes(keywordLower)) {
+              return true;
+            }
+          }
+        }
+      } else {
+        // 遍历所有字段进行匹配
+        for (const key in row) {
+          const value = row[key];
+          if (value !== null && value !== undefined) {
+            const strValue = String(value).toLowerCase();
+            if (strValue.includes(keywordLower)) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    });
+  }
+
   // 分页
   const totalCount = orders.length;
   const totalPages = Math.ceil(totalCount / pageSize);
   const start = (page - 1) * pageSize;
   const pagedOrders = orders.slice(start, start + pageSize);
-  
+
   // 获取每个订单的明细（使用宽松比较匹配orderId）
   const allItems = await StockOutItem.findAll();
   const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
     let items = allItems.filter(item => item.orderId == order.id);
-    
+
     // 为每个明细查询药材柜号
     const itemsWithCabinetNo = await Promise.all(items.map(async (item) => {
       const herb = await Herb.findOne({ where: { name: item.herbName } });
@@ -831,7 +900,7 @@ async function getOutOrders(options = {}) {
         cabinetNo: herb ? herb.cabinetNo || '' : ''
       };
     }));
-    
+
     // 待执药状态：自动同步药材单价
     if (order.status === 'pending' && itemsWithCabinetNo.length > 0) {
       let needUpdateTotal = false;
@@ -855,13 +924,13 @@ async function getOutOrders(options = {}) {
         order.totalPrice = newTotal;
       }
     }
-    
+
     return {
-      ...toPlainObject(order),
+      ...order,
       items: itemsWithCabinetNo
     };
   }));
-  
+
   return {
     code: 0,
     data: ordersWithItems,
@@ -874,22 +943,16 @@ async function getOutOrders(options = {}) {
   };
 }
 
-// 创建执药单（从处方导入）
+// 创建执药单（从处方导入或手动创建）
 async function createOutOrder(data, operator = 'system', dosage = 1) {
   const { prescriptionId, prescriptionTime, pharmacist, reviewer, remark, items = [] } = data;
-  
-  if (items.length === 0) {
-    throw new Error('明细不能为空');
-  }
-  
-  if (!prescriptionId) {
-    throw new Error('处方ID不能为空');
-  }
-  
-  // 检查处方是否已创建执药单
-  const existing = await StockOutOrder.findOne({ where: { prescriptionId } });
-  if (existing) {
-    throw new Error('该处方已创建执药单');
+
+  // 如果有处方ID，检查是否已创建执药单
+  if (prescriptionId) {
+    const existing = await StockOutOrder.findOne({ where: { prescriptionId } });
+    if (existing) {
+      throw new Error('该处方已创建执药单');
+    }
   }
   
   // 计算总金额
@@ -903,8 +966,11 @@ async function createOutOrder(data, operator = 'system', dosage = 1) {
     totalPrice += actualQuantity * unitPrice;
   }
   
+  // 生成执药单编号（手动创建时使用）
+  const orderNo = prescriptionId ? `ZD-${prescriptionId}` : `ZD-MANUAL-${Date.now()}`;
+
   const order = await StockOutOrder.create({
-    prescriptionId,
+    prescriptionId: prescriptionId || null,
     prescriptionTime: prescriptionTime || getNow(),
     pharmacist,
     reviewer,
@@ -932,7 +998,7 @@ async function createOutOrder(data, operator = 'system', dosage = 1) {
     });
     
     // 添加日志
-    await addStockLog('stock_out', `ZD-${prescriptionId}`, item.herbName, actualQuantity, operator);
+    await addStockLog('stock_out', orderNo, item.herbName, actualQuantity, operator);
   }
   
   const created = await getOutOrderById(order.id);
@@ -1062,45 +1128,6 @@ async function deleteOutOrder(id) {
   return {
     code: 0,
     message: '删除成功'
-  };
-}
-
-// 撤销执药（回滚库存）
-async function revertOutOrder(id, operator = 'system') {
-  const order = await StockOutOrder.findOne({ where: { id } });
-  if (!order) {
-    throw new Error('执药单不存在');
-  }
-  
-  if (order.status !== 'pending') {
-    throw new Error('只有待执药状态可以撤销');
-  }
-  
-  // 获取明细，恢复库存
-  const items = await StockOutItem.findAll({ where: { orderId: id } });
-  for (const item of items) {
-    const itemQuantity = parseFloat(item.quantity) || 0;
-    
-    const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
-    if (inventory) {
-      const oldQuantity = parseFloat(inventory.quantity) || 0;
-      const newQuantity = oldQuantity + itemQuantity;
-      await StockInventory.update({ quantity: newQuantity, updatedAt: getNow() }, { where: { id: inventory.id } });
-    }
-    
-    // 添加日志
-    await addStockLog('revert', `ZD-${order.prescriptionId}`, item.herbName, itemQuantity, operator);
-  }
-  
-  // 删除明细
-  await StockOutItem.destroy({ where: { orderId: id } });
-  
-  // 删除主表
-  await StockOutOrder.destroy({ where: { id } });
-  
-  return {
-    code: 0,
-    message: '撤销成功'
   };
 }
 
@@ -1298,95 +1325,6 @@ async function revokeSettledOrder(id, operator = 'system') {
 // 库存统计
 // ========================================
 
-// 获取库存列表
-async function getInventory(options = {}) {
-  const { keyword = '', alert = false, page = 1, pageSize = 50 } = options;
-  
-  let inventory = await StockInventory.findAll({
-    order: [['herbName', 'ASC']]
-  });
-  
-  // 过滤关键字
-  if (keyword) {
-    inventory = inventory.filter(item => 
-      item.herbName && item.herbName.includes(keyword) ||
-      item.herbAlias && item.herbAlias.includes(keyword)
-    );
-  }
-  
-  // 过滤预警
-  if (alert) {
-    inventory = inventory.filter(item => {
-      const minVal = item.minValue || 0;
-      return item.quantity <= minVal;
-    });
-  }
-  
-  // 计算库存价值
-  const inventoryWithValue = inventory.map(item => ({
-    ...item,
-    inventoryValue: (item.quantity || 0) * (item.avgPrice || 0),
-    alertStatus: (item.quantity || 0) <= (item.minValue || 0) 
-      ? ((item.quantity || 0) <= 0 ? '缺货' : '低库存') 
-      : '正常'
-  }));
-  
-  return {
-    code: 0,
-    data: inventoryWithValue
-  };
-}
-
-// 获取库存预警列表
-async function getInventoryAlert() {
-  const result = await getInventory({ alert: true });
-  return result;
-}
-
-// 设置最低库存阈值
-async function setHerbMinValue(herbName, minValue) {
-  const inventory = await StockInventory.findOne({ where: { herbName } });
-  if (!inventory) {
-    throw new Error('药材库存记录不存在');
-  }
-  
-  await StockInventory.update({ minValue, updatedAt: getNow() }, { where: { herbName } });
-  
-  // 同步更新药材表
-  await Herb.update({ minValue, updatedAt: getNow() }, { where: { name: herbName } });
-  
-  return {
-    code: 0,
-    message: '设置成功'
-  };
-}
-
-// 获取药材出入库历史
-async function getHerbHistory(herbName, options = {}) {
-  const { page = 1, pageSize = 20 } = options;
-  
-  const logs = await StockLog.findAll({
-    where: { herbName },
-    order: [['createdAt', 'DESC']]
-  });
-  
-  const totalCount = logs.length;
-  const totalPages = Math.ceil(totalCount / pageSize);
-  const start = (page - 1) * pageSize;
-  const pagedLogs = logs.slice(start, start + pageSize);
-  
-  return {
-    code: 0,
-    data: pagedLogs,
-    pagination: {
-      page,
-      pageSize,
-      totalCount,
-      totalPages
-    }
-  };
-}
-
 // ========================================
 // 导出
 // ========================================
@@ -1404,7 +1342,6 @@ module.exports = {
   createInOrder,
   updateInOrder,
   deleteInOrder,
-  confirmInOrder,
   executeStockIn,
   revertStockIn,
   
@@ -1414,15 +1351,8 @@ module.exports = {
   createOutOrder,
   updateOutOrder,
   deleteOutOrder,
-  revertOutOrder,
   settleOutOrder,
   revokeSettledOrder,
   executeStockOut,
-  revertStockOut,
-  
-  // 库存统计
-  getInventory,
-  getInventoryAlert,
-  setHerbMinValue,
-  getHerbHistory
+  revertStockOut
 };

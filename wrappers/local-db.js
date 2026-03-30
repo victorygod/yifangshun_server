@@ -263,7 +263,7 @@ class Model {
           const whereValue = options.where[key];
           const itemValue = item[key];
           
-          if (typeof whereValue === 'object') {
+          if (whereValue !== null && typeof whereValue === 'object') {
             if (whereValue[Symbol.for('sequelize:op.in')] !== undefined) {
               const arr = whereValue[Symbol.for('sequelize:op.in')];
               return Array.isArray(arr) && arr.includes(itemValue);
@@ -319,7 +319,7 @@ class Model {
         const whereValue = options.where[key];
         const itemValue = item[key];
         
-        if (typeof whereValue === 'object') {
+        if (whereValue !== null && typeof whereValue === 'object') {
           if (whereValue[Symbol.for('sequelize:op.in')] !== undefined) {
             const arr = whereValue[Symbol.for('sequelize:op.in')];
             return Array.isArray(arr) && arr.includes(itemValue);

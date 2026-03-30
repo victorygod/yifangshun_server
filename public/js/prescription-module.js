@@ -113,7 +113,8 @@ export async function savePrescriptionDetail(rowId) {
 export function addMedicine(rowId) {
   const tbody = document.getElementById(`medicines-body-${rowId}`);
   if (!tbody) return;
-  
+
+  // 在第一行插入新药材
   const newIndex = tbody.children.length;
   const tr = document.createElement('tr');
   tr.setAttribute('data-med-index', newIndex);
@@ -124,7 +125,13 @@ export function addMedicine(rowId) {
     <td><input class="med-input" data-med-field="note" data-med-index="${newIndex}" value="" /></td>
     <td><button class="action-btn action-btn-delete" onclick="window._prescriptionModule.removeMedicine(${rowId}, ${newIndex})">删除</button></td>
   `;
-  tbody.appendChild(tr);
+
+  // 插入到第一行
+  if (tbody.firstChild) {
+    tbody.insertBefore(tr, tbody.firstChild);
+  } else {
+    tbody.appendChild(tr);
+  }
 }
 
 /**

@@ -78,21 +78,19 @@ app.get("/api/home/users", requireRole(['admin', 'super_admin']), async (req, re
 
     res.json({
       code: 0,
-      data: {
-        list: users.map(user => ({
-          id: user.id,
-          openid: user.openid,
-          name: user.name,
-          phone: user.phone,
-          role: user.role,
-          createdAt: user.createdAt || user.createTime
-        })),
-        pagination: {
-          page,
-          pageSize,
-          totalCount,
-          totalPages
-        }
+      data: users.map(user => ({
+        id: user.id,
+        openid: user.openid,
+        name: user.name,
+        phone: user.phone,
+        role: user.role,
+        createdAt: user.createdAt || user.createTime
+      })),
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages
       }
     });
   } catch (error) {
@@ -128,12 +126,39 @@ app.put("/api/user/:openid", requireRole(['admin', 'super_admin']), async (req, 
   try {
     const { openid } = req.params;
     const { name, phone } = req.body;
-    
+
     const result = await auth.updateUserInfo(openid, name, phone);
     res.json(result);
   } catch (error) {
     console.error("更新用户信息失败:", error);
     return res.status(400).json({ code: 1, message: error.message || "更新用户信息失败" });
+  }
+});
+
+// 删除用户 - admin 和 super_admin 都可以
+app.delete("/api/user/:id", requireRole(['admin', 'super_admin'], true), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 检查用户是否存在
+    const user = await User.findOne({ where: { id } });
+    if (!user) {
+      return res.status(404).json({ code: 1, message: "用户不存在" });
+    }
+
+    // 不能删除自己
+    const currentUserPhone = req.headers['x-phone'];
+    if (user.phone === currentUserPhone) {
+      return res.status(400).json({ code: 1, message: "不能删除自己的账号" });
+    }
+
+    // 执行删除
+    const deletedCount = await User.destroy({ where: { id } });
+
+    res.json({ code: 0, message: "删除成功", data: { deletedCount } });
+  } catch (error) {
+    console.error("删除用户失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "删除用户失败" });
   }
 });
 
@@ -173,18 +198,6 @@ app.post("/api/check-admin", async (req, res) => {
   } catch (error) {
     console.error("检查管理员状态失败:", error);
     return res.status(400).json({ code: 1, message: error.message || "检查管理员状态失败" });
-  }
-});
-
-// 绑定手机号和姓名（首次登录）
-app.post("/api/bind-user-info", async (req, res) => {
-  try {
-    const { openid, name, phone } = req.body;
-    const result = await auth.handleBindUserInfo(openid, name, phone);
-    res.json(result);
-  } catch (error) {
-    console.error("绑定用户信息失败:", error);
-    return res.status(400).json({ code: 1, message: error.message || "绑定失败" });
   }
 });
 
@@ -542,14 +555,14 @@ async function updateOrderTotalAmount(orderTable, itemTable, orderId) {
     const items = await ItemModel.findAll({ where: { orderId } });
     
     // 计算总价
-    let totalAmount = 0;
+    let totalPrice = 0;
     items.forEach(item => {
-      totalAmount += parseFloat(item.totalPrice) || 0;
+      totalPrice += parseFloat(item.totalPrice) || 0;
     });
     
-    // 执药单用的是 totalPrice，其他表用 totalAmount
-    const fieldName = orderTable === 'stock_out_orders' ? 'totalPrice' : 'totalAmount';
-    await OrderModel.update({ [fieldName]: totalAmount }, { where: { id: orderId } });
+    // 执药单用的是 totalPrice，其他表用 totalPrice
+    const fieldName = orderTable === 'stock_out_orders' ? 'totalPrice' : 'totalPrice';
+    await OrderModel.update({ [fieldName]: totalPrice }, { where: { id: orderId } });
   } catch (error) {
     console.error('更新主表总价失败:', error);
   }
@@ -587,40 +600,7 @@ const TABLE_NAMES = {
   'stock_logs': '操作日志表'
 };
 
-// 获取所有表的状态
-app.get("/api/admin/tables", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const tables = [];
-    
-    for (const [name, model] of Object.entries(TABLE_MODELS)) {
-      try {
-        const count = await model.count();
-        tables.push({
-          name,
-          displayName: TABLE_NAMES[name] || name,
-          exists: true,
-          count
-        });
-      } catch (error) {
-        // 表不存在或读取失败
-        tables.push({
-          name,
-          displayName: TABLE_NAMES[name] || name,
-          exists: false,
-          count: 0,
-          error: error.message
-        });
-      }
-    }
-    
-    res.json({ code: 0, data: tables });
-  } catch (error) {
-    console.error("获取表状态失败:", error);
-    res.status(500).json({ code: 1, message: error.message || "获取表状态失败" });
-  }
-});
-
-// 获取系统统计（新API，替代 /api/admin/tables）
+// 获取系统统计（替代原 /api/admin/tables）
 app.get("/api/system/stats", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const tables = [];
@@ -652,53 +632,72 @@ app.get("/api/system/stats", requireRole(['admin', 'super_admin']), async (req, 
   }
 });
 
-// 获取指定表的数据（分页 + 多维度搜索）
-app.get("/api/admin/table/:name", requireRole(['admin', 'super_admin']), async (req, res) => {
+// ==================== 通用只读查询API ====================
+
+// 允许只读查询的表白名单
+const READONLY_TABLES = ['stock_in_items', 'stock_out_items', 'stock_logs'];
+
+// 通用只读查询API（替代 admin/table 对只读表的查询）
+app.get("/api/readonly/:table", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
-    const { name } = req.params;
+    const { table } = req.params;
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 20;
     const keyword = (req.query.keyword || '').trim();
-    
-    const model = TABLE_MODELS[name];
+    const searchFields = req.query.searchFields || '';
+
+    // 检查表是否在白名单中
+    if (!READONLY_TABLES.includes(table)) {
+      return res.status(404).json({ code: 1, message: "表不存在或不可访问" });
+    }
+
+    const model = TABLE_MODELS[table];
     if (!model) {
       return res.status(404).json({ code: 1, message: "表不存在" });
     }
-    
-    // 获取所有数据
+
+    // 获取所有数据（按createdAt降序）
     let allData = await model.findAll({
       order: [['createdAt', 'DESC']],
-      raw: true  // 返回纯JSON数据，而不是Sequelize模型实例
+      raw: true
     });
-    
-    // 对于bookings表，关联用户信息（姓名和手机号）
-    if (name === 'bookings') {
-      const openids = [...new Set(allData.map(row => row.openid).filter(Boolean))];
-      if (openids.length > 0) {
-        const users = await User.findAll({
-          where: { openid: { [Op.in]: openids } },
-          raw: true
-        });
-        const userMap = {};
-        users.forEach(u => { userMap[u.openid] = u; });
-        allData = allData.map(row => ({
-          ...row,
-          name: userMap[row.openid]?.name || '',
-          phone: userMap[row.openid]?.phone || ''
-        }));
-      }
+
+    // 关键词搜索
+    if (keyword) {
+      const keywordLower = keyword.toLowerCase();
+      // 如果指定了搜索字段，只在这些字段中搜索
+      const fieldsToSearch = searchFields ? searchFields.split(',').map(f => f.trim()) : null;
+
+      allData = allData.filter(row => {
+        if (fieldsToSearch) {
+          // 只在指定字段中搜索
+          for (const key of fieldsToSearch) {
+            const value = row[key];
+            if (value !== null && value !== undefined) {
+              const strValue = String(value).toLowerCase();
+              if (strValue.includes(keywordLower)) {
+                return true;
+              }
+            }
+          }
+        } else {
+          // 遍历所有字段进行匹配
+          for (const key in row) {
+            const value = row[key];
+            if (value !== null && value !== undefined) {
+              const strValue = String(value).toLowerCase();
+              if (strValue.includes(keywordLower)) {
+                return true;
+              }
+            }
+          }
+        }
+        return false;
+      });
     }
-    
-    // 处方表：转换缩略图 URL
-    if (name === 'prescriptions') {
-      allData = allData.map(row => ({
-        ...row,
-        thumbnail: row.thumbnail ? convertCloudFileIdToUrl(row.thumbnail) : null
-      }));
-    }
-    
-    // 执药明细表：查询药材柜号
-    if (name === 'stock_out_items') {
+
+    // 执药明细特殊处理：关联药材表获取柜号
+    if (table === 'stock_out_items') {
       const { Herb } = require('./wrappers/db-wrapper');
       allData = await Promise.all(allData.map(async (row) => {
         const herb = await Herb.findOne({ where: { name: row.herbName } });
@@ -708,74 +707,26 @@ app.get("/api/admin/table/:name", requireRole(['admin', 'super_admin']), async (
         };
       }));
     }
-    
-    // 多维度搜索
-    if (keyword) {
-      const keywordLower = keyword.toLowerCase();
-      allData = allData.filter(row => {
-        // 遍历所有字段进行匹配
-        for (const key in row) {
-          const value = row[key];
-          if (value !== null && value !== undefined) {
-            const strValue = String(value).toLowerCase();
-            if (strValue.includes(keywordLower)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      });
-    }
-    
+
+    // 分页
     const totalCount = allData.length;
     const totalPages = Math.ceil(totalCount / pageSize);
-    
-    // 分页
     const start = (page - 1) * pageSize;
     const rows = allData.slice(start, start + pageSize);
-    
+
     res.json({
       code: 0,
-      data: {
-        rows,
-        pagination: {
-          page,
-          pageSize,
-          totalCount,
-          totalPages
-        }
+      data: rows,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages
       }
     });
   } catch (error) {
-    console.error("获取表数据失败:", error);
-    res.status(500).json({ code: 1, message: error.message || "获取表数据失败" });
-  }
-});
-
-// 清空指定表
-app.delete("/api/admin/table/:name", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const { name } = req.params;
-    const confirm = req.query.confirm === 'true';
-    
-    if (!confirm) {
-      return res.status(400).json({ code: 1, message: "请确认清空操作（添加 ?confirm=true）" });
-    }
-    
-    const model = TABLE_MODELS[name];
-    if (!model) {
-      return res.status(404).json({ code: 1, message: "表不存在" });
-    }
-    
-    const deletedCount = await model.destroy({ truncate: true });
-    
-    res.json({
-      code: 0,
-      message: `已清空表 ${TABLE_NAMES[name] || name}，删除了 ${deletedCount} 条记录`
-    });
-  } catch (error) {
-    console.error("清空表失败:", error);
-    res.status(500).json({ code: 1, message: error.message || "清空表失败" });
+    console.error("只读查询失败:", error);
+    res.status(500).json({ code: 1, message: error.message || "查询失败" });
   }
 });
 
@@ -875,434 +826,6 @@ app.post("/api/admin/import/:name", requireRole(['super_admin']), async (req, re
   }
 });
 
-// 获取指定表的单条记录
-app.get("/api/admin/table/:name/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const { name, id } = req.params;
-    
-    const model = TABLE_MODELS[name];
-    if (!model) {
-      return res.status(404).json({ code: 1, message: "表不存在" });
-    }
-    
-    const record = await model.findOne({ where: { id } });
-    if (!record) {
-      return res.status(404).json({ code: 1, message: "记录不存在" });
-    }
-    
-    // 处理Sequelize实例
-    const data = record.toJSON ? record.toJSON() : record;
-    res.json({ code: 0, data });
-  } catch (error) {
-    console.error("获取记录失败:", error);
-    res.status(500).json({ code: 1, message: error.message || "获取记录失败" });
-  }
-});
-
-// 初始化指定表（如果不存在）
-app.post("/api/admin/table/:name/init", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const { name } = req.params;
-    
-    const model = TABLE_MODELS[name];
-    if (!model) {
-      return res.status(404).json({ code: 1, message: "表不存在" });
-    }
-    
-    // 尝试创建一条空记录来初始化表
-    await model.count();
-    
-    res.json({ code: 0, message: `表 ${TABLE_NAMES[name] || name} 已就绪` });
-  } catch (error) {
-    console.error("初始化表失败:", error);
-    res.status(500).json({ code: 1, message: error.message || "初始化表失败" });
-  }
-});
-
-// 新增记录
-app.post("/api/admin/table/:name", requireRole(['admin', 'super_admin'], true), async (req, res) => {
-  try {
-    const { name } = req.params;
-    const recordData = req.body;
-    
-    const model = TABLE_MODELS[name];
-    if (!model) {
-      return res.status(404).json({ code: 1, message: "表不存在" });
-    }
-    
-    // 移除不允许直接设置的字段
-    delete recordData.id;
-    delete recordData.createdAt;
-    delete recordData.updatedAt;
-    
-    // 药材表：自动计算售卖单价 = 系数 * 成本价
-    if (name === 'herbs') {
-      const coefficient = parseFloat(recordData.coefficient) || 1;
-      const costPrice = parseFloat(recordData.costPrice) || 0;
-      recordData.salePrice = coefficient * costPrice;
-    }
-    
-    // 入库明细：成本价默认等于进货单价
-    if (name === 'stock_in_items') {
-      if (recordData.costPrice === undefined || recordData.costPrice === null || recordData.costPrice === '') {
-        recordData.costPrice = recordData.unitPrice;
-      }
-    }
-    
-    const newRecord = await model.create(recordData);
-    
-    // 如果是入库明细，更新入库单总价，并同步成本价到药材表
-    if (name === 'stock_in_items' && recordData.orderId) {
-      await updateOrderTotalAmount('stock_in_orders', 'stock_in_items', recordData.orderId);
-      // 同步成本价到药材表，并更新售卖单价
-      if (recordData.herbName && recordData.costPrice !== undefined) {
-        const { Herb } = require('./wrappers/db-wrapper');
-        const herb = await Herb.findOne({ where: { name: recordData.herbName } });
-        if (herb) {
-          const coefficient = parseFloat(herb.coefficient) || 1;
-          const newSalePrice = coefficient * parseFloat(recordData.costPrice);
-          await Herb.update(
-            { costPrice: recordData.costPrice, salePrice: newSalePrice, updatedAt: new Date() },
-            { where: { name: recordData.herbName } }
-          );
-        }
-      }
-    }
-    // 如果是执药明细，更新执药单总价
-    if (name === 'stock_out_items' && recordData.orderId) {
-      await updateOrderTotalAmount('stock_out_orders', 'stock_out_items', recordData.orderId);
-    }
-    
-    res.json({ code: 0, message: "新增成功", data: newRecord });
-  } catch (error) {
-    console.error("新增记录失败:", error);
-    res.status(500).json({ code: 1, message: error.message || "新增记录失败" });
-  }
-});
-
-// 更新记录
-app.put("/api/admin/table/:name/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const { name, id } = req.params;
-    const updates = req.body;
-    
-    const model = TABLE_MODELS[name];
-    if (!model) {
-      return res.status(404).json({ code: 1, message: "表不存在" });
-    }
-    
-    // 检查记录是否存在
-    const record = await model.findOne({ where: { id } });
-    if (!record) {
-      return res.status(404).json({ code: 1, message: "记录不存在" });
-    }
-    
-    // 如果是处方表，检查是否为已结算状态
-    if (name === 'prescriptions' && record.status === '已结算') {
-      return res.status(400).json({ code: 1, message: "已结算处方不可编辑" });
-    }
-    
-    // 如果是入库单，检查状态
-    if (name === 'stock_in_orders') {
-      // 已入库状态：只允许修改状态字段（用于回滚），忽略其他字段
-      if (record.status === 'stocked') {
-        const newStatus = updates.status;
-        Object.keys(updates).forEach(key => delete updates[key]);
-        if (newStatus) {
-          updates.status = newStatus;
-        }
-      }
-    }
-    
-    // 如果是入库明细，检查入库单状态
-    if (name === 'stock_in_items' && record.orderId) {
-      const order = await StockInOrder.findOne({ where: { id: record.orderId } });
-      if (order && order.status === 'stocked') {
-        return res.status(400).json({ code: 1, message: "已入库的单据明细不能修改" });
-      }
-    }
-    
-    // 如果是执药单，检查状态
-    if (name === 'stock_out_orders') {
-      // 已结算状态禁止编辑
-      if (record.status === 'settled') {
-        return res.status(400).json({ code: 1, message: "已结算执药单不可编辑，请使用撤销功能" });
-      }
-      // 禁止直接修改status字段（应使用专用接口）
-      if (updates.status) {
-        return res.status(400).json({ code: 1, message: "执药单状态不能直接修改，请使用结算/撤销功能" });
-      }
-    }
-    
-    // 如果是执药明细，检查执药单状态
-    if (name === 'stock_out_items' && record.orderId) {
-      const order = await StockOutOrder.findOne({ where: { id: record.orderId } });
-      if (order && order.status === 'settled') {
-        return res.status(400).json({ code: 1, message: "已结算执药单明细不能修改" });
-      }
-    }
-    
-    // 受保护字段：不允许修改
-    const protectedFields = ['id', 'openid', 'createdAt'];
-    protectedFields.forEach(field => delete updates[field]);
-    
-    // 【权限控制】如果是 users 表，admin 不能修改 role 字段为 super_admin
-    if (name === 'users' && req.user.role === 'admin') {
-      // 如果尝试修改 role 字段
-      if (updates.role) {
-        // admin 不能设置 super_admin 角色
-        if (updates.role === 'super_admin') {
-          return res.status(403).json({ code: 1, message: '管理员无权设置超级管理员' });
-        }
-        // admin 只能将角色降级或设置为 admin/user
-        if (!['user', 'admin'].includes(updates.role)) {
-          return res.status(403).json({ code: 1, message: '管理员无权设置此角色' });
-        }
-      }
-    }
-    
-    // 药材表：自动计算售卖单价 = 系数 * 成本价
-    if (name === 'herbs') {
-      const coefficient = updates.coefficient !== undefined ? parseFloat(updates.coefficient) : parseFloat(record.coefficient) || 1;
-      const costPrice = updates.costPrice !== undefined ? parseFloat(updates.costPrice) : parseFloat(record.costPrice) || 0;
-      updates.salePrice = coefficient * costPrice;
-    }
-    
-    // 入库明细：成本价默认等于进货单价
-    if (name === 'stock_in_items') {
-      if (updates.costPrice === undefined || updates.costPrice === null || updates.costPrice === '') {
-        updates.costPrice = updates.unitPrice !== undefined ? updates.unitPrice : record.unitPrice;
-      }
-    }
-    
-    // 执行更新
-    await model.update(updates, { where: { id } });
-    
-    // 入库明细：同步成本价到药材表，并更新售卖单价
-    if (name === 'stock_in_items' && updates.costPrice !== undefined) {
-      const herbName = updates.herbName || record.herbName;
-      if (herbName) {
-        const { Herb } = require('./wrappers/db-wrapper');
-        const herb = await Herb.findOne({ where: { name: herbName } });
-        if (herb) {
-          const coefficient = parseFloat(herb.coefficient) || 1;
-          const newSalePrice = coefficient * parseFloat(updates.costPrice);
-          await Herb.update(
-            { costPrice: updates.costPrice, salePrice: newSalePrice, updatedAt: new Date() },
-            { where: { name: herbName } }
-          );
-        }
-      }
-    }
-    
-    // 返回更新后的记录
-    const updatedRecord = await model.findOne({ where: { id } });
-    
-    // 处方表状态变化时自动创建/删除执药单
-    if (name === 'prescriptions') {
-      // 待审核 → 已审核：创建执药单
-      if (updates.status === '已审核' && record.status === '待审核') {
-        try {
-          // 解析处方数据
-          const prescriptionData = JSON.parse(record.data);
-          const targetPrescriptionId = prescriptionData.prescriptionId || record.prescriptionId;
-          
-          // 检查是否已存在该处方的执药单
-          const existingOrder = await StockOutOrder.findOne({ where: { prescriptionId: targetPrescriptionId } });
-          if (!existingOrder) {
-            // 从处方数据中提取药材明细
-            const medicines = prescriptionData.medicines || prescriptionData['药方'] || [];
-            if (medicines.length > 0) {
-              const now = new Date().toISOString();
-              // 创建执药单主记录
-              const outOrder = await StockOutOrder.create({
-                prescriptionId: targetPrescriptionId,
-                prescriptionTime: record.prescriptionDate || now,
-                pharmacist: '',
-                reviewer: record.reviewer || '',  // 从处方记录获取审核人
-                status: 'pending',
-                remark: '处方审核通过自动生成',
-                totalAmount: 0,
-                createdAt: now,
-                updatedAt: now
-              });
-              
-              // 获取剂数
-              const dosage = parseInt(prescriptionData.dosage) || 1;
-              
-              // 创建执药明细
-              for (const med of medicines) {
-                const herbName = med.name || med['药名'] || '';
-                const singleDose = parseFloat(med.quantity || med['数量'] || 0);
-                const quantity = singleDose * dosage;  // 总克数 = 单剂量 × 剂数
-                
-                if (herbName && quantity > 0) {
-                  // 获取药材售价
-                  const herb = await Herb.findOne({ where: { name: herbName } });
-                  const unitPrice = herb ? (herb.salePrice || 0) : 0;
-                  
-                  await StockOutItem.create({
-                    orderId: outOrder.id,
-                    herbName,
-                    quantity,
-                    unitPrice,
-                    totalPrice: quantity * unitPrice,
-                    createdAt: now
-                  });
-                }
-              }
-              
-              console.log('[PUT处方审核] 自动创建执药单成功:', outOrder.id, '处方ID:', targetPrescriptionId);
-            }
-          }
-        } catch (err) {
-          console.error('[PUT处方审核] 创建执药单失败:', err.message);
-        }
-      }
-      
-      // 已审核 → 待审核：删除执药单（仅限待执药状态）
-      if (updates.status === '待审核' && record.status === '已审核') {
-        try {
-          const prescriptionData = JSON.parse(record.data);
-          const targetPrescriptionId = prescriptionData.prescriptionId || record.prescriptionId;
-          
-          // 查找对应执药单
-          const existingOrder = await StockOutOrder.findOne({ where: { prescriptionId: targetPrescriptionId } });
-          if (existingOrder) {
-            // 只有待执药状态才能删除
-            if (existingOrder.status === 'pending') {
-              // 先删除明细
-              await StockOutItem.destroy({ where: { orderId: existingOrder.id } });
-              // 再删除主表
-              await StockOutOrder.destroy({ where: { id: existingOrder.id } });
-              console.log('[PUT处方取消审核] 删除执药单成功:', existingOrder.id, '处方ID:', targetPrescriptionId);
-            } else {
-              console.log('[PUT处方取消审核] 执药单已结算，不删除:', existingOrder.id);
-            }
-          }
-        } catch (err) {
-          console.error('[PUT处方取消审核] 删除执药单失败:', err.message);
-        }
-      }
-    }
-    
-    // 更新入库单总价
-    if (name === 'stock_in_items' && record.orderId) {
-      await updateOrderTotalAmount('stock_in_orders', 'stock_in_items', record.orderId);
-    }
-    // 更新执药单总价
-    if (name === 'stock_out_items' && record.orderId) {
-      await updateOrderTotalAmount('stock_out_orders', 'stock_out_items', record.orderId);
-    }
-    
-    res.json({ code: 0, message: "更新成功", data: updatedRecord });
-  } catch (error) {
-    console.error("更新记录失败:", error);
-    res.status(500).json({ code: 1, message: error.message || "更新记录失败" });
-  }
-});
-
-// 删除记录
-app.delete("/api/admin/table/:name/:id", requireRole(['admin', 'super_admin'], true), async (req, res) => {
-  try {
-    const { name, id } = req.params;
-    
-    const model = TABLE_MODELS[name];
-    if (!model) {
-      return res.status(404).json({ code: 1, message: "表不存在" });
-    }
-    
-    // 检查记录是否存在
-    const record = await model.findOne({ where: { id } });
-    if (!record) {
-      return res.status(404).json({ code: 1, message: "记录不存在" });
-    }
-    
-    // 已入库/已结算状态的单据不能删除
-    if (name === 'stock_in_orders' && record.status === 'stocked') {
-      return res.status(400).json({ code: 1, message: "已入库单据不能删除" });
-    }
-    if (name === 'stock_out_orders' && record.status === 'settled') {
-      return res.status(400).json({ code: 1, message: "已结算执药单不能删除，请使用撤销功能" });
-    }
-    
-    // 级联删除：删除入库单时同步删除入库明细
-    if (name === 'stock_in_orders') {
-      const detailCount = await StockInItem.count({ where: { orderId: id } });
-      if (detailCount > 0) {
-        await StockInItem.destroy({ where: { orderId: id } });
-      }
-    }
-    
-    // 级联删除：删除执药单时同步删除执药明细
-    if (name === 'stock_out_orders') {
-      const detailCount = await StockOutItem.count({ where: { orderId: id } });
-      if (detailCount > 0) {
-        await StockOutItem.destroy({ where: { orderId: id } });
-      }
-    }
-    
-    // 级联删除：删除盘点单时同步删除盘点明细
-    // 记录orderId用于更新总价
-    const orderId = record.orderId;
-    
-    // 执行删除
-    const deletedCount = await model.destroy({ where: { id } });
-    
-    // 如果是入库明细，更新入库单总价
-    if (name === 'stock_in_items' && orderId) {
-      await updateOrderTotalAmount('stock_in_orders', 'stock_in_items', orderId);
-    }
-    // 如果是执药明细，更新执药单总价
-    if (name === 'stock_out_items' && orderId) {
-      await updateOrderTotalAmount('stock_out_orders', 'stock_out_items', orderId);
-    }
-    
-    res.json({ code: 0, message: "删除成功", data: { deletedCount } });
-  } catch (error) {
-    console.error("删除记录失败:", error);
-    res.status(500).json({ code: 1, message: error.message || "删除记录失败" });
-  }
-});
-
-// 批量删除记录
-app.post("/api/admin/table/:name/batch-delete", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const { name } = req.params;
-    const { ids } = req.body;
-    
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ code: 1, message: "请选择要删除的记录" });
-    }
-    
-    const model = TABLE_MODELS[name];
-    if (!model) {
-      return res.status(404).json({ code: 1, message: "表不存在" });
-    }
-    
-    // 执行批量删除
-    let deletedCount = 0;
-    for (const id of ids) {
-      // 级联删除：删除入库单时同步删除入库明细
-      if (name === 'stock_in_orders') {
-        await StockInItem.destroy({ where: { orderId: id } });
-      }
-      // 级联删除：删除执药单时同步删除执药明细
-      if (name === 'stock_out_orders') {
-        await StockOutItem.destroy({ where: { orderId: id } });
-      }
-      
-      const count = await model.destroy({ where: { id } });
-      deletedCount += count;
-    }
-    
-    res.json({ code: 0, message: `成功删除 ${deletedCount} 条记录`, data: { deletedCount } });
-  } catch (error) {
-    console.error("批量删除失败:", error);
-    res.status(500).json({ code: 1, message: error.message || "批量删除失败" });
-  }
-});
-
 // ==================== 库存管理接口 ====================
 
 // 药材管理
@@ -1382,25 +905,6 @@ app.put("/api/stock/in/orders/:id", requireRole(['admin', 'super_admin']), async
 app.delete("/api/stock/in/orders/:id", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const result = await stock.deleteInOrder(req.params.id);
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ code: 1, message: error.message });
-  }
-});
-
-app.post("/api/stock/in/orders/:id/confirm", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const result = await stock.confirmInOrder(req.params.id);
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ code: 1, message: error.message });
-  }
-});
-
-app.post("/api/stock/in/orders/:id/stock", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const operator = req.user?.openid || 'system';
-    const result = await stock.executeStockIn(req.params.id, operator);
     res.json(result);
   } catch (error) {
     res.status(400).json({ code: 1, message: error.message });
@@ -1490,17 +994,6 @@ app.put("/api/stock/out/orders/:id", requireRole(['admin', 'super_admin']), asyn
   }
 });
 
-// 撤销执药单（回滚库存）
-app.post("/api/stock/out/orders/:id/revert", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const operator = req.user?.name || req.user?.openid || 'system';
-    const result = await stock.revertOutOrder(req.params.id, operator);
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ code: 1, message: error.message });
-  }
-});
-
 // 结算执药单
 app.post("/api/stock/out/orders/:id/settle", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
@@ -1516,45 +1009,6 @@ app.post("/api/stock/out/orders/:id/settle", requireRole(['admin', 'super_admin'
 app.post("/api/stock/out/orders/:id/revoke", requireRole(['admin', 'super_admin']), async (req, res) => {
   try {
     const result = await stock.revokeSettledOrder(req.params.id);
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ code: 1, message: error.message });
-  }
-});
-
-// 库存统计
-app.get("/api/stock/inventory", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const result = await stock.getInventory(req.query);
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ code: 1, message: error.message });
-  }
-});
-
-app.get("/api/stock/inventory/alert", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const result = await stock.getInventoryAlert();
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ code: 1, message: error.message });
-  }
-});
-
-app.put("/api/stock/inventory/:herbName/min-value", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const herbName = decodeURIComponent(req.params.herbName);
-    const result = await stock.setHerbMinValue(herbName, req.body.minValue);
-    res.json(result);
-  } catch (error) {
-    res.status(400).json({ code: 1, message: error.message });
-  }
-});
-
-app.get("/api/stock/inventory/:herbName/history", requireRole(['admin', 'super_admin']), async (req, res) => {
-  try {
-    const herbName = decodeURIComponent(req.params.herbName);
-    const result = await stock.getHerbHistory(herbName, req.query);
     res.json(result);
   } catch (error) {
     res.status(400).json({ code: 1, message: error.message });

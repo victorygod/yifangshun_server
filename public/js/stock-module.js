@@ -49,9 +49,9 @@ export async function getHerbInfoMap() {
 
   try {
     const res = await _dependencies.homeFetch('/api/stock/herbs');
-    if (res.code === 0 && res.data && res.data.rows) {
+    if (res.code === 0 && res.data && Array.isArray(res.data)) {
       herbInfoCache = {};
-      res.data.rows.forEach(herb => {
+      res.data.forEach(herb => {
         herbInfoCache[herb.name] = {
           salePrice: herb.salePrice || 0,
           cabinetNo: herb.cabinetNo || '',
@@ -100,10 +100,10 @@ export async function confirmStockIn(rowId) {
       });
       if (res.code !== 0) throw new Error(res.message);
       _dependencies.showToast('入库成功', 'success');
-      
+
       // 清除药材信息缓存，确保现成本提示显示最新数据
       clearHerbInfoCache();
-      
+
       _dependencies.loadTableData();
       _dependencies.loadStats();
     } catch (err) {
@@ -770,9 +770,9 @@ export function getCreateOrderApiPath(tableType) {
   if (tableType === 'stock_in_orders') {
     return '/api/stock/in/orders';
   } else if (tableType === 'stock_out_orders') {
-    return `/api/admin/table/${tableType}`;
+    return '/api/stock/out/orders';
   }
-  return `/api/admin/table/${tableType}`;
+  throw new Error(`未知的订单类型: ${tableType}`);
 }
 
 /**
@@ -835,7 +835,7 @@ export function getDeleteApiPath(rowId, tableType) {
   } else if (tableType === 'stock_out_orders') {
     return `/api/stock/out/orders/${rowId}`;
   }
-  return `/api/admin/table/${tableType}/${rowId}`;
+  throw new Error(`未知的订单类型: ${tableType}`);
 }
 
 /**
@@ -978,6 +978,59 @@ export function renderOrderDetail(row, config, detailTable) {
   const isStocked = currentTable === 'stock_in_orders' && row.status === 'stocked';
   const isDetailReadonly = isSettled || isStocked;
 
+  // 新增行（在第一行显示）
+  if (!isDetailReadonly) {
+    html += `<tr class="detail-new-row" data-order-id="${row.id}">`;
+    filteredDetailColumns.forEach(col => {
+      const isReadonly = col.readonly;
+      const isDisabled = col.disabled;
+      // ID和入库单ID始终只读
+      const isAlwaysReadonly = col.key === 'id' || col.key === 'orderId';
+      // 草稿状态的入库单：忽略 readonly 配置，允许编辑（但ID和orderId除外）
+      // 执药单待执药状态：只允许编辑药材名称和克数
+      const isInStockDraft = currentTable === 'stock_in_orders' && row.status === 'draft';
+      const isOutStockPending = currentTable === 'stock_out_orders' && row.status === 'pending';
+      const isEditableField = isOutStockPending && (col.key === 'herbName' || col.key === 'quantity');
+
+      // 入库单草稿状态：所有字段可编辑
+      // 执药单待执药状态：只有herbName和quantity可编辑
+      const isActuallyReadonly = (isReadonly && !isInStockDraft && !isEditableField) || isAlwaysReadonly;
+
+      // 跳过 totalPrice 列（入库明细不显示总价）
+      if (col.key === 'totalPrice') {
+        html += `<td style="display:none;"></td>`;
+        return;
+      }
+
+      if (isActuallyReadonly) {
+        html += `<td><span class="cell-readonly">自动</span></td>`;
+      } else {
+        let dataAttrs = ' data-is-new="true"';
+        if (col.key === 'quantity' || col.key === 'unitPrice' || col.key === 'herbName') {
+          dataAttrs += ' data-calc-source="true"';
+        }
+        // 入库明细：克数和进货单价用于计算成本价
+        if (currentTable === 'stock_in_orders' && (col.key === 'quantity' || col.key === 'unitPrice')) {
+          dataAttrs += ' data-cost-calc="true"';
+        }
+        if (col.key === 'cabinetNo') {
+          dataAttrs += ' data-cabinet-no="true"';
+        }
+        const disabledAttr = isDisabled ? ' disabled' : '';
+        if (currentTable === 'stock_in_orders' && col.key === 'costPrice') {
+          // 入库明细成本价：新增行暂不显示当前成本
+          html += `<td class="cell-with-hint"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}><span class="field-hint"></span></td>`;
+        } else {
+          html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}></td>`;
+        }
+      }
+    });
+    html += `<td class="col-action">
+      <button class="action-btn action-btn-add" data-action="saveDetailNew" data-order-id="${row.id}">添加</button>
+    </td>`;
+    html += `</tr>`;
+  }
+
   // 已有明细
   items.forEach(item => {
     html += `<tr data-detail-id="${item.id}" data-order-id="${row.id}">`;
@@ -1040,57 +1093,6 @@ export function renderOrderDetail(row, config, detailTable) {
     }
     html += `</tr>`;
   });
-
-  // 空行用于新增（已结算/已入库状态不显示新增行）
-  if (!isDetailReadonly) {
-    html += `<tr class="detail-new-row" data-order-id="${row.id}">`;
-    filteredDetailColumns.forEach(col => {
-      const isReadonly = col.readonly;
-      const isDisabled = col.disabled;
-      // ID和入库单ID始终只读
-      const isAlwaysReadonly = col.key === 'id' || col.key === 'orderId';
-      // 草稿状态的入库单：忽略 readonly 配置，允许编辑（但ID和orderId除外）
-      // 执药单待执药状态：允许编辑药材名称和克数
-      const isInStockDraft = currentTable === 'stock_in_orders' && row.status === 'draft';
-      const isOutStockPending = currentTable === 'stock_out_orders' && row.status === 'pending';
-      const isEditableField = isOutStockPending && (col.key === 'herbName' || col.key === 'quantity');
-      
-      const isActuallyReadonly = isReadonly && !(isInStockDraft || isOutStockPending) || isAlwaysReadonly;
-      
-      // 跳过 totalPrice 列（入库明细不显示总价）
-      if (col.key === 'totalPrice') {
-        html += `<td style="display:none;"></td>`;
-        return;
-      }
-      
-      if (isActuallyReadonly) {
-        html += `<td><span class="cell-readonly">自动</span></td>`;
-      } else {
-        let dataAttrs = ' data-is-new="true"';
-        if (col.key === 'quantity' || col.key === 'unitPrice' || col.key === 'herbName') {
-          dataAttrs += ' data-calc-source="true"';
-        }
-        // 入库明细：克数和进货单价用于计算成本价
-        if (currentTable === 'stock_in_orders' && (col.key === 'quantity' || col.key === 'unitPrice')) {
-          dataAttrs += ' data-cost-calc="true"';
-        }
-        if (col.key === 'cabinetNo') {
-          dataAttrs += ' data-cabinet-no="true"';
-        }
-        const disabledAttr = isDisabled ? ' disabled' : '';
-        if (currentTable === 'stock_in_orders' && col.key === 'costPrice') {
-          // 入库明细成本价：新增行暂不显示当前成本
-          html += `<td class="cell-with-hint"><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}><span class="field-hint"></span></td>`;
-        } else {
-          html += `<td><input type="${col.type === 'number' ? 'number' : 'text'}" class="detail-input detail-new-input" data-col="${col.key}" placeholder="${col.label}"${dataAttrs}${disabledAttr}></td>`;
-        }
-      }
-    });
-    html += `<td class="col-action">
-      <button class="action-btn action-btn-add" data-action="saveDetailNew" data-order-id="${row.id}">添加</button>
-    </td>`;
-    html += `</tr>`;
-  }
 
   html += `</tbody></table>`;
   html += `</div></td></tr>`;

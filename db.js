@@ -285,7 +285,7 @@ const StockInOrder = sequelize.define("StockInOrder", {
     type: DataTypes.STRING(100),
     allowNull: true,
   },
-  totalAmount: {
+  totalPrice: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true,
   },
