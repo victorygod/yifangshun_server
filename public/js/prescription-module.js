@@ -8,10 +8,14 @@ const _dependencies = {
   showToast: null,
   showAlert: null,
   loadTableData: null,
+  loadStats: null,
   showConfirm: null,
   showImagePreview: null,
   getTableData: null,
-  getTableConfig: null
+  getTableConfig: null,
+  getEditingRowId: null,
+  setEditingRowId: null,
+  clearSelectedIds: null
 };
 
 /**
@@ -171,21 +175,6 @@ export function validateDelete(rowId, row) {
   }
   
   return { canDelete: true };
-}
-
-// ==================== 导出模块实例供全局访问 ====================
-if (typeof window !== 'undefined') {
-  window._prescriptionModule = {
-    initPrescriptionModule,
-    savePrescriptionDetail,
-    addMedicine,
-    removeMedicine,
-    validateDelete,
-    renderPrescriptionDetail,
-    handlePrescriptionReview,
-    savePrescription,
-    deletePrescription
-  };
 }
 
 // ==================== 渲染处方详情 ====================
@@ -433,4 +422,135 @@ export async function deletePrescription(rowId) {
 
   if (res.code !== 0) throw new Error(res.message);
   return res;
+}
+
+// ==================== 事件处理器配置 ====================
+
+/**
+ * 处方事件处理器
+ */
+export const prescriptionsHandlers = {
+  /**
+   * 加载数据
+   */
+  onLoad: async (page, pageSize, keyword) => {
+    const res = await _dependencies.homeFetch(`/api/prescription/list?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}`);
+    if (res.code !== 0) throw new Error(res.message);
+    return {
+      data: res.data?.rows || [],
+      pagination: res.data?.pagination || {}
+    };
+  },
+
+  /**
+   * 保存行
+   */
+  onSave: async (rowId, rowElement) => {
+    try {
+      const inputs = rowElement.querySelectorAll('.cell-input, .cell-select');
+      const data = {};
+      inputs.forEach(input => {
+        data[input.dataset.col] = input.value;
+      });
+
+      const res = await savePrescription(rowId, data);
+      if (res.code !== 0) throw new Error(res.message);
+
+      _dependencies.showToast('保存成功', 'success');
+      _dependencies.setEditingRowId?.(null);
+      _dependencies.clearSelectedIds?.();
+      _dependencies.loadTableData();
+      _dependencies.loadStats();
+      return res;
+    } catch (err) {
+      _dependencies.showToast('保存失败: ' + err.message, 'error');
+      throw err;
+    }
+  },
+
+  /**
+   * 保存新增行（处方不支持新增）
+   */
+  onSaveNew: async () => {
+    _dependencies.showToast('处方管理不支持新增', 'error');
+    return;
+  },
+
+  /**
+   * 删除行
+   */
+  onDelete: async (rowId, row) => {
+    // 验证是否可删除
+    const validation = validateDelete(rowId, row);
+    if (!validation.canDelete) {
+      _dependencies.showToast(validation.message, 'error');
+      return;
+    }
+
+    return new Promise((resolve, reject) => {
+      _dependencies.showConfirm('确认删除', '确定要删除这条处方吗？', async () => {
+        try {
+          const res = await deletePrescription(rowId);
+          if (res.code !== 0) throw new Error(res.message);
+
+          _dependencies.showToast('删除成功', 'success');
+          _dependencies.setEditingRowId?.(null);
+          _dependencies.clearSelectedIds?.();
+          _dependencies.loadTableData();
+          _dependencies.loadStats();
+          resolve(res);
+        } catch (err) {
+          _dependencies.showToast('删除失败: ' + err.message, 'error');
+          reject(err);
+        }
+      });
+    });
+  },
+
+  /**
+   * 批量删除
+   */
+  onBatchDelete: async (ids) => {
+    const confirmMessage = `确定要删除选中的 ${ids.length} 条处方吗？`;
+
+    return new Promise((resolve, reject) => {
+      _dependencies.showConfirm('批量删除', confirmMessage, async () => {
+        try {
+          let deletedCount = 0;
+          for (const id of ids) {
+            const res = await deletePrescription(id);
+            if (res.code !== 0) {
+              throw new Error(`删除处方失败: ${res.message}`);
+            }
+            deletedCount++;
+          }
+          _dependencies.showToast(`成功删除 ${deletedCount} 条记录`, 'success');
+          _dependencies.clearSelectedIds?.();
+          _dependencies.loadTableData();
+          _dependencies.loadStats();
+          resolve({ success: true, deletedCount });
+        } catch (err) {
+          _dependencies.showToast('批量删除失败: ' + err.message, 'error');
+          _dependencies.loadTableData();
+          reject(err);
+        }
+      });
+    });
+  }
+};
+
+// ==================== 更新导出 ====================
+if (typeof window !== 'undefined') {
+  window._prescriptionModule = {
+    initPrescriptionModule,
+    savePrescriptionDetail,
+    addMedicine,
+    removeMedicine,
+    validateDelete,
+    renderPrescriptionDetail,
+    handlePrescriptionReview,
+    savePrescription,
+    deletePrescription,
+    prescriptionsHandlers
+  };
 }

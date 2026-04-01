@@ -19,6 +19,7 @@ const prescription = require("./services/prescription");
 const chat = require("./services/chat");
 const stock = require("./services/stock");
 const schedule = require("./services/schedule");  // 新增
+const scheduleConfigLoader = require("./config/schedule_config_loader");
 
 // 导入工具函数
 const { convertCloudFileIdToUrl } = require("./services/prescription");
@@ -34,15 +35,8 @@ app.use(bodyParser.json({ limit: '10mb' }));
 app.use(cors());
 app.use(logger);
 
-// 静态文件服务（排除 index.html，由路由处理）
-const staticMiddleware = express.static(path.join(__dirname, 'public'));
-app.use((req, res, next) => {
-  // 如果是根路径，跳过静态服务，让路由处理
-  if (req.path === '/' || req.path === '/index.html') {
-    return next();
-  }
-  staticMiddleware(req, res, next);
-});
+// 静态文件服务
+app.use(express.static(path.join(__dirname, 'public')));
 
 // 首页 - 返回用户列表数据（前端通过AJAX获取）
 app.get("/api/home/users", requireRole(['admin', 'super_admin']), async (req, res) => {
@@ -1052,12 +1046,14 @@ app.get("/api/schedule/config", requireRole(['admin', 'super_admin']), async (re
   try {
     const defaults = await schedule.getDefaultConfig();
     const overrides = await schedule.getOverrides();
-    
+    const config = scheduleConfigLoader.getConfig();
+
     res.json({
       code: 0,
       data: {
         defaults,
-        overrides
+        overrides,
+        maxBookings: config.max_bookings
       }
     });
   } catch (error) {
@@ -1075,6 +1071,30 @@ app.post("/api/schedule/config/default", requireRole(['admin', 'super_admin']), 
   } catch (error) {
     console.error("设置默认配置失败:", error);
     return res.status(400).json({ code: 1, message: error.message || "设置默认配置失败" });
+  }
+});
+
+// 设置场次最大预约人数
+app.post("/api/schedule/config/max-bookings", requireRole(['admin', 'super_admin']), (req, res) => {
+  try {
+    const { morning, afternoon, evening } = req.body;
+
+    if (morning < 1 || afternoon < 1 || evening < 1) {
+      return res.status(400).json({ code: 1, message: '预约人数必须大于0' });
+    }
+
+    const config = scheduleConfigLoader.getConfig();
+    config.max_bookings = { morning, afternoon, evening };
+
+    const result = scheduleConfigLoader.saveConfig(config);
+    if (!result.success) {
+      return res.status(500).json({ code: 1, message: result.error || '保存失败' });
+    }
+
+    res.json({ code: 0, message: '场次配置已保存' });
+  } catch (error) {
+    console.error("设置场次配置失败:", error);
+    return res.status(500).json({ code: 1, message: error.message || "设置场次配置失败" });
   }
 });
 
@@ -1107,6 +1127,71 @@ app.delete("/api/schedule/config/override/:id", requireRole(['admin', 'super_adm
 // 健康检查
 app.get("/health", (req, res) => {
   res.json({ status: "ok", message: "服务器运行正常" });
+});
+
+// ==================== LLM 配置管理 ====================
+
+const LLM_CONFIG_PATH = path.join(__dirname, 'config/llm_api_config.json');
+
+// 获取 LLM 配置
+app.get("/api/llm-config", requireRole(['admin', 'super_admin']), (req, res) => {
+  try {
+    const configContent = fs.readFileSync(LLM_CONFIG_PATH, 'utf-8');
+    const config = JSON.parse(configContent);
+    res.json({ code: 0,  config });
+  } catch (error) {
+    console.error('读取LLM配置失败:', error);
+    res.status(500).json({ code: 1, message: '读取配置失败: ' + error.message });
+  }
+});
+
+// 保存 LLM 配置
+app.post("/api/llm-config", requireRole(['admin', 'super_admin']), (req, res) => {
+  try {
+    const { prescription_ocr_llm_config, chat_llm_config } = req.body;
+
+    // 验证必填字段
+    if (!prescription_ocr_llm_config || !chat_llm_config) {
+      return res.status(400).json({ code: 1, message: '缺少配置数据' });
+    }
+
+    // 构建新配置
+    const newConfig = {
+      prescription_ocr_llm_config: {
+        api_key: prescription_ocr_llm_config.api_key || '',
+        model: prescription_ocr_llm_config.model || '',
+        prompt: prescription_ocr_llm_config.prompt || '',
+        request: {
+          hostname: prescription_ocr_llm_config.request?.hostname || '',
+          port: prescription_ocr_llm_config.request?.port || 443,
+          path: prescription_ocr_llm_config.request?.path || '',
+          method: prescription_ocr_llm_config.request?.method || 'POST',
+          headers: prescription_ocr_llm_config.request?.headers || { 'Content-Type': 'application/json' }
+        }
+      },
+      chat_llm_config: {
+        api_key: chat_llm_config.api_key || '',
+        model: chat_llm_config.model || '',
+        prompt: chat_llm_config.prompt || '',
+        request: {
+          hostname: chat_llm_config.request?.hostname || '',
+          port: chat_llm_config.request?.port || 443,
+          path: chat_llm_config.request?.path || '',
+          method: chat_llm_config.request?.method || 'POST',
+          headers: chat_llm_config.request?.headers || { 'Content-Type': 'application/json' }
+        }
+      }
+    };
+
+    // 写入文件
+    fs.writeFileSync(LLM_CONFIG_PATH, JSON.stringify(newConfig, null, 2), 'utf-8');
+    console.log('[LLM Config] 配置已保存');
+
+    res.json({ code: 0, message: '配置保存成功' });
+  } catch (error) {
+    console.error('保存LLM配置失败:', error);
+    res.status(500).json({ code: 1, message: '保存配置失败: ' + error.message });
+  }
 });
 
 // 接收日志（写入文件）

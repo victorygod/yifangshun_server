@@ -1,0 +1,30 @@
+{
+  "prescription_ocr_llm_config": {
+    "api_key": "sk-25ad83b975ba4458a9983367888dd0dd",
+    "model": "qwen-vl-max",
+    "prompt": "识别中医处方，以json格式返回，遵循以下输出格式：\n{\n  '姓名': '',\n  '年龄': '',\n  '日期': '',\n  '处方号': '右上角红色编号',\n  'Rp': '完整的Rp内容',\n  '剂数': '一般是中文繁体大写数字，输出时转为阿拉伯数字',\n  '服用方式': '内服还是外用',\n  '药方': [\n    // Rp中每款中药以及数量，不是药名的内容不用写\n    {\n      '药名': '',\n      '数量': '',\n      '备注': \"\"  // 如果某个药材左上角或右上角有小字，一般为四种：先煎、后下、打、另包，写在这里，左右都有的用逗号分隔\n    }\n  ],\n  '医师': '肖笃凯'\n}",
+    "request": {
+      "hostname": "dashscope.aliyuncs.com",
+      "port": 443,
+      "path": "/compatible-mode/v1/chat/completions",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  "chat_llm_config": {
+    "api_key": "",
+    "model": "",
+    "prompt": "",
+    "request": {
+      "hostname": "",
+      "port": 443,
+      "path": "",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  }
+}

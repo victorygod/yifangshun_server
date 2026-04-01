@@ -1,21 +1,11 @@
 const { Booking, ScheduleConfig, Op, User } = require('../wrappers/db-wrapper');
+const scheduleConfigLoader = require('../config/schedule_config_loader');
 
-// 场次配置（名称和时段，不含容量——容量从 DB 读取）
+// 场次配置（名称和时段，容量从配置文件读取）
 const SESSION_CONFIG = {
-  morning: { name: '上午', timeRange: '08:00-12:00', maxBookings: 2 },
-  afternoon: { name: '下午', timeRange: '14:00-18:00', maxBookings: 4 },
-  evening: { name: '晚上', timeRange: '19:00-21:00', maxBookings: 2 }
-};
-
-// 硬编码的默认停诊规则（仅在 DB 无配置时兜底）
-const DEFAULT_CLOSED_SESSIONS = {
-  0: { morning: true, afternoon: false, evening: false },  // 周日
-  1: { morning: true, afternoon: false, evening: false },  // 周一
-  2: { morning: true, afternoon: true, evening: true },    // 周二
-  3: { morning: true, afternoon: false, evening: false },  // 周三
-  4: { morning: false, afternoon: true, evening: false },  // 周四
-  5: { morning: true, afternoon: false, evening: false },  // 周五
-  6: { morning: true, afternoon: false, evening: false }   // 周六
+  morning: { name: '上午', timeRange: '08:00-12:00' },
+  afternoon: { name: '下午', timeRange: '14:00-18:00' },
+  evening: { name: '晚上', timeRange: '19:00-21:00' }
 };
 
 // 生成随机 ID
@@ -23,11 +13,11 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
 
 /**
  * 从 ScheduleConfig 表查询某个日期+场次的实际配置。
- * 优先级：临时调整（date+session 或 date+all）> 默认规则（dayOfWeek+session）> 硬编码兜底
+ * 优先级：临时调整（date+session 或 date+all）> 默认规则（配置文件）
  * 返回 { isOpen, maxBookings }
  */
 async function getSessionConfig(dateStr, session, dayOfWeek) {
-  const defaultMax = SESSION_CONFIG[session].maxBookings;
+  const defaultMax = scheduleConfigLoader.getMaxBookings(session);
 
   try {
     // 1. 临时调整：精确匹配日期+场次，或 全天(all)
@@ -46,26 +36,15 @@ async function getSessionConfig(dateStr, session, dayOfWeek) {
         maxBookings: override.maxBookings != null ? override.maxBookings : defaultMax
       };
     }
-
-    // 2. 默认规则（按星期）
-    const defaultCfg = await ScheduleConfig.findOne({
-      where: { type: 'default', dayOfWeek: String(dayOfWeek), session }
-    });
-
-    if (defaultCfg) {
-      return {
-        isOpen: defaultCfg.isOpen,
-        maxBookings: defaultCfg.maxBookings != null ? defaultCfg.maxBookings : defaultMax
-      };
-    }
   } catch (e) {
-    // ScheduleConfig 表不存在或查询失败时，静默降级到硬编码
+    // ScheduleConfig 表不存在或查询失败时，静默降级到配置文件
   }
 
-  // 3. 硬编码兜底
+  // 2. 默认规则（从配置文件读取）
+  const defaultStatus = scheduleConfigLoader.getDefaultSessionStatus(dayOfWeek, session);
   return {
-    isOpen: !DEFAULT_CLOSED_SESSIONS[dayOfWeek][session],
-    maxBookings: defaultMax
+    isOpen: defaultStatus.isOpen,
+    maxBookings: defaultStatus.maxBookings
   };
 }
 

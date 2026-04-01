@@ -43,6 +43,165 @@
     </div>
   </div>
 
+  <!-- LLM配置页面模板 -->
+  <template id="llm-config-template">
+    <div class="page-header">
+      <div class="page-title">🤖 LLM配置</div>
+    </div>
+    <div class="llm-config-container">
+      <!-- 处方识别 LLM 配置 -->
+      <div class="llm-config-section">
+        <div class="llm-config-section-title">处方识别 LLM 配置 (prescription_ocr_llm_config)</div>
+        <div class="llm-config-form">
+          <div class="llm-config-row">
+            <label class="llm-config-label">API Key</label>
+            <input type="text" id="ocr_api_key" class="llm-config-input" placeholder="输入 API Key">
+          </div>
+          <div class="llm-config-row">
+            <label class="llm-config-label">模型名称</label>
+            <input type="text" id="ocr_model" class="llm-config-input" placeholder="输入模型名称">
+          </div>
+          <div class="llm-config-row">
+            <label class="llm-config-label">Prompt</label>
+            <textarea id="ocr_prompt" class="llm-config-textarea" rows="12" placeholder="输入 Prompt"></textarea>
+          </div>
+          <div class="llm-config-row">
+            <label class="llm-config-label">Request Hostname</label>
+            <input type="text" id="ocr_hostname" class="llm-config-input" placeholder="如: dashscope.aliyuncs.com">
+          </div>
+          <div class="llm-config-row">
+            <label class="llm-config-label">Request Port</label>
+            <input type="number" id="ocr_port" class="llm-config-input" placeholder="如: 443">
+          </div>
+          <div class="llm-config-row">
+            <label class="llm-config-label">Request Path</label>
+            <input type="text" id="ocr_path" class="llm-config-input" placeholder="如: /compatible-mode/v1/chat/completions">
+          </div>
+        </div>
+      </div>
+
+      <!-- 聊天 LLM 配置 -->
+      <div class="llm-config-section">
+        <div class="llm-config-section-title">聊天 LLM 配置 (chat_llm_config)</div>
+        <div class="llm-config-form">
+          <div class="llm-config-row">
+            <label class="llm-config-label">API Key</label>
+            <input type="text" id="chat_api_key" class="llm-config-input" placeholder="输入 API Key">
+          </div>
+          <div class="llm-config-row">
+            <label class="llm-config-label">模型名称</label>
+            <input type="text" id="chat_model" class="llm-config-input" placeholder="输入模型名称">
+          </div>
+          <div class="llm-config-row">
+            <label class="llm-config-label">Prompt</label>
+            <textarea id="chat_prompt" class="llm-config-textarea" rows="12" placeholder="输入 Prompt"></textarea>
+          </div>
+          <div class="llm-config-row">
+            <label class="llm-config-label">Request Hostname</label>
+            <input type="text" id="chat_hostname" class="llm-config-input" placeholder="如: api.openai.com">
+          </div>
+          <div class="llm-config-row">
+            <label class="llm-config-label">Request Port</label>
+            <input type="number" id="chat_port" class="llm-config-input" placeholder="如: 443">
+          </div>
+          <div class="llm-config-row">
+            <label class="llm-config-label">Request Path</label>
+            <input type="text" id="chat_path" class="llm-config-input" placeholder="如: /v1/chat/completions">
+          </div>
+        </div>
+      </div>
+
+      <!-- 保存按钮 -->
+      <div class="llm-config-actions">
+        <button class="btn btn-primary" onclick="saveLlmConfig()">保存配置</button>
+      </div>
+    </div>
+  </template>
+
+  <!-- 出诊管理页面模板 -->
+  <template id="schedule-template">
+    <div class="page-header">
+      <div class="page-title">🗓️ 出诊管理</div>
+    </div>
+
+    <!-- 场次配置 -->
+    <div class="schedule-section">
+      <div class="schedule-section-title">场次配置</div>
+      <div class="schedule-section-desc">配置各场次的最大预约人数</div>
+      <div class="session-config-row">
+        <div class="session-config-item">
+          <label class="session-config-label">上午</label>
+          <input type="number" id="maxMorning" class="session-config-input" min="1" max="20">
+          <span class="session-config-unit">人</span>
+        </div>
+        <div class="session-config-item">
+          <label class="session-config-label">下午</label>
+          <input type="number" id="maxAfternoon" class="session-config-input" min="1" max="20">
+          <span class="session-config-unit">人</span>
+        </div>
+        <div class="session-config-item">
+          <label class="session-config-label">晚上</label>
+          <input type="number" id="maxEvening" class="session-config-input" min="1" max="20">
+          <span class="session-config-unit">人</span>
+        </div>
+        <button class="btn btn-primary" onclick="saveMaxBookings()">保存</button>
+      </div>
+    </div>
+
+    <!-- 默认规则 -->
+    <div class="schedule-section">
+      <div class="schedule-section-title">默认出诊规则</div>
+      <div class="schedule-section-desc">配置每周各场次的默认出诊状态</div>
+      <div class="schedule-grid" id="defaultGrid"></div>
+    </div>
+
+    <!-- 临时调整 -->
+    <div class="schedule-section">
+      <div class="schedule-section-title">临时调整</div>
+      <div class="schedule-section-desc">为特定日期设置一次性的出诊/停诊覆盖</div>
+
+      <!-- 添加新调整 -->
+      <div class="override-form" id="overrideForm">
+        <input type="date" id="overrideDate" class="schedule-input">
+        <select id="overrideSession" class="schedule-select">
+          <option value="morning">上午</option>
+          <option value="afternoon">下午</option>
+          <option value="evening">晚上</option>
+          <option value="all">全天</option>
+        </select>
+        <select id="overrideIsOpen" class="schedule-select">
+          <option value="open">出诊</option>
+          <option value="closed">停诊</option>
+        </select>
+        <input type="text" id="overrideReason" class="schedule-input" placeholder="备注（可选）">
+        <button class="btn btn-primary" onclick="addOverride()">添加</button>
+      </div>
+
+      <!-- 调整列表 -->
+      <div id="overrideList"></div>
+    </div>
+  </template>
+
+  <!-- 表格页面模板 -->
+  <template id="table-template">
+    <div class="page-header">
+      <div class="page-title" id="tablePageTitle"></div>
+      <div class="page-actions" id="tablePageActions"></div>
+    </div>
+    <div class="table-container">
+      <div class="table-toolbar">
+        <div class="toolbar-left">
+          <input type="text" class="search-input" placeholder="搜索..." id="searchInput">
+          <div id="toolbarButtons"></div>
+        </div>
+        <div class="selected-count" id="selectedCount"></div>
+      </div>
+      <div id="tableBody">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+  </template>
+
   <!-- SheetJS 用于Excel导入导出 -->
   <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
   <script type="module" src="/js/import-export-module.js"></script>

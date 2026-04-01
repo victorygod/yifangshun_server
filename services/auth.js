@@ -390,7 +390,12 @@ async function setUserRole(targetOpenid, newRole, operatorOpenid, isHomePage = f
 }
 
 // 获取用户列表
-async function getUserList({ role = 'all', page = 1, pageSize = 20 } = {}) {
+async function getUserList(options = {}) {
+  // 确保分页参数为数字类型
+  const role = options.role || 'all';
+  const page = parseInt(options.page) || 1;
+  const pageSize = parseInt(options.pageSize) || 20;
+
   let where = {};
 
   // 角色筛选

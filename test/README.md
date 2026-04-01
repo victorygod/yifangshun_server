@@ -4,54 +4,39 @@
 
 ```
 test/
-├── run_test.js              # 测试管理脚本（一键运行测试）
-├── comprehensive_api_test.js # 主测试脚本
+├── run_all.js               # 测试入口脚本（运行所有测试）
+├── test-helpers.js          # 测试辅助工具
 ├── README.md                # 本文档
 └── tests/                   # 测试模块目录
     ├── test_login.js        # 登录相关测试
+    ├── test_home_login.js   # 首页登录测试
     ├── test_booking.js      # 预约管理测试
     ├── test_prescription.js # 处方识别测试
+    ├── test_stock.js        # 库存管理系统测试
     ├── test_chat.js         # AI咨询测试
+    ├── test_user_manager.js # 用户管理测试
+    ├── test_data_management.js # 数据管理测试
     ├── test_system.js       # 系统接口测试
     ├── test_permission.js   # 权限控制测试
-    └── test_stock.js        # 库存管理系统测试（待开发）
+    └── test_readonly_api.js # 只读API测试
 ```
 
 ## 使用方法
 
 ### 快速开始
 
-一键运行完整测试（推荐）：
+运行完整测试（需要先启动服务器）：
 ```bash
-node test/run_test.js run
-```
-
-### 测试管理命令
-
-```bash
-# 运行完整测试（清理→启动→测试→停止）
-node test/run_test.js run
-
-# 清理80端口占用
-node test/run_test.js clean
-
 # 启动服务器
-node test/run_test.js start
+npm start
 
-# 停止服务器
-node test/run_test.js stop
-
-# 查看服务器状态
-node test/run_test.js status
+# 另开终端，运行测试
+node test/run_all.js
 ```
 
 ### 单独运行测试模块
 
 ```bash
-# 运行主测试脚本（包含所有测试模块）
-node test/comprehensive_api_test.js
-
-# 只运行某个测试模块
 node test/tests/test_login.js
 ```
 
@@ -62,10 +47,11 @@ node test/tests/test_login.js
 1. **修改测试脚本**
    - 在 `test/tests/` 目录下添加或修改对应的测试模块
    - 确保测试用例覆盖所有场景（正常流程、错误处理、业务规则）
+   - 在 `test/run_all.js` 的 `testModules` 数组中添加新模块
 
 2. **运行测试**
    ```bash
-   node test/run_test.js run
+   node test/run_all.js
    ```
 
 3. **修改代码**
@@ -74,11 +60,10 @@ node test/tests/test_login.js
 
 4. **更新文档**
    - 更新 `docs/API接口文档.md`
-   - 更新 `docs/API调用检查报告.md`
 
 5. **再次测试**
    ```bash
-   node test/run_test.js run
+   node test/run_all.js
    ```
 
 6. **提交代码**
@@ -123,10 +108,10 @@ node test/tests/test_login.js
 
 ## 注意事项
 
-1. **端口占用**：测试脚本会自动清理80端口占用
-2. **服务器状态**：测试脚本会自动启动和停止服务器
-3. **测试数据**：测试数据不会影响生产环境（使用本地JSON数据库）
-4. **微信登录**：使用测试模式，不需要真实的微信code
+1. **服务器启动**：运行测试前需要先启动服务器 (`npm start`)
+2. **测试数据**：测试数据不会影响生产环境（使用本地JSON数据库）
+3. **微信登录**：使用测试模式，不需要真实的微信code
+4. **端口占用**：如果80端口被占用，先停止占用进程再启动服务器
 
 ## 扩展测试
 
@@ -134,47 +119,36 @@ node test/tests/test_login.js
 
 1. 在 `test/tests/` 目录下创建新的测试文件
 2. 导出 `runXxxTests` 函数
-3. 在 `comprehensive_api_test.js` 中引入新模块
+3. 在 `test/run_all.js` 的 `testModules` 数组中添加新模块
 
 ### 示例
 
 ```javascript
 // test/tests/test_new_feature.js
-async function runNewFeatureTests() {
+const { request, test, assertEquals } = require('../test-helpers');
+
+async function runNewFeatureTests(testUsers) {
   console.log('\n📋 测试新功能API');
-  
-  // 添加测试用例
+
   await test('GET /api/new-feature - 测试功能', async () => {
-    const { response, data } = await request('GET', '/api/new-feature');
-    
+    const { response, data } = await request('GET', '/api/new-feature', null, testUsers.admin.token);
+
     assertEquals(response.statusCode, 200, '请求成功');
     assertEquals(data.code, 0, '返回成功');
   });
-  
-  console.log('\n📊 新功能测试结果');
-  console.log(`  总测试数: ${testStats.total}`);
-  console.log(`  通过: ${testStats.passed} ✅`);
-  console.log(`  失败: ${testStats.failed} ❌`);
+
+  return { passed: 1, failed: 0, skipped: 0 };
 }
 
-module.exports = {
-  runNewFeatureTests
-};
+module.exports = { runNewFeatureTests };
 ```
 
 ```javascript
-// comprehensive_api_test.js
-require('./tests/test_login');
-require('./tests/test_booking');
-require('./tests/test_prescription');
-require('./tests/test_chat');
-require('./tests/test_system');
-require('./tests/test_permission');
-require('./tests/test_new_feature'); // 添加新模块
-
-console.log('\n========================================');
-console.log('✅ 所有测试模块已加载');
-console.log('========================================');
+// test/run_all.js - 添加到 testModules 数组
+const testModules = [
+  // ... 其他模块
+  'test_new_feature.js'
+];
 ```
 
 ## 常见问题
@@ -425,13 +399,18 @@ A: 可能会。如果测试异常中断，可能需要手动清理 `wrappers/loc
 ```
 **测试覆盖**: ✅ 全覆盖（新增测试）
 
-### 测试用例清单（39个）
+### 测试用例清单（178个）
 
 | 模块 | 测试数 | 详情 |
 |------|--------|------|
-| 登录 | 6 | 创建用户、绑定信息、绑定手机、权限检查(x3) |
-| 预约 | 8 | 获取日期、业务规则(x3)、创建预约(x3)、取消预约 |
-| 处方 | 19 | 保存(x5)、历史、列表、更新、删除、审核(x2)、确认(x2)、筛选(x2)、批量删除、组合操作 |
+| 登录 | 4 | 绑定手机、权限检查(x3) |
+| 首页登录 | 6 | 默认超管登录、未注册手机、缺少参数、访问验证、角色设置、普通用户禁止登录 |
+| 权限 | 17 | 不同角色访问处方列表/更新/设置角色 |
+| 预约 | 31 | 获取日期、业务规则、创建预约、取消预约、场次配置 |
+| 处方 | 13 | 保存、历史、列表、更新、删除、审核、双键查询 |
+| 库存 | 27 | 药材管理、入库、出库、状态回滚、多维度搜索、权限控制 |
 | AI | 1 | 发送消息 |
+| 用户管理 | 39 | 更新姓名/手机号、权限验证、数据校验 |
+| 数据管理 | 48 | 级联删除、处方状态验证 |
 | 系统 | 3 | 健康检查、日志、用户列表 |
-| 权限 | 2 | 普通用户访问管理员接口(x2) |
+| 只读API | 12 | 分页查询、关键词搜索、字段关联 |

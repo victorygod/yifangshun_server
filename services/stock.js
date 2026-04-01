@@ -64,7 +64,10 @@ async function addStockLog(action, orderNo, herbName, quantity, operator) {
 
 // 获取药材列表
 async function getHerbs(options = {}) {
-  const { keyword = '', page = 1, pageSize = 20, searchFields } = options;
+  const { keyword = '', searchFields } = options;
+  // 确保分页参数是数字类型
+  const page = parseInt(options.page) || 1;
+  const pageSize = parseInt(options.pageSize) || 20;
   
   // 获取所有数据（按createdAt降序）
   let allData = await Herb.findAll({

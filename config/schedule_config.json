@@ -1,0 +1,44 @@
+{
+  "default_schedule": {
+    "0": {
+      "morning": false,
+      "afternoon": true,
+      "evening": true
+    },
+    "1": {
+      "morning": false,
+      "afternoon": true,
+      "evening": true
+    },
+    "2": {
+      "morning": false,
+      "afternoon": false,
+      "evening": false
+    },
+    "3": {
+      "morning": false,
+      "afternoon": true,
+      "evening": true
+    },
+    "4": {
+      "morning": true,
+      "afternoon": false,
+      "evening": true
+    },
+    "5": {
+      "morning": false,
+      "afternoon": true,
+      "evening": true
+    },
+    "6": {
+      "morning": false,
+      "afternoon": true,
+      "evening": true
+    }
+  },
+  "max_bookings": {
+    "morning": 2,
+    "afternoon": 4,
+    "evening": 2
+  }
+}

@@ -213,7 +213,7 @@
           localStorage.setItem('user_openid', result.data.openid);
           
           // 跳转到首页并带上 phone_number 参数
-          const redirectUrl = window.location.pathname + '?phone_number=' + encodeURIComponent(phone);
+          const redirectUrl = '/?phone_number=' + encodeURIComponent(phone);
           window.location.href = redirectUrl;
         } else {
           showError(result.message || '登录失败');

@@ -20,6 +20,7 @@ const menuConfig = [
     ]
   },
   { id: 'schedule', icon: '🗓️', label: '出诊管理', type: 'page' },
+  { id: 'llm-config', icon: '🤖', label: 'LLM配置', type: 'page' },
   {
     id: 'data',
     icon: '🗄️',
@@ -54,7 +55,6 @@ const tableHandlers = {
     // 入库单特有操作
     onConfirmStockIn: (id) => window._stockModule.confirmStockIn(id),
     onRevertToDraft: (id) => window._stockModule.revertToDraft(id),
-    onZoomDetail: (orderId) => window._stockModule.showZoomDetail(orderId),
     onExportDetail: (orderId) => window._importExportModule.exportOrderDetail(orderId),
     onSaveDetail: (id, orderId) => {
       const row = document.querySelector(`tr[data-detail-id="${id}"]`);
@@ -66,24 +66,16 @@ const tableHandlers = {
       if (row) window._stockModule.saveDetailNewAuto(row);
     },
     // 通用操作
-    onSaveNew: () => saveNewRow(),
-    onSave: (id) => saveRow(id),
-    onDelete: (id) => deleteRow(id),
+    onSaveNew: (rowElement) => window._stockModule.stockInOrdersHandlers.onSaveNew(rowElement),
+    onSave: (id, rowElement) => window._stockModule.stockInOrdersHandlers.onSave(id, rowElement),
+    onDelete: (id, row) => window._stockModule.stockInOrdersHandlers.onDelete(id, row),
+    onBatchDelete: (ids) => window._stockModule.stockInOrdersHandlers.onBatchDelete(ids),
     onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
     onPrevPage: (page) => window._tableUtil.goToPage(page),
     onNextPage: (page) => window._tableUtil.goToPage(page),
     onCancel: () => window._tableUtil.cancelEdit(),
     onLoad: async (page, pageSize, keyword) => {
-      // 入库单不需要预加载药材信息，失焦时会单独查询
-      const config = tableConfigs[currentTable];
-      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
-      const res = await homeFetch(`/api/stock/in/orders?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}${searchFieldsParam}`);
-      if (res.code !== 0) throw new Error(res.message);
-      const rows = res.data?.rows || [];
-      return {
-        data: rows,
-        pagination: res.data?.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 }
-      };
+      return window._stockModule.stockInOrdersHandlers.onLoad(page, pageSize, keyword);
     },
     // ========== 新架构：渲染钩子 ==========
     // 是否显示操作列
@@ -133,7 +125,6 @@ const tableHandlers = {
   stock_out_orders: {
     onSettleOrder: (orderId) => window._stockModule.settleOutOrder(orderId),
     onRevokeOrder: (orderId) => window._stockModule.revokeSettledOrder(orderId),
-    onZoomDetail: (orderId) => window._stockModule.showZoomDetail(orderId),
     onExportDetail: (orderId) => window._importExportModule.exportOrderDetail(orderId),
     onSaveDetail: (id, orderId) => {
       const editRow = document.querySelector(`tr[data-detail-id="${id}"]`);
@@ -144,25 +135,17 @@ const tableHandlers = {
       const newRow = document.querySelector(`tr.detail-new-row[data-order-id="${orderId}"]`);
       if (newRow) window._stockModule.saveDetailNewAuto(newRow);
     },
-    onSaveNew: () => saveNewRow(),
-    onSave: (id) => saveRow(id),
-    onDelete: (id) => deleteRow(id),
+    onSaveNew: (rowElement) => window._stockModule.stockOutOrdersHandlers.onSaveNew(rowElement),
+    onSave: (id, rowElement) => window._stockModule.stockOutOrdersHandlers.onSave(id, rowElement),
+    onDelete: (id, row) => window._stockModule.stockOutOrdersHandlers.onDelete(id, row),
+    onBatchDelete: (ids) => window._stockModule.stockOutOrdersHandlers.onBatchDelete(ids),
     onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
     onPrevPage: (page) => window._tableUtil.goToPage(page),
     onNextPage: (page) => window._tableUtil.goToPage(page),
     onCancel: () => window._tableUtil.cancelEdit(),
     onLoad: async (page, pageSize, keyword) => {
-      const config = tableConfigs[currentTable];
-      const searchFieldsParam = config.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
-      const res = await homeFetch(`/api/stock/out/orders?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}${searchFieldsParam}`);
-      if (res.code !== 0) throw new Error(res.message);
-      const rows = res.data?.rows || [];
-      return {
-        data: rows,
-        pagination: res.data?.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 }
-      };
+      return window._stockModule.stockOutOrdersHandlers.onLoad(page, pageSize, keyword);
     },
-    // ========== 新架构：渲染钩子 ==========
     showActionColumn: true,
     renderRowActions: (row) => {
       let html = '';
@@ -187,20 +170,16 @@ const tableHandlers = {
   },
   prescriptions: {
     onReviewPrescription: (id, prescriptionId) => window._prescriptionModule.handlePrescriptionReview(id, prescriptionId),
-    onSaveNew: () => saveNewRow(),
-    onSave: (id) => saveRow(id),
-    onDelete: (id) => deleteRow(id),
+    onSaveNew: (rowElement) => window._prescriptionModule.prescriptionsHandlers.onSaveNew(rowElement),
+    onSave: (id, rowElement) => window._prescriptionModule.prescriptionsHandlers.onSave(id, rowElement),
+    onDelete: (id, row) => window._prescriptionModule.prescriptionsHandlers.onDelete(id, row),
+    onBatchDelete: (ids) => window._prescriptionModule.prescriptionsHandlers.onBatchDelete(ids),
     onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
     onPrevPage: (page) => window._tableUtil.goToPage(page),
     onNextPage: (page) => window._tableUtil.goToPage(page),
     onCancel: () => window._tableUtil.cancelEdit(),
     onLoad: async (page, pageSize, keyword) => {
-      const res = await homeFetch(`/api/prescription/list?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}`);
-      if (res.code !== 0) throw new Error(res.message);
-      return {
-        data: res.data?.rows || [],
-        pagination: res.data?.pagination || {}
-      };
+      return window._prescriptionModule.prescriptionsHandlers.onLoad(page, pageSize, keyword);
     },
     // ========== 新架构：渲染钩子 ==========
     renderRowActions: (row) => {
@@ -220,12 +199,10 @@ const tableHandlers = {
   },
   herbs: {
     // 使用 herbs-module 的 handlers
-    onSaveNew: () => saveNewRow(),
-    onSave: (id) => {
-      const row = window._tableUtil.getRowElement(id);
-      if (row) window._herbsModule.herbsHandlers.onSave(id, row);
-    },
+    onSaveNew: (rowElement) => window._herbsModule.herbsHandlers.onSaveNew(rowElement),
+    onSave: (id, rowElement) => window._herbsModule.herbsHandlers.onSave(id, rowElement),
     onDelete: (id) => window._herbsModule.herbsHandlers.onDelete(id),
+    onBatchDelete: (ids) => window._herbsModule.herbsHandlers.onBatchDelete(ids),
     onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
     onPrevPage: (page) => window._tableUtil.goToPage(page),
     onNextPage: (page) => window._tableUtil.goToPage(page),
@@ -250,12 +227,10 @@ const tableHandlers = {
   },
   users: {
     // 使用 users-module 的 handlers
-    onSaveNew: () => saveNewRow(),
-    onSave: (id) => {
-      const row = window._tableUtil.getRowElement(id);
-      if (row) window._usersModule.usersHandlers.onSave(id, row, tableData);
-    },
+    onSaveNew: (rowElement) => window._usersModule.usersHandlers.onSaveNew(rowElement),
+    onSave: (id, rowElement) => window._usersModule.usersHandlers.onSave(id, rowElement, tableData),
     onDelete: (id) => window._usersModule.usersHandlers.onDelete(id),
+    onBatchDelete: (ids) => window._usersModule.usersHandlers.onBatchDelete(ids),
     onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
     onPrevPage: (page) => window._tableUtil.goToPage(page),
     onNextPage: (page) => window._tableUtil.goToPage(page),
@@ -266,12 +241,10 @@ const tableHandlers = {
   },
   bookings: {
     // 使用 bookings-module 的 handlers
-    onSaveNew: () => saveNewRow(),
-    onSave: (id) => {
-      const row = window._tableUtil.getRowElement(id);
-      if (row) window._bookingsModule.bookingsHandlers.onSave(id, row);
-    },
+    onSaveNew: (rowElement) => window._bookingsModule.bookingsHandlers.onSaveNew(rowElement),
+    onSave: (id, rowElement) => window._bookingsModule.bookingsHandlers.onSave(id, rowElement),
     onDelete: (id) => window._bookingsModule.bookingsHandlers.onDelete(id),
+    onBatchDelete: (ids) => window._bookingsModule.bookingsHandlers.onBatchDelete(ids),
     onToggleDetail: (id) => window._tableUtil.toggleDetail(id),
     onPrevPage: (page) => window._tableUtil.goToPage(page),
     onNextPage: (page) => window._tableUtil.goToPage(page),
@@ -321,15 +294,6 @@ const tableHandlers = {
     }
   }
 };
-
-// 全局事件分发器
-function dispatch(action, ...args) {
-  const handler = tableHandlers[currentTable]?.[action];
-  if (handler) {
-    return handler(...args);
-  }
-  console.error(`未配置的操作: ${action} for table ${currentTable}`);
-}
 
 // 表配置
 const tableConfigs = {
@@ -527,7 +491,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       getCurrentTable: () => currentTable,
       getExpandedRows: () => expandedRows,
       getTableConfig: () => tableConfigs,
-      showImagePreview: showImagePreview
+      showImagePreview: showImagePreview,
+      getEditingRowId: () => editingRowId,
+      setEditingRowId: (id) => { editingRowId = id; },
+      clearSelectedIds: () => { selectedIds = []; }
     });
     console.log('[admin.js] Stock 模块已初始化');
   }
@@ -567,10 +534,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       showToast: showToast,
       showAlert: showAlert,
       loadTableData: loadTableData,
+      loadStats: loadStats,
       showConfirm: showConfirm,
       showImagePreview: showImagePreview,
       getTableData: () => tableData,
-      getTableConfig: () => tableConfigs
+      getTableConfig: () => tableConfigs,
+      getEditingRowId: () => editingRowId,
+      setEditingRowId: (id) => { editingRowId = id; },
+      clearSelectedIds: () => { selectedIds = []; }
     });
     console.log('[admin.js] 处方模块已初始化');
   }
@@ -729,6 +700,8 @@ async function switchPage(id) {
     renderDashboard();
   } else if (id === 'schedule') {
     renderSchedulePage();
+  } else if (id === 'llm-config') {
+    renderLlmConfigPage();
   } else {
     const menuItem = findMenuItem(id);
     if (menuItem && menuItem.tableName) {
@@ -789,37 +762,69 @@ async function renderTablePage() {
   }
 
   const main = document.getElementById('main');
-  main.innerHTML = `
-    <div class="page-header">
-      <div class="page-title">${config.displayName}</div>
-      <div class="page-actions">
-        ${!config.readonly ? '<button class="btn btn-primary" id="addNewBtn">+ 新增记录</button>' : ''}
-      </div>
-    </div>
-    <div class="table-container">
-      <div class="table-toolbar">
-        <div class="toolbar-left">
-          <input type="text" class="search-input" placeholder="搜索..." id="searchInput" value="${searchKeyword}">
-          ${!config.readonly ? '<button class="btn btn-danger" id="batchDeleteBtn" disabled>🗑️ 批量删除</button>' : ''}
-          <button class="btn btn-success" id="exportBtn">📤 导出</button>
-          ${!config.readonly ? `<label class="btn btn-primary" style="margin-left:8px;cursor:pointer;">📥 导入
-            <input type="file" accept=".xlsx,.xls" style="display:none" id="importFile">
-          </label>` : ''}
-        </div>
-        <div class="selected-count" id="selectedCount"></div>
-      </div>
-      <div id="tableBody">
-        <div class="loading">加载中...</div>
-      </div>
-    </div>
-  `;
 
+  // 使用模板
+  const template = document.getElementById('table-template');
+  const clone = template.content.cloneNode(true);
+
+  // 填充标题
+  clone.getElementById('tablePageTitle').textContent = config.displayName;
+
+  // 填充页面操作按钮
+  const pageActions = clone.getElementById('tablePageActions');
+  if (!config.readonly) {
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn btn-primary';
+    addBtn.id = 'addNewBtn';
+    addBtn.textContent = '+ 新增记录';
+    pageActions.appendChild(addBtn);
+  }
+
+  // 填充搜索框值
+  clone.getElementById('searchInput').value = searchKeyword;
+
+  // 填充工具栏按钮
+  const toolbarButtons = clone.getElementById('toolbarButtons');
+  if (!config.readonly) {
+    const batchDeleteBtn = document.createElement('button');
+    batchDeleteBtn.className = 'btn btn-danger';
+    batchDeleteBtn.id = 'batchDeleteBtn';
+    batchDeleteBtn.disabled = true;
+    batchDeleteBtn.textContent = '🗑️ 批量删除';
+    toolbarButtons.appendChild(batchDeleteBtn);
+  }
+
+  const exportBtn = document.createElement('button');
+  exportBtn.className = 'btn btn-success';
+  exportBtn.id = 'exportBtn';
+  exportBtn.textContent = '📤 导出';
+  toolbarButtons.appendChild(exportBtn);
+
+  if (!config.readonly) {
+    const importLabel = document.createElement('label');
+    importLabel.className = 'btn btn-primary';
+    importLabel.style.cssText = 'margin-left:8px;cursor:pointer;';
+    importLabel.textContent = '📥 导入';
+
+    const importFile = document.createElement('input');
+    importFile.type = 'file';
+    importFile.accept = '.xlsx,.xls';
+    importFile.style.display = 'none';
+    importFile.id = 'importFile';
+    importLabel.appendChild(importFile);
+    toolbarButtons.appendChild(importLabel);
+  }
+
+  main.innerHTML = '';
+  main.appendChild(clone);
+
+  // 绑定事件
   const addNewBtn = document.getElementById('addNewBtn');
   if (addNewBtn) addNewBtn.addEventListener('click', addNewRow);
   const batchDeleteBtn = document.getElementById('batchDeleteBtn');
   if (batchDeleteBtn) batchDeleteBtn.addEventListener('click', batchDelete);
   document.getElementById('searchInput').addEventListener('keyup', handleSearch);
-  
+
   // 导入导出按钮事件
   document.getElementById('exportBtn').addEventListener('click', window._importExportModule.exportTableData);
   const importFile = document.getElementById('importFile');
@@ -1102,9 +1107,15 @@ function handleTableClick(e) {
 
       if (action === 'prevPage' || action === 'nextPage') {
         handler(parseInt(page));
+      } else if (action === 'save') {
+        saveRow(id);
+      } else if (action === 'saveNew') {
+        saveNewRow();
+      } else if (action === 'delete') {
+        deleteRow(id);
       } else if (action === 'saveDetail' || action === 'deleteDetail') {
         handler(id, orderId);
-      } else if (action === 'saveDetailNew' || action === 'zoomDetail' || action === 'exportDetail' || action === 'settleOrder' || action === 'revokeOrder') {
+      } else if (action === 'saveDetailNew' || action === 'exportDetail' || action === 'settleOrder' || action === 'revokeOrder') {
         handler(orderId);
       } else if (action === 'reviewPrescription') {
         handler(id, prescriptionId);
@@ -1118,7 +1129,7 @@ function handleTableClick(e) {
 
     // 未找到 handler，输出错误
     console.error(`未配置的操作: ${action} for table ${currentTable}`);
-  }  // end if (btn)
+  }
 
   // 单元格点击进入编辑模式
   const cell = e.target.closest('.cell-clickable');
@@ -1258,289 +1269,65 @@ function addNewRow() {
 }
 
 async function saveRow(rowId) {
-  const row = document.querySelector(`tr[data-id="${rowId}"]`);
-  if (!row) {
+  const rowElement = window._tableUtil?.getRowElement?.(rowId);
+  if (!rowElement) {
     showToast('找不到编辑行', 'error');
     editingRowId = null;
     loadTableData();
     return;
   }
 
-  const inputs = row.querySelectorAll('.cell-input, .cell-select');
-
-  const data = {};
-  inputs.forEach(input => {
-    data[input.dataset.col] = input.value;
-  });
-
-  try {
-    // 获取API路径
-    let apiUrl;
-    let method = 'PUT';
-
-    if (currentTable === 'herbs' && window._stockModule) {
-      apiUrl = window._stockModule.getHerbApiPath('update', rowId);
-    } else if (currentTable === 'users') {
-      // 用户管理使用专门的API（需要openid而非id）
-      const row = tableData.find(r => String(r.id) === String(rowId));
-      if (!row) {
-        showToast('找不到用户数据', 'error');
-        return;
-      }
-
-      // 如果角色有变化，需要单独调用 set-role API
-      if (data.role && data.role !== row.role) {
-        const roleRes = await homeFetch('/api/user/set-role', {
-          method: 'POST',
-          body: JSON.stringify({
-            openid: row.openid,
-            role: data.role
-          })
-        });
-        if (roleRes.code !== 0) throw new Error(roleRes.message);
-      }
-
-      // 更新其他字段（name, phone）
-      const { name, phone } = data;
-      if (name !== undefined || phone !== undefined) {
-        apiUrl = `/api/user/${row.openid}`;
-        // 只传递 name 和 phone
-        Object.keys(data).forEach(key => {
-          if (key !== 'name' && key !== 'phone') delete data[key];
-        });
-      } else {
-        // 没有其他字段需要更新，直接返回成功
-        showToast('保存成功', 'success');
-        editingRowId = null;
-        selectedIds = [];
-        loadTableData();
-        return;
-      }
-    } else if (currentTable === 'bookings') {
-      // 预约管理使用专门的API
-      apiUrl = `/api/bookings/${rowId}`;
-    } else if (currentTable === 'stock_in_orders') {
-      // 入库单使用专门的API
-      apiUrl = `/api/stock/in/orders/${rowId}`;
-    } else if (currentTable === 'stock_out_orders') {
-      // 执药单使用专门的API
-      apiUrl = `/api/stock/out/orders/${rowId}`;
-    } else if (currentTable === 'prescriptions') {
-      // 处方管理使用专门的API
-      const res = await window._prescriptionModule.savePrescription(rowId, data);
-      if (res.code !== 0) throw new Error(res.message);
-
-      showToast('保存成功', 'success');
-      editingRowId = null;
-      selectedIds = [];
-      loadTableData();
-      loadStats();
-      return;
-    } else {
-      throw new Error(`未知的表类型: ${currentTable}`);
+  const handlers = tableHandlers[currentTable];
+  if (handlers?.onSave) {
+    try {
+      await handlers.onSave(rowId, rowElement, tableData);
+    } catch (err) {
+      // 错误已在 handler 中处理
     }
-
-    const res = await homeFetch(apiUrl, {
-      method: method,
-      body: JSON.stringify(data)
-    });
-
-    if (res.code !== 0) throw new Error(res.message);
-
-    showToast('保存成功', 'success');
-    editingRowId = null;
-    selectedIds = [];
-
-    // 如果保存的是药材信息，清除药材信息缓存
-    if (currentTable === 'herbs' && window._stockModule) {
-      window._stockModule.clearHerbInfoCache();
-    }
-
-    loadTableData();
-    loadStats();
-  } catch (err) {
-    showToast('保存失败: ' + err.message, 'error');
   }
 }
 
 async function saveNewRow() {
-  const row = document.querySelector('tr[data-id="new"]');
-  if (!row) {
+  const rowElement = document.querySelector('tr[data-id="new"]');
+  if (!rowElement) {
     showToast('找不到新增行', 'error');
     editingRowId = null;
     loadTableData();
     return;
   }
 
-  const inputs = row.querySelectorAll('.cell-input, .cell-select');
-
-  const data = {};
-  inputs.forEach(input => {
-    // 收集所有有值的字段
-    if (input.value.trim()) {
-      data[input.dataset.col] = input.value.trim();
-    }
-  });
-
-  // 对于数字类型字段，如果没有值但有默认值，使用默认值
+  // 数字类型默认值处理（统一处理，避免各模块重复实现）
   const config = tableConfigs[currentTable];
-  config.columns.forEach(col => {
-    if (col.type === 'number' && data[col.key] === undefined && col.defaultValue !== undefined) {
-      data[col.key] = col.defaultValue;
-    }
-  });
-
-  // 各模块的特殊验证
-  if (currentTable === 'stock_in_orders' && window._stockModule) {
-    const validation = window._stockModule.validateNewOrderData(data, currentTable);
-    if (!validation.valid) {
-      showToast(validation.error, 'error');
-      return;
-    }
-  }
-
-  if (Object.keys(data).length === 0) {
-    showToast('请至少填写一个字段', 'error');
-    return;
-  }
-
-  try {
-    // 获取创建的 API 路径
-    let apiUrl;
-
-    if (currentTable === 'stock_in_orders' && window._stockModule) {
-      apiUrl = window._stockModule.getCreateOrderApiPath(currentTable);
-    } else if (currentTable === 'stock_out_orders' && window._stockModule) {
-      apiUrl = window._stockModule.getCreateOrderApiPath(currentTable);
-    } else if (currentTable === 'herbs' && window._stockModule) {
-      apiUrl = window._stockModule.getHerbApiPath('create');
-    } else if (currentTable === 'bookings') {
-      apiUrl = '/api/booking';
-    } else {
-      throw new Error(`未知的表类型: ${currentTable}`);
-    }
-
-    const res = await homeFetch(apiUrl, {
-      method: 'POST',
-      body: JSON.stringify(data)
+  if (config?.columns) {
+    const inputs = rowElement.querySelectorAll('.cell-input, .cell-select');
+    inputs.forEach(input => {
+      const col = config.columns.find(c => c.key === input.dataset.col);
+      if (col?.type === 'number' && !input.value.trim() && col.defaultValue !== undefined) {
+        input.value = col.defaultValue;
+      }
     });
+  }
 
-    if (res.code !== 0) throw new Error(res.message);
-
-    showToast('新增成功', 'success');
-    editingRowId = null;
-    selectedIds = [];
-
-    // 如果新增的是药材信息，清除药材信息缓存
-    if (currentTable === 'herbs' && window._stockModule) {
-      window._stockModule.clearHerbInfoCache();
+  const handlers = tableHandlers[currentTable];
+  if (handlers?.onSaveNew) {
+    try {
+      await handlers.onSaveNew(rowElement);
+    } catch (err) {
+      // 错误已在 handler 中处理
     }
-
-    loadTableData();
-    loadStats();
-  } catch (err) {
-    showToast('新增失败: ' + err.message, 'error');
   }
 }
 
 async function deleteRow(rowId) {
-  const row = tableData.find(r => String(r.id) === String(rowId));
-  
-  // 各模块的删除前验证
-  if (currentTable === 'prescriptions' && window._prescriptionModule) {
-    const validation = window._prescriptionModule.validateDelete(rowId, row);
-    if (!validation.canDelete) {
-      showToast(validation.message, 'error');
-      return;
-    }
-  }
-  
-  // 入库单的特殊处理
-  if (currentTable === 'stock_in_orders' && window._stockModule) {
-    const handleResult = window._stockModule.handleDeleteBeforeConfirm(rowId, row, currentTable);
-    if (handleResult.needSpecialHandling) {
-      showConfirm('确认删除', handleResult.message, async () => {
-        try {
-          const result = await window._stockModule.handleSpecialDelete(rowId);
-          if (!result.success) {
-            throw new Error(result.error);
-          }
-          showToast('删除成功', 'success');
-          loadTableData();
-          loadStats();
-        } catch (err) {
-          showToast('删除失败: ' + err.message, 'error');
-        }
-      });
-      return;
-    }
-  }
-
-  // 构建确认消息和删除逻辑
-  let confirmMessage = '确定要删除这条记录吗？';
-  let deleteAction = async () => {
+  const handlers = tableHandlers[currentTable];
+  if (handlers?.onDelete) {
+    const row = tableData.find(r => String(r.id) === String(rowId));
     try {
-      // 获取删除 API 路径
-      let deleteApi;
-
-      if (currentTable === 'herbs' && window._stockModule) {
-        deleteApi = window._stockModule.getHerbApiPath('delete', rowId);
-      } else if (currentTable === 'users') {
-        // 用户删除使用专门API
-        deleteApi = `/api/user/${rowId}`;
-      } else if (currentTable === 'bookings') {
-        // 预约管理使用专门的API
-        deleteApi = `/api/booking/${rowId}`;
-      } else if ((currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') && window._stockModule) {
-        deleteApi = window._stockModule.getDeleteApiPath(rowId, currentTable);
-      } else if (currentTable === 'prescriptions') {
-        // 处方管理使用专门的API
-        const res = await window._prescriptionModule.deletePrescription(rowId);
-        if (res.code !== 0) throw new Error(res.message);
-
-        showToast('删除成功', 'success');
-        loadTableData();
-        loadStats();
-        return;
-      } else {
-        throw new Error(`未知的表类型: ${currentTable}`);
-      }
-
-      const res = await homeFetch(deleteApi, { method: 'DELETE' });
-      if (res.code !== 0) throw new Error(res.message);
-
-      showToast('删除成功', 'success');
-
-      // 如果删除的是药材信息，清除药材信息缓存
-      if (currentTable === 'herbs' && window._stockModule) {
-        window._stockModule.clearHerbInfoCache();
-      }
-
-      loadTableData();
-      loadStats();
+      await handlers.onDelete(rowId, row);
     } catch (err) {
-      showToast('删除失败: ' + err.message, 'error');
-    }
-  };
-
-  // 入库单/执药单需要显示明细数量警告
-  if ((currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') && window._stockModule) {
-    try {
-      const detailCount = await window._stockModule.getOrderDetailCount(rowId, currentTable);
-      const labels = window._stockModule.getOrderLabels(currentTable);
-      
-      if (detailCount > 0) {
-        confirmMessage = `确定要删除这条${labels.orderLabel}吗？\n\n⚠️ 关联的 ${detailCount} 条${labels.detailLabel}也将一并删除！`;
-      } else {
-        confirmMessage = `确定要删除这条${labels.orderLabel}吗？`;
-      }
-    } catch (err) {
-      console.error('获取明细数量失败:', err);
-      // 即使获取失败，也允许删除，使用默认消息
+      // 错误已在 handler 中处理
     }
   }
-
-  showConfirm('确认删除', confirmMessage, deleteAction);
 }
 
 // ==================== 展开详情操作 ====================
@@ -1604,226 +1391,13 @@ function updateSelectedCount() {
 async function batchDelete() {
   if (selectedIds.length === 0) return;
 
-  // 检查是否是入库单或执药单，需要统计明细数量
-  if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
+  const handlers = tableHandlers[currentTable];
+  if (handlers?.onBatchDelete) {
     try {
-      const tableLabel = currentTable === 'stock_in_orders' ? '入库单' : '执药单';
-      const detailLabel = currentTable === 'stock_in_orders' ? '入库明细' : '执药明细';
-
-      let totalDetailCount = 0;
-      for (const id of selectedIds) {
-        // 使用 stock-module 中的专用函数获取明细数量
-        totalDetailCount += await window._stockModule.getOrderDetailCount(id, currentTable);
-      }
-
-      const message = totalDetailCount > 0
-        ? `确定要删除选中的 ${selectedIds.length} 条${tableLabel}吗？\n\n⚠️ 关联的 ${totalDetailCount} 条${detailLabel}也将一并删除！`
-        : `确定要删除选中的 ${selectedIds.length} 条${tableLabel}吗？`;
-
-      showConfirm('批量删除', message, async () => {
-        try {
-          let deletedCount = 0;
-
-          // 药材表使用专门的批量删除函数
-          if (currentTable === 'herbs' && window._stockModule) {
-            const result = await window._stockModule.handleHerbBatchDelete(selectedIds);
-            if (!result.success) {
-              throw new Error(result.error);
-            }
-            deletedCount = result.deletedCount;
-          } else if (currentTable === 'prescriptions') {
-            // 处方表使用专门的批量删除函数
-            for (const id of selectedIds) {
-              const res = await window._prescriptionModule.deletePrescription(id);
-              if (res.code !== 0) {
-                throw new Error(`删除处方失败: ${res.message}`);
-              }
-              deletedCount++;
-            }
-          } else if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
-            // 入库单/执药单逐个删除（确保触发级联操作）
-            for (const id of selectedIds) {
-              const deleteApi = window._stockModule.getDeleteApiPath(id, currentTable);
-              const res = await homeFetch(deleteApi, { method: 'DELETE' });
-              if (res.code !== 0) {
-                throw new Error(`删除${currentTable === 'stock_in_orders' ? '入库单' : '执药单'}失败: ${res.message}`);
-              }
-              deletedCount++;
-            }
-          } else if (currentTable === 'users') {
-            // 用户逐个删除
-            for (const id of selectedIds) {
-              const res = await homeFetch(`/api/user/${id}`, { method: 'DELETE' });
-              if (res.code !== 0) {
-                throw new Error(`删除用户失败: ${res.message}`);
-              }
-              deletedCount++;
-            }
-          } else if (currentTable === 'bookings') {
-            // 预约逐个删除
-            for (const id of selectedIds) {
-              const res = await homeFetch(`/api/booking/${id}`, { method: 'DELETE' });
-              if (res.code !== 0) {
-                throw new Error(`删除预约失败: ${res.message}`);
-              }
-              deletedCount++;
-            }
-          } else {
-            throw new Error(`未知的表类型: ${currentTable}`);
-          }
-
-          showToast(`成功删除 ${deletedCount} 条记录`, 'success');
-          selectedIds = [];
-
-          // 如果删除的是药材信息，清除药材信息缓存
-          if (currentTable === 'herbs' && window._stockModule) {
-            window._stockModule.clearHerbInfoCache();
-          }
-
-          loadTableData();
-          loadStats();
-        } catch (err) {
-          showToast('批量删除失败: ' + err.message, 'error');
-          loadTableData();
-        }
-      });
+      await handlers.onBatchDelete(selectedIds);
     } catch (err) {
-      showConfirm('批量删除', `确定要删除选中的 ${selectedIds.length} 条记录吗？`, async () => {
-        try {
-          let deletedCount = 0;
-
-          // 药材表使用专门的批量删除函数
-          if (currentTable === 'herbs' && window._stockModule) {
-            const result = await window._stockModule.handleHerbBatchDelete(selectedIds);
-            if (!result.success) {
-              throw new Error(result.error);
-            }
-            deletedCount = result.deletedCount;
-          } else if (currentTable === 'prescriptions') {
-            // 处方表使用专门的批量删除函数
-            for (const id of selectedIds) {
-              const res = await window._prescriptionModule.deletePrescription(id);
-              if (res.code !== 0) {
-                throw new Error(`删除处方失败: ${res.message}`);
-              }
-              deletedCount++;
-            }
-          } else if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
-            // 入库单/执药单逐个删除（确保触发级联操作）
-            for (const id of selectedIds) {
-              const deleteApi = window._stockModule.getDeleteApiPath(id, currentTable);
-              const res = await homeFetch(deleteApi, { method: 'DELETE' });
-              if (res.code !== 0) {
-                throw new Error(`删除${currentTable === 'stock_in_orders' ? '入库单' : '执药单'}失败: ${res.message}`);
-              }
-              deletedCount++;
-            }
-          } else if (currentTable === 'users') {
-            // 用户逐个删除
-            for (const id of selectedIds) {
-              const res = await homeFetch(`/api/user/${id}`, { method: 'DELETE' });
-              if (res.code !== 0) {
-                throw new Error(`删除用户失败: ${res.message}`);
-              }
-              deletedCount++;
-            }
-          } else if (currentTable === 'bookings') {
-            // 预约逐个删除
-            for (const id of selectedIds) {
-              const res = await homeFetch(`/api/booking/${id}`, { method: 'DELETE' });
-              if (res.code !== 0) {
-                throw new Error(`删除预约失败: ${res.message}`);
-              }
-              deletedCount++;
-            }
-          } else {
-            throw new Error(`未知的表类型: ${currentTable}`);
-          }
-
-          showToast(`成功删除 ${deletedCount} 条记录`, 'success');
-          selectedIds = [];
-
-          // 如果删除的是药材信息，清除药材信息缓存
-          if (currentTable === 'herbs' && window._stockModule) {
-            window._stockModule.clearHerbInfoCache();
-          }
-
-          loadTableData();
-          loadStats();
-        } catch (err) {
-          showToast('批量删除失败: ' + err.message, 'error');
-          loadTableData();
-        }
-      });
+      // 错误已在 handler 中处理
     }
-  } else {
-    showConfirm('批量删除', `确定要删除选中的 ${selectedIds.length} 条记录吗？`, async () => {
-      try {
-        let deletedCount = 0;
-        
-        // 药材表使用专门的批量删除函数
-        if (currentTable === 'herbs' && window._stockModule) {
-          const result = await window._stockModule.handleHerbBatchDelete(selectedIds);
-          if (!result.success) {
-            throw new Error(result.error);
-          }
-          deletedCount = result.deletedCount;
-        } else if (currentTable === 'prescriptions') {
-          // 处方表使用专门的批量删除函数
-          for (const id of selectedIds) {
-            const res = await window._prescriptionModule.deletePrescription(id);
-            if (res.code !== 0) {
-              throw new Error(`删除处方失败: ${res.message}`);
-            }
-            deletedCount++;
-          }
-        } else if (currentTable === 'stock_in_orders' || currentTable === 'stock_out_orders') {
-          // 入库单/执药单逐个删除（确保触发级联操作）
-          for (const id of selectedIds) {
-            const deleteApi = window._stockModule.getDeleteApiPath(id, currentTable);
-            const res = await homeFetch(deleteApi, { method: 'DELETE' });
-            if (res.code !== 0) {
-              throw new Error(`删除${currentTable === 'stock_in_orders' ? '入库单' : '执药单'}失败: ${res.message}`);
-            }
-            deletedCount++;
-          }
-        } else if (currentTable === 'users') {
-          // 用户逐个删除
-          for (const id of selectedIds) {
-            const res = await homeFetch(`/api/user/${id}`, { method: 'DELETE' });
-            if (res.code !== 0) {
-              throw new Error(`删除用户失败: ${res.message}`);
-            }
-            deletedCount++;
-          }
-        } else if (currentTable === 'bookings') {
-          // 预约逐个删除
-          for (const id of selectedIds) {
-            const res = await homeFetch(`/api/booking/${id}`, { method: 'DELETE' });
-            if (res.code !== 0) {
-              throw new Error(`删除预约失败: ${res.message}`);
-            }
-            deletedCount++;
-          }
-        } else {
-          throw new Error(`未知的表类型: ${currentTable}`);
-        }
-
-        showToast(`成功删除 ${deletedCount} 条记录`, 'success');
-        selectedIds = [];
-        
-        // 如果删除的是药材信息，清除药材信息缓存
-        if (currentTable === 'herbs' && window._stockModule) {
-          window._stockModule.clearHerbInfoCache();
-        }
-        
-        loadTableData();
-        loadStats();
-      } catch (err) {
-        showToast('批量删除失败: ' + err.message, 'error');
-        loadTableData();
-      }
-    });
   }
 }
 
@@ -1937,7 +1511,7 @@ async function renderSchedulePage() {
     const res = await homeFetch('/api/schedule/config');
     if (res.code !== 0) throw new Error(res.message);
 
-    const { defaults, overrides } = res.data;
+    const { defaults, overrides, maxBookings } = res.data;
 
     // 将 defaults 转为 map: dayOfWeek -> session -> record
     const defaultMap = {};
@@ -1946,48 +1520,26 @@ async function renderSchedulePage() {
       defaultMap[d.dayOfWeek][d.session] = d;
     });
 
-    main.innerHTML = `
-      <div class="page-header">
-        <div class="page-title">🗓️ 出诊管理</div>
-      </div>
+    // 使用模板
+    const template = document.getElementById('schedule-template');
+    const clone = template.content.cloneNode(true);
 
-      <!-- 默认规则 -->
-      <div class="schedule-section">
-        <div class="schedule-section-title">默认出诊规则</div>
-        <div class="schedule-section-desc">配置每周各场次的默认出诊状态</div>
-        <div class="schedule-grid" id="defaultGrid">
-          ${buildDefaultGrid(defaultMap)}
-        </div>
-      </div>
+    // 设置日期选择器的最小值
+    clone.getElementById('overrideDate').min = getTodayStr();
 
-      <!-- 临时调整 -->
-      <div class="schedule-section">
-        <div class="schedule-section-title">临时调整</div>
-        <div class="schedule-section-desc">为特定日期设置一次性的出诊/停诊覆盖</div>
+    // 填充场次配置
+    clone.getElementById('maxMorning').value = maxBookings?.morning || 2;
+    clone.getElementById('maxAfternoon').value = maxBookings?.afternoon || 4;
+    clone.getElementById('maxEvening').value = maxBookings?.evening || 2;
 
-        <!-- 添加新调整 -->
-        <div class="override-form" id="overrideForm">
-          <input type="date" id="overrideDate" class="schedule-input" min="${getTodayStr()}">
-          <select id="overrideSession" class="schedule-select">
-            <option value="morning">上午</option>
-            <option value="afternoon">下午</option>
-            <option value="evening">晚上</option>
-            <option value="all">全天</option>
-          </select>
-          <select id="overrideIsOpen" class="schedule-select">
-            <option value="open">出诊</option>
-            <option value="closed">停诊</option>
-          </select>
-          <input type="text" id="overrideReason" class="schedule-input" placeholder="备注（可选）">
-          <button class="btn btn-primary" onclick="addOverride()">添加</button>
-        </div>
+    // 填充默认规则网格
+    clone.getElementById('defaultGrid').innerHTML = buildDefaultGrid(defaultMap);
 
-        <!-- 调整列表 -->
-        <div id="overrideList">
-          ${buildOverrideList(overrides)}
-        </div>
-      </div>
-    `;
+    // 填充临时调整列表
+    clone.getElementById('overrideList').innerHTML = buildOverrideList(overrides);
+
+    main.innerHTML = '';
+    main.appendChild(clone);
   } catch (err) {
     main.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><p>${err.message}</p></div>`;
   }
@@ -2043,6 +1595,23 @@ function buildOverrideList(overrides) {
 function getTodayStr() {
   const d = new Date();
   return d.toISOString().slice(0, 10);
+}
+
+async function saveMaxBookings() {
+  const morning = parseInt(document.getElementById('maxMorning').value) || 2;
+  const afternoon = parseInt(document.getElementById('maxAfternoon').value) || 4;
+  const evening = parseInt(document.getElementById('maxEvening').value) || 2;
+
+  try {
+    const res = await homeFetch('/api/schedule/config/max-bookings', {
+      method: 'POST',
+      body: JSON.stringify({ morning, afternoon, evening })
+    });
+    if (res.code !== 0) throw new Error(res.message);
+    showToast('场次配置已保存', 'success');
+  } catch (err) {
+    showToast('保存失败: ' + err.message, 'error');
+  }
 }
 
 async function toggleDefaultSession(day, session, btn) {
@@ -2121,5 +1690,88 @@ async function reloadOverrideList() {
     listEl.innerHTML = buildOverrideList(res.data.overrides);
   } catch (err) {
     listEl.innerHTML = `<div class="schedule-empty">加载失败: ${err.message}</div>`;
+  }
+}
+
+// ==================== LLM 配置页面 ====================
+
+async function renderLlmConfigPage() {
+  const main = document.getElementById('main');
+  main.innerHTML = `<div class="loading">加载中...</div>`;
+
+  try {
+    const res = await homeFetch('/api/llm-config');
+    if (res.code !== 0) throw new Error(res.message);
+
+    const { prescription_ocr_llm_config, chat_llm_config } = res.config;
+
+    // 使用模板渲染
+    const template = document.getElementById('llm-config-template');
+    const clone = template.content.cloneNode(true);
+
+    // 填充处方识别配置
+    clone.getElementById('ocr_api_key').value = prescription_ocr_llm_config.api_key || '';
+    clone.getElementById('ocr_model').value = prescription_ocr_llm_config.model || '';
+    clone.getElementById('ocr_prompt').value = prescription_ocr_llm_config.prompt || '';
+    clone.getElementById('ocr_hostname').value = prescription_ocr_llm_config.request?.hostname || '';
+    clone.getElementById('ocr_port').value = prescription_ocr_llm_config.request?.port || 443;
+    clone.getElementById('ocr_path').value = prescription_ocr_llm_config.request?.path || '';
+
+    // 填充聊天配置
+    clone.getElementById('chat_api_key').value = chat_llm_config.api_key || '';
+    clone.getElementById('chat_model').value = chat_llm_config.model || '';
+    clone.getElementById('chat_prompt').value = chat_llm_config.prompt || '';
+    clone.getElementById('chat_hostname').value = chat_llm_config.request?.hostname || '';
+    clone.getElementById('chat_port').value = chat_llm_config.request?.port || 443;
+    clone.getElementById('chat_path').value = chat_llm_config.request?.path || '';
+
+    main.innerHTML = '';
+    main.appendChild(clone);
+  } catch (err) {
+    main.innerHTML = `<div class="empty-state"><div class="empty-icon">❌</div><p>${err.message}</p></div>`;
+  }
+}
+
+async function saveLlmConfig() {
+  const config = {
+    prescription_ocr_llm_config: {
+      api_key: document.getElementById('ocr_api_key').value,
+      model: document.getElementById('ocr_model').value,
+      prompt: document.getElementById('ocr_prompt').value,
+      request: {
+        hostname: document.getElementById('ocr_hostname').value,
+        port: parseInt(document.getElementById('ocr_port').value) || 443,
+        path: document.getElementById('ocr_path').value,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    },
+    chat_llm_config: {
+      api_key: document.getElementById('chat_api_key').value,
+      model: document.getElementById('chat_model').value,
+      prompt: document.getElementById('chat_prompt').value,
+      request: {
+        hostname: document.getElementById('chat_hostname').value,
+        port: parseInt(document.getElementById('chat_port').value) || 443,
+        path: document.getElementById('chat_path').value,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }
+    }
+  };
+
+  try {
+    const res = await homeFetch('/api/llm-config', {
+      method: 'POST',
+      body: JSON.stringify(config)
+    });
+    if (res.code !== 0) throw new Error(res.message);
+    showToast('配置保存成功', 'success');
+  } catch (err) {
+    showToast('保存失败: ' + err.message, 'error');
   }
 }

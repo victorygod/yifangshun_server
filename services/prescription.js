@@ -1,6 +1,7 @@
 const { Prescription, StockOutOrder, StockOutItem, Herb, User, Op } = require('../wrappers/db-wrapper');
 const https = require('https');
 const stock = require('./stock');
+const llmConfig = require('../config/llm_config_loader');
 
 // 获取当前时间
 function getNow() {
@@ -76,30 +77,12 @@ async function handlePrescriptionOCR(image, openid, thumbnail) {
   }
   console.log('========================================');
 
-  // 调用阿里云通义千问 VL 模型进行 OCR 识别
-  const ocrPrompt = `识别中医处方，以json格式返回，遵循以下输出格式：
-{
-  '姓名': '',
-  '年龄': '',
-  '日期': '',
-  '处方号': '右上角红色编号',
-  'Rp': '完整的Rp内容',
-  '剂数': '一般是中文繁体大写数字，输出时转为阿拉伯数字',
-  '服用方式': '内服还是外用',
-  '药方': [
-    // Rp中每款中药以及数量，不是药名的内容不用写
-    {
-      '药名': '',
-      '数量': '',
-      '备注': ''  // 如果某个药材左上角或右上角有小字，一般为四种：先煎、后下、打、另包，写在这里，左右都有的用逗号分隔
-    }
-  ],
-  '医师': '肖笃凯'
-}`;
+  // 从配置文件获取 OCR prompt
+  const ocrPrompt = llmConfig.prescription_ocr_llm_config.prompt;
 
   try {
     const requestBody = {
-      model: 'qwen-vl-max',
+      model: llmConfig.prescription_ocr_llm_config.model,
       messages: [
         {
           role: 'user',
@@ -132,16 +115,16 @@ async function handlePrescriptionOCR(image, openid, thumbnail) {
 
     // 使用 Node.js 内置 https 模块发送请求（兼容 Node.js 12+）
     const requestBodyStr = JSON.stringify(requestBody);
-    
+
     const result = await new Promise((resolve, reject) => {
       const req = https.request({
-        hostname: 'dashscope.aliyuncs.com',
-        port: 443,
-        path: '/compatible-mode/v1/chat/completions',
-        method: 'POST',
+        hostname: llmConfig.prescription_ocr_llm_config.request.hostname,
+        port: llmConfig.prescription_ocr_llm_config.request.port,
+        path: llmConfig.prescription_ocr_llm_config.request.path,
+        method: llmConfig.prescription_ocr_llm_config.request.method,
         headers: {
-          'Authorization': 'Bearer sk-25ad83b975ba4458a9983367888dd0dd',
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${llmConfig.prescription_ocr_llm_config.api_key}`,
+          'Content-Type': llmConfig.prescription_ocr_llm_config.request.headers['Content-Type'],
           'Content-Length': Buffer.byteLength(requestBodyStr)
         }
       }, (res) => {
@@ -703,7 +686,14 @@ async function deletePrescription(prescriptionId, status, userInfo) {
 }
 
 // 获取所有处方列表（管理员）
-async function getPrescriptionsList({ page = 1, pageSize = 20, keyword = '', status = 'all', openid = '' } = {}) {
+async function getPrescriptionsList(options = {}) {
+  // 确保分页参数为数字类型
+  const page = parseInt(options.page) || 1;
+  const pageSize = parseInt(options.pageSize) || 20;
+  const keyword = options.keyword || '';
+  const status = options.status || 'all';
+  const openid = options.openid || '';
+
   let where = {};
 
   // 状态筛选

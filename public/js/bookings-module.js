@@ -91,16 +91,9 @@ export const bookingsHandlers = {
       const res = await saveBooking(rowId, data);
       if (res.code !== 0) throw new Error(res.message);
 
-      // 退出编辑状态
-      if (_dependencies.setEditingRowId) {
-        _dependencies.setEditingRowId(null);
-      }
-      if (_dependencies.clearSelectedIds) {
-        _dependencies.clearSelectedIds();
-      }
-
-      // 保存成功后刷新页面
       _dependencies.showToast('保存成功', 'success');
+      _dependencies.setEditingRowId?.(null);
+      _dependencies.clearSelectedIds?.();
       _dependencies.loadTableData();
       _dependencies.loadStats();
       return res;
@@ -111,33 +104,67 @@ export const bookingsHandlers = {
   },
 
   /**
+   * 保存新增行（预约管理不支持新增）
+   */
+  onSaveNew: async () => {
+    _dependencies.showToast('预约管理不支持新增', 'error');
+    return;
+  },
+
+  /**
    * 删除行
    */
   onDelete: async (rowId) => {
-    try {
-      const res = await deleteBooking(rowId);
-      if (res.code !== 0) throw new Error(res.message);
+    return new Promise((resolve, reject) => {
+      _dependencies.showConfirm('确认删除', '确定要删除这条预约吗？', async () => {
+        try {
+          const res = await deleteBooking(rowId);
+          if (res.code !== 0) throw new Error(res.message);
 
-      // 退出编辑状态（如果删除的是正在编辑的行）
-      if (_dependencies.getEditingRowId && _dependencies.setEditingRowId) {
-        const currentEditingId = _dependencies.getEditingRowId();
-        if (currentEditingId && String(currentEditingId) === String(rowId)) {
-          _dependencies.setEditingRowId(null);
+          _dependencies.showToast('删除成功', 'success');
+          _dependencies.setEditingRowId?.(null);
+          _dependencies.clearSelectedIds?.();
+          _dependencies.loadTableData();
+          _dependencies.loadStats();
+          resolve(res);
+        } catch (err) {
+          _dependencies.showToast('删除删除失败: ' + err.message, 'error');
+          reject(err);
         }
-      }
-      if (_dependencies.clearSelectedIds) {
-        _dependencies.clearSelectedIds();
-      }
+      });
+    });
+  },
 
-      // 删除成功后刷新页面
-      _dependencies.showToast('删除成功', 'success');
-      _dependencies.loadTableData();
-      _dependencies.loadStats();
-      return res;
-    } catch (err) {
-      _dependencies.showToast('删除失败: ' + err.message, 'error');
-      throw err;
-    }
+  /**
+   * 批量删除
+   */
+  onBatchDelete: async (ids) => {
+    const confirmMessage = `确定要删除选中的 ${ids.length} 条预约吗？`;
+
+    return new Promise((resolve, reject) => {
+      _dependencies.showConfirm('批量删除', confirmMessage, async () => {
+        try {
+          let deletedCount = 0;
+          for (const id of ids) {
+            const res = await deleteBooking(id);
+            if (res.code === 0) {
+              deletedCount++;
+            } else {
+              throw new Error(`删除预约失败: ${res.message}`);
+            }
+          }
+          _dependencies.showToast(`成功删除 ${deletedCount} 条记录`, 'success');
+          _dependencies.clearSelectedIds?.();
+          _dependencies.loadTableData();
+          _dependencies.loadStats();
+          resolve({ success: true, deletedCount });
+        } catch (err) {
+          _dependencies.showToast('批量删除失败: ' + err.message, 'error');
+          _dependencies.loadTableData();
+          reject(err);
+        }
+      });
+    });
   }
 };
 

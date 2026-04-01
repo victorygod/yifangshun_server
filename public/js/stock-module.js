@@ -24,7 +24,10 @@ let _dependencies = {
   getCurrentTable: () => '', // 获取当前表名
   getExpandedRows: () => new Set(), // 获取展开的行
   getTableConfig: () => null, // 获取表格配置
-  showImagePreview: null    // 显示图片预览
+  showImagePreview: null,    // 显示图片预览
+  getEditingRowId: () => null, // 获取当前编辑行ID
+  setEditingRowId: null,     // 设置当前编辑行ID
+  clearSelectedIds: null     // 清除选中的ID列表
 };
 
 /**
@@ -228,6 +231,7 @@ export async function saveDetailNewAuto(row) {
   });
 
   if (!newItem.herbName && !newItem.name) {
+    _dependencies.showToast('请输入药材名称', 'error');
     return;
   }
 
@@ -523,41 +527,41 @@ export async function handleHerbNameInput(e) {
   // 入库明细：输入药材名称后更新成本价提示，并自动计算成本价
   const currentTable = _dependencies.getCurrentTable();
   if (currentTable !== 'stock_in_orders') return;
-  
+
   const input = e.target;
   const tr = input.closest('tr');
   if (!tr) return;
-  
+
   const herbName = input.value.trim();
   const costPriceInput = tr.querySelector('input[data-col="costPrice"]');
   const hintSpan = costPriceInput ? costPriceInput.parentElement.querySelector('.field-hint') : null;
   const quantityInput = tr.querySelector('input[data-col="quantity"]');
   const unitPriceInput = tr.querySelector('input[data-col="unitPrice"]');
-  
-  if (herbName && window._herbInfoMap && window._herbInfoMap[herbName]) {
-    const herbInfo = window._herbInfoMap[herbName];
-    if (hintSpan) {
-      hintSpan.textContent = `(现成本:${(herbInfo.costPrice || 0).toFixed(2)})`;
-    }
-    
-    // 如果克数和进货价已填写，自动计算成本价
-    if (quantityInput && unitPriceInput && costPriceInput) {
-      const quantity = parseFloat(quantityInput.value) || 0;
-      const unitPrice = parseFloat(unitPriceInput.value) || 0;
-      
-      if (quantity > 0 && unitPrice > 0) {
-        const currentStock = parseFloat(herbInfo.stock) || 0;
-        const currentCost = parseFloat(herbInfo.costPrice) || 0;
-        const totalQuantity = currentStock + quantity;
-        
-        if (totalQuantity > 0) {
-          const newCostPrice = (currentStock * currentCost + quantity * unitPrice) / totalQuantity;
-          costPriceInput.value = newCostPrice.toFixed(2);
-        }
+
+  // 获取药材信息（新药材默认库存和成本为 0）
+  const herbInfo = herbName && window._herbInfoMap && window._herbInfoMap[herbName];
+  const currentStock = herbInfo ? (parseFloat(herbInfo.stock) || 0) : 0;
+  const currentCost = herbInfo ? (parseFloat(herbInfo.costPrice) || 0) : 0;
+
+  // 更新提示
+  if (hintSpan) {
+    hintSpan.textContent = herbInfo ? `(现成本:${currentCost.toFixed(2)})` : (herbName ? '(新药材)' : '');
+  }
+
+  // 如果克数和进货价已填写，自动计算成本价
+  if (herbName && quantityInput && unitPriceInput && costPriceInput) {
+    const quantity = parseFloat(quantityInput.value) || 0;
+    const unitPrice = parseFloat(unitPriceInput.value) || 0;
+
+    if (quantity > 0 && unitPrice > 0) {
+      const totalQuantity = currentStock + quantity;
+
+      if (totalQuantity > 0) {
+        // 新药材 currentStock=0, currentCost=0，成本价直接等于进货单价
+        const newCostPrice = (currentStock * currentCost + quantity * unitPrice) / totalQuantity;
+        costPriceInput.value = newCostPrice.toFixed(2);
       }
     }
-  } else if (hintSpan) {
-    hintSpan.textContent = '';
   }
 }
 
@@ -587,14 +591,13 @@ export async function handleCostCalcBlur(e) {
   // 只有当药材名称、克数和进货单价都有值时才计算
   if (!herbName || quantity <= 0 || unitPrice <= 0) return;
 
-  // 获取药材当前库存和成本价
+  // 获取药材当前库存和成本价（新药材默认为 0）
   const herbInfo = window._herbInfoMap && window._herbInfoMap[herbName];
-  if (!herbInfo) return;
-
-  const currentStock = parseFloat(herbInfo.stock) || 0;
-  const currentCost = parseFloat(herbInfo.costPrice) || 0;
+  const currentStock = herbInfo ? (parseFloat(herbInfo.stock) || 0) : 0;
+  const currentCost = herbInfo ? (parseFloat(herbInfo.costPrice) || 0) : 0;
 
   // 计算新成本价：(库存克数*现成本价+进货克数*进货单价)/(库存克数+进货克数)
+  // 新药材 currentStock=0, currentCost=0，成本价直接等于进货单价
   const totalQuantity = currentStock + quantity;
   if (totalQuantity <= 0) return;
 
@@ -605,7 +608,7 @@ export async function handleCostCalcBlur(e) {
   // 更新灰色提示
   const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
   if (hintSpan) {
-    hintSpan.textContent = `(现成本:${currentCost.toFixed(2)})`;
+    hintSpan.textContent = herbInfo ? `(现成本:${currentCost.toFixed(2)})` : '(新药材)';
   }
 }
 
@@ -681,17 +684,15 @@ export function recalculateCostPricesForOrder(orderId, herbInfoMap = null) {
       if (info) infoMap[herbName] = info;
     });
 
-    // 计算成本价
+    // 计算成本价（新药材 stock=0, cost=0，成本价直接等于进货单价）
     results.forEach(({ herbName, info }) => {
-      if (!info) return;
-
       const data = herbInputsMap.get(herbName);
       if (!data) return;
 
       const { row, quantity, unitPrice, costPriceInput, herbNameInput } = data;
 
-      const currentStock = parseFloat(info.stock) || 0;
-      const currentCost = parseFloat(info.costPrice) || 0;
+      const currentStock = info ? (parseFloat(info.stock) || 0) : 0;
+      const currentCost = info ? (parseFloat(info.costPrice) || 0) : 0;
 
       // 计算新成本价：(库存克数*现成本价+进货克数*进货单价)/(库存克数+进货克数)
       const totalQuantity = currentStock + quantity;
@@ -704,7 +705,7 @@ export function recalculateCostPricesForOrder(orderId, herbInfoMap = null) {
       // 更新灰色提示
       const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
       if (hintSpan) {
-        hintSpan.textContent = `(现成本:${currentCost.toFixed(2)})`;
+        hintSpan.textContent = info ? `(现成本:${currentCost.toFixed(2)})` : '(新药材)';
       }
     });
   });
@@ -754,16 +755,16 @@ export async function updateCostPriceHintsAsync(orderId) {
     const herbName = herbNameInput.value.trim();
     if (!herbName) return;
 
-    // 获取药材当前成本价
+    // 获取药材当前成本价（新药材显示 "(新药材)"）
     const herbInfo = infoMap[herbName];
-    if (!herbInfo) return;
-
-    const currentCost = parseFloat(herbInfo.costPrice) || 0;
-
-    // 只更新灰色提示 - 使用最新的成本价
     const hintSpan = costPriceInput.parentElement.querySelector('.field-hint');
     if (hintSpan) {
-      hintSpan.textContent = `(现成本:${currentCost.toFixed(2)})`;
+      if (herbInfo) {
+        const currentCost = parseFloat(herbInfo.costPrice) || 0;
+        hintSpan.textContent = `(现成本:${currentCost.toFixed(2)})`;
+      } else {
+        hintSpan.textContent = '(新药材)';
+      }
     }
   });
 }
@@ -814,84 +815,6 @@ export function updateCostPriceHints(orderId, herbInfoMap = null) {
       hintSpan.textContent = `(现成本:${currentCost.toFixed(2)})`;
     }
   });
-}
-
-// ==================== 放大展示执药单明细 ====================
-
-/**
- * 显示放大详情
- * @param {string} orderId - 订单ID
- */
-export async function showZoomDetail(orderId) {
-  const currentTable = _dependencies.getCurrentTable();
-  const apiPath = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${orderId}` : `/api/stock/out/orders/${orderId}`;
-  
-  try {
-    const res = await _dependencies.homeFetch(apiPath);
-    if (res.code !== 0) throw new Error(res.message);
-    
-    const order = res.data;
-    if (!order || !order.items) return;
-
-    // 创建模态框（如果不存在）
-    let zoomModal = document.getElementById('zoomModal');
-    if (!zoomModal) {
-      zoomModal = document.createElement('div');
-      zoomModal.id = 'zoomModal';
-      zoomModal.className = 'zoom-modal';
-      zoomModal.innerHTML = `
-        <div class="zoom-modal-content">
-          <div class="zoom-modal-header">
-            <h3>执药单明细</h3>
-            <button class="zoom-modal-close" onclick="window._stockModule.closeZoomModal()">×</button>
-          </div>
-          <div class="zoom-modal-body">
-            <table class="zoom-table">
-              <thead>
-                <tr>
-                  <th>药材名称</th>
-                  <th>柜号</th>
-                  <th>克数</th>
-                </tr>
-              </thead>
-              <tbody id="zoomTableBody"></tbody>
-            </table>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(zoomModal);
-      
-      // 绑定点击关闭事件
-      zoomModal.addEventListener('click', (e) => {
-        if (e.target === zoomModal) {
-          closeZoomModal();
-        }
-      });
-    }
-
-    const tbody = document.getElementById('zoomTableBody');
-    tbody.innerHTML = order.items.map(item => `
-      <tr>
-        <td>${_dependencies.escapeHtml(item.herbName || '-')}</td>
-        <td>${_dependencies.escapeHtml(item.cabinetNo || '-')}</td>
-        <td>${_dependencies.escapeHtml(item.quantity || '-')}</td>
-      </tr>
-    `).join('');
-
-    zoomModal.classList.add('show');
-  } catch (err) {
-    _dependencies.showToast('加载明细失败: ' + err.message, 'error');
-  }
-}
-
-/**
- * 关闭放大模态框
- */
-export function closeZoomModal() {
-  const zoomModal = document.getElementById('zoomModal');
-  if (zoomModal) {
-    zoomModal.classList.remove('show');
-  }
 }
 
 // ==================== 订单创建和删除辅助函数 ====================
@@ -1099,19 +1022,17 @@ export function renderOrderDetail(row, config, detailTable) {
   html += `<td colspan="${columns.length + 2}" class="detail-cell">`;
   html += `<div class="detail-content">`;
 
-  // 执药单添加放大展示按钮和结算按钮
+  // 执药单添加结算按钮
   if (currentTable === 'stock_out_orders') {
     const isPending = row.status === 'pending';
     html += `<div class="detail-header"><span>明细信息</span>`;
     if (isPending) {
       html += `<button class="action-btn action-btn-settle" data-action="settleOrder" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">确认结算</button>`;
     }
-    html += `<button class="action-btn action-btn-zoom" data-action="zoomDetail" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">放大展示</button>`;
     html += `<button class="action-btn action-btn-export" data-action="exportDetail" data-order-id="${row.id}">导出</button></div>`;
   } else if (currentTable === 'stock_in_orders') {
     // 入库单明细
     html += `<div class="detail-header"><span>明细信息</span>`;
-    html += `<button class="action-btn action-btn-zoom" data-action="zoomDetail" data-order-id="${row.id}">放大展示</button>`;
     html += `<button class="action-btn action-btn-export" data-action="exportDetail" data-order-id="${row.id}">导出</button></div>`;
   } else {
     html += `<div class="detail-header">明细信息</div>`;
@@ -1252,6 +1173,342 @@ export function renderOrderDetail(row, config, detailTable) {
   return html;
 }
 
+// ==================== 事件处理器配置 ====================
+
+/**
+ * 入库单事件处理器
+ */
+export const stockInOrdersHandlers = {
+  /**
+   * 加载数据
+   */
+  onLoad: async (page, pageSize, keyword) => {
+    const config = _dependencies.getTableConfig?.();
+    const searchFieldsParam = config?.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+    const res = await _dependencies.homeFetch(`/api/stock/in/orders?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}${searchFieldsParam}`);
+    if (res.code !== 0) throw new Error(res.message);
+    const rows = res.data?.rows || [];
+    return {
+      data: rows,
+      pagination: res.data?.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 }
+    };
+  },
+
+  /**
+   * 保存行
+   */
+  onSave: async (rowId, rowElement) => {
+    try {
+      const inputs = rowElement.querySelectorAll('.cell-input, .cell-select');
+      const data = {};
+      inputs.forEach(input => {
+        data[input.dataset.col] = input.value;
+      });
+
+      const res = await _dependencies.homeFetch(`/api/stock/in/orders/${rowId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      if (res.code !== 0) throw new Error(res.message);
+
+      _dependencies.showToast('保存成功', 'success');
+      _dependencies.setEditingRowId?.(null);
+      _dependencies.clearSelectedIds?.();
+      _dependencies.loadTableData();
+      _dependencies.loadStats();
+      return res;
+    } catch (err) {
+      _dependencies.showToast('保存失败: ' + err.message, 'error');
+      throw err;
+    }
+  },
+
+  /**
+   * 保存新增行
+   */
+  onSaveNew: async (rowElement) => {
+    try {
+      const inputs = rowElement.querySelectorAll('.cell-input, .cell-select');
+      const data = {};
+      inputs.forEach(input => {
+        if (input.value.trim()) {
+          data[input.dataset.col] = input.value.trim();
+        }
+      });
+
+      const validation = validateNewOrderData(data, 'stock_in_orders');
+      if (!validation.valid) {
+        _dependencies.showToast(validation.error, 'error');
+        return;
+      }
+
+      const res = await _dependencies.homeFetch(getCreateOrderApiPath('stock_in_orders'), {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      if (res.code !== 0) throw new Error(res.message);
+
+      _dependencies.showToast('新增成功', 'success');
+      _dependencies.setEditingRowId?.(null);
+      _dependencies.clearSelectedIds?.();
+      _dependencies.loadTableData();
+      _dependencies.loadStats();
+      return res;
+    } catch (err) {
+      _dependencies.showToast('新增失败: ' + err.message, 'error');
+      throw err;
+    }
+  },
+
+  /**
+   * 删除行
+   */
+  onDelete: async (rowId, row) => {
+    // 检查是否需要特殊处理
+    const handleResult = handleDeleteBeforeConfirm(rowId, row, 'stock_in_orders');
+    if (handleResult.needSpecialHandling) {
+      return new Promise((resolve, reject) => {
+        _dependencies.showConfirm('确认删除', handleResult.message, async () => {
+          try {
+            const result = await handleSpecialDelete(rowId);
+            if (!result.success) {
+              throw new Error(result.error);
+            }
+            _dependencies.showToast('删除成功', 'success');
+            _dependencies.setEditingRowId?.(null);
+            _dependencies.clearSelectedIds?.();
+            _dependencies.loadTableData();
+            _dependencies.loadStats();
+            resolve(result);
+          } catch (err) {
+            _dependencies.showToast('删除失败: ' + err.message, 'error');
+            reject(err);
+          }
+        });
+      });
+    }
+
+    // 获取明细数量用于确认提示
+    const detailCount = await getOrderDetailCount(rowId, 'stock_in_orders');
+    const labels = getOrderLabels('stock_in_orders');
+    const confirmMessage = detailCount > 0
+      ? `确定要删除这条${labels.orderLabel}吗？\n\n⚠️ 关联的 ${detailCount} 条${labels.detailLabel}也将一并删除！`
+      : `确定要删除这条${labels.orderLabel}吗？`;
+
+    return new Promise((resolve, reject) => {
+      _dependencies.showConfirm('确认删除', confirmMessage, async () => {
+        try {
+          const deleteApi = getDeleteApiPath(rowId, 'stock_in_orders');
+          const res = await _dependencies.homeFetch(deleteApi, { method: 'DELETE' });
+          if (res.code !== 0) throw new Error(res.message);
+
+          _dependencies.showToast('删除成功', 'success');
+          _dependencies.setEditingRowId?.(null);
+          _dependencies.clearSelectedIds?.();
+          _dependencies.loadTableData();
+          _dependencies.loadStats();
+          resolve(res);
+        } catch (err) {
+          _dependencies.showToast('删除失败: ' + err.message, 'error');
+          reject(err);
+        }
+      });
+    });
+  },
+
+  /**
+   * 批量删除
+   */
+  onBatchDelete: async (ids) => {
+    // 统计明细数量
+    let totalDetailCount = 0;
+    for (const id of ids) {
+      totalDetailCount += await getOrderDetailCount(id, 'stock_in_orders');
+    }
+    const labels = getOrderLabels('stock_in_orders');
+    const confirmMessage = totalDetailCount > 0
+      ? `确定要删除选中的 ${ids.length} 条${labels.orderLabel}吗？\n\n⚠️ 关联的 ${totalDetailCount} 条${labels.detailLabel}也将一并删除！`
+      : `确定要删除选中的 ${ids.length} 条${labels.orderLabel}吗？`;
+
+    return new Promise((resolve, reject) => {
+      _dependencies.showConfirm('批量删除', confirmMessage, async () => {
+        try {
+          let deletedCount = 0;
+          for (const id of ids) {
+            const deleteApi = getDeleteApiPath(id, 'stock_in_orders');
+            const res = await _dependencies.homeFetch(deleteApi, { method: 'DELETE' });
+            if (res.code !== 0) {
+              throw new Error(`删除入库单失败: ${res.message}`);
+            }
+            deletedCount++;
+          }
+          _dependencies.showToast(`成功删除 ${deletedCount} 条记录`, 'success');
+          _dependencies.clearSelectedIds?.();
+          _dependencies.loadTableData();
+          _dependencies.loadStats();
+          resolve({ success: true, deletedCount });
+        } catch (err) {
+          _dependencies.showToast('批量删除失败: ' + err.message, 'error');
+          _dependencies.loadTableData();
+          reject(err);
+        }
+      });
+    });
+  }
+};
+
+/**
+ * 执药单事件处理器
+ */
+export const stockOutOrdersHandlers = {
+  /**
+   * 加载数据
+   */
+  onLoad: async (page, pageSize, keyword) => {
+    const config = _dependencies.getTableConfig?.();
+    const searchFieldsParam = config?.searchFields ? `&searchFields=${config.searchFields.join(',')}` : '';
+    const res = await _dependencies.homeFetch(`/api/stock/out/orders?page=${page}&pageSize=${pageSize}&keyword=${encodeURIComponent(keyword)}${searchFieldsParam}`);
+    if (res.code !== 0) throw new Error(res.message);
+    const rows = res.data?.rows || [];
+    return {
+      data: rows,
+      pagination: res.data?.pagination || { page: 1, pageSize: 20, totalCount: rows.length, totalPages: 1 }
+    };
+  },
+
+  /**
+   * 保存行
+   */
+  onSave: async (rowId, rowElement) => {
+    try {
+      const inputs = rowElement.querySelectorAll('.cell-input, .cell-select');
+      const data = {};
+      inputs.forEach(input => {
+        data[input.dataset.col] = input.value;
+      });
+
+      const res = await _dependencies.homeFetch(`/api/stock/out/orders/${rowId}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+      });
+      if (res.code !== 0) throw new Error(res.message);
+
+      _dependencies.showToast('保存成功', 'success');
+      _dependencies.setEditingRowId?.(null);
+      _dependencies.clearSelectedIds?.();
+      _dependencies.loadTableData();
+      _dependencies.loadStats();
+      return res;
+    } catch (err) {
+      _dependencies.showToast('保存失败: ' + err.message, 'error');
+      throw err;
+    }
+  },
+
+  /**
+   * 保存新增行
+   */
+  onSaveNew: async (rowElement) => {
+    try {
+      const inputs = rowElement.querySelectorAll('.cell-input, .cell-select');
+      const data = {};
+      inputs.forEach(input => {
+        if (input.value.trim()) {
+          data[input.dataset.col] = input.value.trim();
+        }
+      });
+
+      const res = await _dependencies.homeFetch(getCreateOrderApiPath('stock_out_orders'), {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+      if (res.code !== 0) throw new Error(res.message);
+
+      _dependencies.showToast('新增成功', 'success');
+      _dependencies.setEditingRowId?.(null);
+      _dependencies.clearSelectedIds?.();
+      _dependencies.loadTableData();
+      _dependencies.loadStats();
+      return res;
+    } catch (err) {
+      _dependencies.showToast('新增失败: ' + err.message, 'error');
+      throw err;
+    }
+  },
+
+  /**
+   * 删除行
+   */
+  onDelete: async (rowId, row) => {
+    // 获取明细数量用于确认提示
+    const detailCount = await getOrderDetailCount(rowId, 'stock_out_orders');
+    const labels = getOrderLabels('stock_out_orders');
+    const confirmMessage = detailCount > 0
+      ? `确定要删除这条${labels.orderLabel}吗？\n\n⚠️ 关联的 ${detailCount} 条${labels.detailLabel}也将一并删除！`
+      : `确定要删除这条${labels.orderLabel}吗？`;
+
+    return new Promise((resolve, reject) => {
+      _dependencies.showConfirm('确认删除', confirmMessage, async () => {
+        try {
+          const deleteApi = getDeleteApiPath(rowId, 'stock_out_orders');
+          const res = await _dependencies.homeFetch(deleteApi, { method: 'DELETE' });
+          if (res.code !== 0) throw new Error(res.message);
+
+          _dependencies.showToast('删除成功', 'success');
+          _dependencies.setEditingRowId?.(null);
+          _dependencies.clearSelectedIds?.();
+          _dependencies.loadTableData();
+          _dependencies.loadStats();
+          resolve(res);
+        } catch (err) {
+          _dependencies.showToast('删除失败: ' + err.message, 'error');
+          reject(err);
+        }
+      });
+    });
+  },
+
+  /**
+   * 批量删除
+   */
+  onBatchDelete: async (ids) => {
+    // 统计明细数量
+    let totalDetailCount = 0;
+    for (const id of ids) {
+      totalDetailCount += await getOrderDetailCount(id, 'stock_out_orders');
+    }
+    const labels = getOrderLabels('stock_out_orders');
+    const confirmMessage = totalDetailCount > 0
+      ? `确定要删除选中的 ${ids.length} 条${labels.orderLabel}吗？\n\n⚠️ 关联的 ${totalDetailCount} 条${labels.detailLabel}也将一并删除！`
+      : `确定要删除选中的 ${ids.length} 条${labels.orderLabel}吗？`;
+
+    return new Promise((resolve, reject) => {
+      _dependencies.showConfirm('批量删除', confirmMessage, async () => {
+        try {
+          let deletedCount = 0;
+          for (const id of ids) {
+            const deleteApi = getDeleteApiPath(id, 'stock_out_orders');
+            const res = await _dependencies.homeFetch(deleteApi, { method: 'DELETE' });
+            if (res.code !== 0) {
+              throw new Error(`删除执药单失败: ${res.message}`);
+            }
+            deletedCount++;
+          }
+          _dependencies.showToast(`成功删除 ${deletedCount} 条记录`, 'success');
+          _dependencies.clearSelectedIds?.();
+          _dependencies.loadTableData();
+          _dependencies.loadStats();
+          resolve({ success: true, deletedCount });
+        } catch (err) {
+          _dependencies.showToast('批量删除失败: ' + err.message, 'error');
+          _dependencies.loadTableData();
+          reject(err);
+        }
+      });
+    });
+  }
+};
+
 // ==================== 导出模块实例供全局访问 ====================
 if (typeof window !== 'undefined') {
   window._stockModule = {
@@ -1274,8 +1531,6 @@ if (typeof window !== 'undefined') {
     updateCostPriceHints,
     updateCostPriceHintsAsync,
     updateAllCostPriceHints,
-    showZoomDetail,
-    closeZoomModal,
     validateNewOrderData,
     getCreateOrderApiPath,
     getOrderDetailCount,
@@ -1285,6 +1540,8 @@ if (typeof window !== 'undefined') {
     getOrderLabels,
     getHerbApiPath,
     handleHerbBatchDelete,
-    renderOrderDetail
+    renderOrderDetail,
+    stockInOrdersHandlers,
+    stockOutOrdersHandlers
   };
 }

@@ -118,10 +118,6 @@ export const herbsHandlers = {
    * 加载数据
    */
   onLoad: async (page, pageSize, keyword) => {
-    // 入库单需要先获取药材信息（用于成本价计算）
-    if (_dependencies.getCurrentTable() === 'stock_in_orders') {
-      // 这里不处理，由 stock_in_orders 的 onLoad 处理
-    }
     return loadHerbsData(page, pageSize, keyword);
   },
 
@@ -144,16 +140,9 @@ export const herbsHandlers = {
         window._stockModule.clearHerbInfoCache();
       }
 
-      // 退出编辑状态
-      if (_dependencies.setEditingRowId) {
-        _dependencies.setEditingRowId(null);
-      }
-      if (_dependencies.clearSelectedIds) {
-        _dependencies.clearSelectedIds();
-      }
-
-      // 保存成功后刷新页面
       _dependencies.showToast('保存成功', 'success');
+      _dependencies.setEditingRowId?.(null);
+      _dependencies.clearSelectedIds?.();
       _dependencies.loadTableData();
       _dependencies.loadStats();
       return res;
@@ -164,11 +153,28 @@ export const herbsHandlers = {
   },
 
   /**
-   * 删除行
+   * 保存新增行
    */
-  onDelete: async (rowId) => {
+  onSaveNew: async (rowElement) => {
     try {
-      const res = await deleteHerb(rowId);
+      const inputs = rowElement.querySelectorAll('.cell-input, .cell-select');
+      const data = {};
+      inputs.forEach(input => {
+        if (input.value.trim()) {
+          data[input.dataset.col] = input.value.trim();
+        }
+      });
+
+      if (Object.keys(data).length === 0) {
+        _dependencies.showToast('请至少填写一个字段', 'error');
+        return;
+      }
+
+      const res = await _dependencies.homeFetch(getHerbApiPath('create'), {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+
       if (res.code !== 0) throw new Error(res.message);
 
       // 清除药材信息缓存
@@ -176,26 +182,81 @@ export const herbsHandlers = {
         window._stockModule.clearHerbInfoCache();
       }
 
-      // 退出编辑状态（如果删除的是正在编辑的行）
-      if (_dependencies.getEditingRowId && _dependencies.setEditingRowId) {
-        const currentEditingId = _dependencies.getEditingRowId();
-        if (currentEditingId && String(currentEditingId) === String(rowId)) {
-          _dependencies.setEditingRowId(null);
-        }
-      }
-      if (_dependencies.clearSelectedIds) {
-        _dependencies.clearSelectedIds();
-      }
-
-      // 删除成功后刷新页面
-      _dependencies.showToast('删除成功', 'success');
+      _dependencies.showToast('新增成功', 'success');
+      _dependencies.setEditingRowId?.(null);
+      _dependencies.clearSelectedIds?.();
       _dependencies.loadTableData();
       _dependencies.loadStats();
       return res;
     } catch (err) {
-      _dependencies.showToast('删除失败: ' + err.message, 'error');
+      _dependencies.showToast('新增失败: ' + err.message, 'error');
       throw err;
     }
+  },
+
+  /**
+   * 删除行
+   */
+  onDelete: async (rowId) => {
+    return new Promise((resolve, reject) => {
+      _dependencies.showConfirm('确认删除', '确定要删除这条药材吗？', async () => {
+        try {
+          const res = await deleteHerb(rowId);
+          if (res.code !== 0) throw new Error(res.message);
+
+          // 清除药材信息缓存
+          if (window._stockModule) {
+            window._stockModule.clearHerbInfoCache();
+          }
+
+          _dependencies.showToast('删除成功', 'success');
+          _dependencies.setEditingRowId?.(null);
+          _dependencies.clearSelectedIds?.();
+          _dependencies.loadTableData();
+          _dependencies.loadStats();
+          resolve(res);
+        } catch (err) {
+          _dependencies.showToast('删除失败: ' + err.message, 'error');
+          reject(err);
+        }
+      });
+    });
+  },
+
+  /**
+   * 批量删除
+   */
+  onBatchDelete: async (ids) => {
+    const confirmMessage = `确定要删除选中的 ${ids.length} 条药材吗？`;
+
+    return new Promise((resolve, reject) => {
+      _dependencies.showConfirm('批量删除', confirmMessage, async () => {
+        try {
+          let deletedCount = 0;
+          for (const id of ids) {
+            const res = await _dependencies.homeFetch(getHerbApiPath('delete', id), { method: 'DELETE' });
+            if (res.code === 0) {
+              deletedCount++;
+            }
+          }
+
+          // 清除药材信息缓存
+          if (window._stockModule) {
+            window._stockModule.clearHerbInfoCache();
+          }
+
+          _dependencies.showToast(`成功删除 ${deletedCount} 条记录`, 'success');
+          _dependencies.clearSelectedIds?.();
+          _dependencies.loadTableData();
+          _dependencies.loadStats();
+          resolve({ success: true, deletedCount });
+        } catch (err) {
+          _dependencies.showToast('批量删除失败: ' + err.message, 'error');
+          _dependencies.loadTableData();
+          reject(err);
+        }
+      });
+    });
   }
 };
 

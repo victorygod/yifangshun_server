@@ -80,10 +80,14 @@ async function runBookingTests(externalTestUsers) {
     const day = String(date.getDate()).padStart(2, '0');
     const dateStr = `${year}-${month}-${day}`;
 
+    // 根据星期选择开放的场次（周四下午停诊，其他天下午开放）
+    const dayOfWeek = date.getDay();
+    const session = dayOfWeek === 4 ? 'evening' : 'afternoon';
+
     console.log('测试用户:', testUsers.normalUser);
     const { response, data } = await request('POST', '/api/booking', {
       date: dateStr,
-      session: 'afternoon',
+      session: session,
       personCount: 1
     }, {
       'x-openid': testUsers.normalUser.openid
@@ -242,29 +246,29 @@ async function runBookingTests(externalTestUsers) {
 
   await test('[改造后] POST /api/booking - 按场次创建预约', async () => {
     const date = new Date();
-    date.setDate(date.getDate() + 7);
+    date.setDate(date.getDate() + 8);
     while (date.getDay() === 2) {
       date.setDate(date.getDate() + 1);
     }
     // 使用本地日期格式
     const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
+    // 根据星期选择开放的场次（周四下午停诊，其他天下午开放）
+    const dayOfWeek = date.getDay();
+    const session = dayOfWeek === 4 ? 'evening' : 'afternoon';
+
     const { response, data } = await request('POST', '/api/booking', {
       date: dateStr,
-      session: 'afternoon',
+      session: session,
       personCount: 2
     }, {
       'x-openid': testUsers.normalUser.openid
     });
 
-    if (response.statusCode === 400) {
-      assert(data.message.includes('session') || data.message.includes('缺少'), '提示缺少session参数');
-    } else {
-      assertEquals(response.statusCode, 200, '请求成功');
-      assertEquals(data.code, 0, '预约成功');
-      assert(data.data.session, '返回场次信息');
-      assert(data.data.personCount, '返回预约人数');
-    }
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '预约成功: ' + data.message);
+    assert(data.data.session, '返回场次信息');
+    assert(data.data.personCount, '返回预约人数');
   });
 
   await test('[改造后] GET /api/my-bookings - 获取包含场次信息的预约', async () => {
