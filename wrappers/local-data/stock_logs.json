@@ -5948,5 +5948,27 @@
     "id": 571,
     "createTime": "2026-03-31T02:53:54.647Z",
     "updatedAt": "2026-03-31T02:53:54.647Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-2",
+    "herbName": "防风",
+    "quantity": -60,
+    "operator": "admin",
+    "createdAt": "2026-04-01T19:01:31.095Z",
+    "id": 572,
+    "createTime": "2026-04-02T03:01:31.097Z",
+    "updatedAt": "2026-04-02T03:01:31.097Z"
+  },
+  {
+    "action": "stock_out",
+    "orderNo": "ZD-2",
+    "herbName": "金樱子",
+    "quantity": -50,
+    "operator": "admin",
+    "createdAt": "2026-04-01T19:01:31.101Z",
+    "id": 573,
+    "createTime": "2026-04-02T03:01:31.102Z",
+    "updatedAt": "2026-04-02T03:01:31.102Z"
   }
 ]
