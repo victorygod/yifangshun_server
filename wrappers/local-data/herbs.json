@@ -126,14 +126,14 @@
     "unit": "克",
     "minValue": "500",
     "cabinetNo": "B-01",
-    "salePrice": "0.03",
+    "salePrice": "0.26",
     "remark": "测试备注",
     "isActive": true,
     "createdAt": "2026-03-26T23:18:07.204Z",
-    "updatedAt": "2026-04-06T17:37:44.431Z",
+    "updatedAt": "2026-04-06T17:41:50.294Z",
     "id": 10,
     "stock": 700,
     "costPrice": "52",
-    "coefficient": "0.0005"
+    "coefficient": "0.005"
   }
 ]
