@@ -332,8 +332,8 @@ test.describe('明细自动计算功能', () => {
           const unitPrice = await unitPriceInput.inputValue();
 
           if (quantity && unitPrice) {
-            // 验证总价计算正确
-            const expectedTotal = (parseFloat(quantity) * parseFloat(unitPrice)).toFixed(2);
+            // 验证总价计算正确（单价为公斤价，数量为克数，需除以1000）
+            const expectedTotal = (parseFloat(quantity) * parseFloat(unitPrice) / 1000).toFixed(2);
 
             // 修改克数触发重新计算
             await quantityInput.fill('10');

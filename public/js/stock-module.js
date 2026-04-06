@@ -400,50 +400,50 @@ export async function removeDetailRow(detailId, orderId) {
 // ==================== 计算功能 ====================
 
 /**
- * 计算入库单总金额（所有明细的 克数*进货单价 之和）
+ * 计算入库单总金额（所有明细的 克数*进货单价/1000 之和，单价为公斤价）
  * @param {string} orderId - 订单ID
  */
 export function calculateOrderTotalAmount(orderId) {
   const currentTable = _dependencies.getCurrentTable();
-  
+
   if (currentTable !== 'stock_in_orders') return;
-  
+
   const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
   const newRows = document.querySelectorAll(`tr.detail-new-row[data-order-id="${orderId}"]`);
-  
+
   let totalAmount = 0;
-  
-  // 遍历现有明细行
+
+  // 遍历现有明细行（单价为公斤价，数量为克数，需除以1000）
   detailRows.forEach(row => {
     const quantityInput = row.querySelector('.detail-input[data-col="quantity"]');
     const unitPriceInput = row.querySelector('.detail-input[data-col="unitPrice"]');
-    
+
     if (quantityInput && unitPriceInput) {
       const quantity = parseFloat(quantityInput.value) || 0;
       const unitPrice = parseFloat(unitPriceInput.value) || 0;
-      totalAmount += quantity * unitPrice;
+      totalAmount += quantity * unitPrice / 1000;
     }
   });
-  
+
   // 遍历新增行
   newRows.forEach(row => {
     const quantityInput = row.querySelector('.detail-input[data-col="quantity"]');
     const unitPriceInput = row.querySelector('.detail-input[data-col="unitPrice"]');
-    
+
     if (quantityInput && unitPriceInput) {
       const quantity = parseFloat(quantityInput.value) || 0;
       const unitPrice = parseFloat(unitPriceInput.value) || 0;
-      totalAmount += quantity * unitPrice;
+      totalAmount += quantity * unitPrice / 1000;
     }
   });
-  
+
   // 更新订单行的总金额
   const orderRow = document.querySelector(`tr[data-id="${orderId}"]`);
-  
+
   if (orderRow) {
     // 总金额字段是只读的，在 td 元素上查找
     const totalAmountCell = orderRow.querySelector(`td[data-col-key="totalAmount"] span.cell-readonly`);
-    
+
     if (totalAmountCell) {
       totalAmountCell.textContent = totalAmount.toFixed(2);
     }
@@ -497,7 +497,8 @@ export async function calculateDetailTotalPrice(row) {
 
   const quantity = parseFloat(quantityInput.value) || 0;
   const unitPrice = parseFloat(unitPriceInput.value) || 0;
-  const calculatedTotal = (quantity * unitPrice).toFixed(2);
+  // 单价为公斤价，数量为克数，总价需除以1000
+  const calculatedTotal = (quantity * unitPrice / 1000).toFixed(2);
 
   // 自动更新总价
   totalPriceInput.value = calculatedTotal;

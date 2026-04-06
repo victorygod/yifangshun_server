@@ -371,12 +371,12 @@ async function createInOrder(data) {
   
   const orderNo = generateOrderNo('RK');
   
-  // 计算总金额
+  // 计算总金额（单价为公斤价，数量为克数，需除以1000）
   let totalPrice = 0;
   items.forEach(item => {
-    totalPrice += (item.quantity || 0) * (item.unitPrice || 0);
+    totalPrice += (item.quantity || 0) * (item.unitPrice || 0) / 1000;
   });
-  
+
   const order = await StockInOrder.create({
     orderNo,
     purchaseDate,
@@ -389,7 +389,7 @@ async function createInOrder(data) {
     updatedAt: getNow()
   });
   
-  // 创建明细
+  // 创建明细（单价为公斤价，数量为克数，总价需除以1000）
   for (const item of items) {
     const costPrice = item.costPrice !== undefined ? item.costPrice : item.unitPrice;
     await StockInItem.create({
@@ -402,7 +402,7 @@ async function createInOrder(data) {
       quantity: item.quantity,
       unitPrice: item.unitPrice,
       costPrice: costPrice,
-      totalPrice: (item.quantity || 0) * (item.unitPrice || 0),
+      totalPrice: (item.quantity || 0) * (item.unitPrice || 0) / 1000,
       remark: item.remark
     });
     // 草稿状态下不更新药材信息，只在确认入库时更新
@@ -436,22 +436,22 @@ async function updateInOrder(id, data) {
   if (remark !== undefined) updates.remark = remark;
   updates.updatedAt = getNow();
   
-  // 如果有明细更新
+  // 如果有明细更新（单价为公斤价，数量为克数，总价需除以1000）
   if (items !== undefined) {
     let totalPrice = 0;
     items.forEach(item => {
-      totalPrice += (item.quantity || 0) * (item.unitPrice || 0);
+      totalPrice += (item.quantity || 0) * (item.unitPrice || 0) / 1000;
     });
     updates.totalPrice = totalPrice;
   }
-  
+
   await StockInOrder.update(updates, { where: { id } });
-  
+
   // 更新明细
   if (items !== undefined) {
     // 删除旧明细
     await StockInItem.destroy({ where: { orderId: id } });
-    
+
     // 创建新明细
     for (const item of items) {
       const costPrice = item.costPrice !== undefined ? item.costPrice : item.unitPrice;
@@ -465,7 +465,7 @@ async function updateInOrder(id, data) {
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         costPrice: costPrice,
-        totalPrice: (item.quantity || 0) * (item.unitPrice || 0),
+        totalPrice: (item.quantity || 0) * (item.unitPrice || 0) / 1000,
         remark: item.remark
       });
       // 草稿状态下不更新药材信息，只在确认入库时更新
@@ -794,34 +794,34 @@ async function updateOutOrder(id, data) {
   if (remark !== undefined) updates.remark = remark;
   updates.updatedAt = getNow();
   
-  // 如果有明细更新
+  // 如果有明细更新（单价为公斤价，数量为克数，总价需除以1000）
   if (items !== undefined) {
     let totalPrice = 0;
     items.forEach(item => {
-      totalPrice += (item.quantity || 0) * (item.unitPrice || 0);
+      totalPrice += (item.quantity || 0) * (item.unitPrice || 0) / 1000;
     });
     updates.totalPrice = totalPrice;
   }
-  
+
   await StockOutOrder.update(updates, { where: { id } });
-  
+
   // 更新明细
   if (items !== undefined) {
     // 删除旧明细
     await StockOutItem.destroy({ where: { orderId: id } });
-    
+
     // 创建新明细
     for (const item of items) {
       const herb = await Herb.findOne({ where: { name: item.herbName } });
       const unitPrice = herb ? (herb.salePrice || 0) : 0;
-      
+
       await StockOutItem.create({
         orderId: id,
         herbName: item.herbName,
         cabinetNo: item.cabinetNo,
         quantity: item.quantity,
         unitPrice: unitPrice,
-        totalPrice: (item.quantity || 0) * unitPrice,
+        totalPrice: (item.quantity || 0) * unitPrice / 1000,
         createdAt: getNow(),
         updatedAt: getNow()
       });
@@ -910,14 +910,14 @@ async function getOutOrders(options = {}) {
       };
     }));
 
-    // 待执药状态：自动同步药材单价
+    // 待执药状态：自动同步药材单价（单价为公斤价，数量为克数，总价需除以1000）
     if (order.status === 'pending' && itemsWithCabinetNo.length > 0) {
       let needUpdateTotal = false;
       for (const item of itemsWithCabinetNo) {
         const herb = await Herb.findOne({ where: { name: item.herbName } });
         if (herb && herb.salePrice != null && parseFloat(herb.salePrice) !== parseFloat(item.unitPrice)) {
           const newUnitPrice = parseFloat(herb.salePrice);
-          const newTotalPrice = parseFloat(item.quantity) * newUnitPrice;
+          const newTotalPrice = parseFloat(item.quantity) * newUnitPrice / 1000;
           await StockOutItem.update(
             { unitPrice: newUnitPrice, totalPrice: newTotalPrice, updatedAt: getNow() },
             { where: { id: item.id } }
@@ -966,7 +966,7 @@ async function createOutOrder(data, operator = 'system', dosage = 1) {
     }
   }
   
-  // 计算总金额
+  // 计算总金额（单价为公斤价，数量为克数，需除以1000）
   let totalPrice = 0;
   for (const item of items) {
     // 获取药材售价
@@ -974,9 +974,9 @@ async function createOutOrder(data, operator = 'system', dosage = 1) {
     const unitPrice = herb ? parseFloat(herb.salePrice) || 0 : 0;
     // 实际克数 = 单剂克数 × 剂数
     const actualQuantity = parseFloat(item.quantity || 0) * dosage;
-    totalPrice += actualQuantity * unitPrice;
+    totalPrice += actualQuantity * unitPrice / 1000;
   }
-  
+
   // 生成执药单编号（手动创建时使用）
   const orderNo = prescriptionId ? `ZD-${prescriptionId}` : `ZD-MANUAL-${Date.now()}`;
 
@@ -991,20 +991,20 @@ async function createOutOrder(data, operator = 'system', dosage = 1) {
     createdAt: getNow(),
     updatedAt: getNow()
   });
-  
-  // 创建明细
+
+  // 创建明细（单价为公斤价，数量为克数，总价需除以1000）
   for (const item of items) {
     const herb = await Herb.findOne({ where: { name: item.herbName } });
     const unitPrice = herb ? parseFloat(herb.salePrice) || 0 : 0;
     const singleQuantity = parseFloat(item.quantity || 0);
     const actualQuantity = singleQuantity * dosage;  // 实际克数 = 单剂克数 × 剂数
-    
+
     await StockOutItem.create({
       orderId: order.id,
       herbName: item.herbName,
       quantity: actualQuantity,
       unitPrice,
-      totalPrice: actualQuantity * unitPrice,
+      totalPrice: actualQuantity * unitPrice / 1000,
       createdAt: getNow()
     });
     
@@ -1038,14 +1038,14 @@ async function getOutOrderById(id) {
     };
   }));
   
-  // 待执药状态：自动同步药材单价
+  // 待执药状态：自动同步药材单价（单价为公斤价，数量为克数，总价需除以1000）
   if (order.status === 'pending' && itemsWithCabinetNo.length > 0) {
     let needUpdateTotal = false;
     for (const item of itemsWithCabinetNo) {
       const herb = await Herb.findOne({ where: { name: item.herbName } });
       if (herb && herb.salePrice != null && parseFloat(herb.salePrice) !== parseFloat(item.unitPrice)) {
         const newUnitPrice = parseFloat(herb.salePrice);
-        const newTotalPrice = parseFloat(item.quantity) * newUnitPrice;
+        const newTotalPrice = parseFloat(item.quantity) * newUnitPrice / 1000;
         await StockOutItem.update(
           { unitPrice: newUnitPrice, totalPrice: newTotalPrice, updatedAt: getNow() },
           { where: { id: item.id } }

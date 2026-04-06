@@ -441,7 +441,8 @@ test.describe('订单总金额自动计算', () => {
           if (await quantityInput.isVisible() && await unitPriceInput.isVisible()) {
             const quantity = parseFloat(await quantityInput.inputValue()) || 0;
             const unitPrice = parseFloat(await unitPriceInput.inputValue()) || 0;
-            expectedTotal += quantity * unitPrice;
+            // 单价为公斤价，数量为克数，需除以1000
+            expectedTotal += quantity * unitPrice / 1000;
           }
         }
 
