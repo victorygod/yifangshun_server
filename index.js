@@ -541,7 +541,7 @@ app.get("/api/prescription/list", requireRole(['admin', 'super_admin']), async (
 // AI聊天
 app.post("/api/chat", async (req, res) => {
   try {
-    const { message, openid } = req.body;
+    const { message, openid, phone } = req.body;
     if (!message) {
       return res.status(400).json({ code: 1, message: "消息内容不能为空" });
     }
@@ -550,7 +550,7 @@ app.post("/api/chat", async (req, res) => {
     setTimeout(async () => {
       try {
         // handleChat 内部会自动保存用户消息和机器人回复
-        const result = await chat.handleChat(message, openid);
+        const result = await chat.handleChat(message, openid, phone);
         res.json(result);
       } catch (error) {
         console.error("AI聊天失败:", error);

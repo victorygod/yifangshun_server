@@ -30,5 +30,69 @@
     "id": 4,
     "createdAt": "2026-03-26T23:17:54.851Z",
     "updatedAt": "2026-03-26T23:17:54.852Z"
+  },
+  {
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "content": "你好",
+    "type": "user",
+    "id": 5,
+    "createTime": "2026-04-06T18:32:22.584Z",
+    "updatedAt": "2026-04-06T18:32:22.584Z"
+  },
+  {
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "content": "你好",
+    "type": "user",
+    "id": 6,
+    "createTime": "2026-04-06T18:39:28.607Z",
+    "updatedAt": "2026-04-06T18:39:28.607Z"
+  },
+  {
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "content": "你好",
+    "type": "user",
+    "id": 7,
+    "createTime": "2026-04-06T19:01:02.449Z",
+    "updatedAt": "2026-04-06T19:01:02.449Z"
+  },
+  {
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "content": "您好！我是您的中医诊疗助手。\n\n看您反复问好，不知是想咨询什么问题？我注意到您之前有就诊记录，但系统显示暂无既往处方信息。\n\n如果您有身体不适需要调理，建议详细描述一下症状，比如：\n- 主要不适是什么？\n- 多长时间了？\n- 有无其他伴随症状？\n\n这样我能结合您的具体情况给出针对性的中医调理建议。",
+    "type": "bot",
+    "id": 8,
+    "createTime": "2026-04-06T19:01:05.689Z",
+    "updatedAt": "2026-04-06T19:01:05.689Z"
+  },
+  {
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "content": "很好",
+    "type": "user",
+    "id": 9,
+    "createTime": "2026-04-06T19:01:15.233Z",
+    "updatedAt": "2026-04-06T19:01:15.233Z"
+  },
+  {
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "content": "您好！看您心情不错，连说\"很好\"。\n\n不过我作为中医诊疗助手，需要了解您的身体状况才能给出专业建议。如果您目前没有特别的不适症状，可以简单说说最近的身体感受，比如睡眠、饮食、精神状态等，我可以从中医角度给您一些日常保健的建议。\n\n或者您也可以告诉我具体想调理什么问题，比如失眠、胃胀、疲劳等常见症状。",
+    "type": "bot",
+    "id": 10,
+    "createTime": "2026-04-06T19:01:18.338Z",
+    "updatedAt": "2026-04-06T19:01:18.338Z"
+  },
+  {
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "content": "我刚说啥了",
+    "type": "user",
+    "id": 11,
+    "createTime": "2026-04-06T19:01:37.091Z",
+    "updatedAt": "2026-04-06T19:01:37.091Z"
+  },
+  {
+    "openid": "o-eQz3TYzw7PJFltoyjntVijNt88",
+    "content": "您刚才说\"很好\"，然后问\"我刚说啥了\"。\n\n看您重复询问，我理解您可能想确认刚才的对话内容。不过我这边主要关注您的身体健康状况，如果您有具体症状需要调理，请详细描述一下，比如：\n\n- 身体哪里不适？\n- 持续多长时间了？\n- 有无其他症状？\n\n这样我能结合中医理论给您更准确的建议。",
+    "type": "bot",
+    "id": 12,
+    "createTime": "2026-04-06T19:01:39.786Z",
+    "updatedAt": "2026-04-06T19:01:39.786Z"
   }
 ]

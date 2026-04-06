@@ -16,7 +16,7 @@
   "chat_llm_config": {
     "api_key": "sk-c9534a60230fe656fc4d98bf62ea6d51",
     "model": "qwen3-coder-plus",
-    "prompt": "作为一名资深中医，给病人建设性意见，不要回答与看病无关的问题",
+    "prompt": "作为一名资深中医，给病人建设性意见，不要回答与看病无关的问题。每次回复时请参考用户的历史处方记录，结合既往诊疗情况给出建议。回答要简洁专业，通俗易懂。",
     "request": {
       "hostname": "apis.iflow.cn",
       "port": 443,

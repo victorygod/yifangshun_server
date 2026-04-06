@@ -461,7 +461,92 @@ async function runStockTests(users) {
   if (statusOutOrderId) {
     await adminRequest('DELETE', `/api/stock/out/orders/${statusOutOrderId}`);
   }
-  
+
+  // ========== 别名映射测试 ==========
+  console.log('\n--- 别名映射 ---');
+
+  // 别名测试专用数据
+  const aliasTestData = {
+    herbId: null,
+    herbName: '白术_' + Date.now(),
+    alias: '于术|冬术|浙术'
+  };
+  let aliasOutOrderId = null;
+
+  await test('POST /api/stock/herbs - 创建带别名的药材', async () => {
+    const { response, data } = await adminRequest('POST', '/api/stock/herbs', {
+      name: aliasTestData.herbName,
+      alias: aliasTestData.alias,
+      unit: '克',
+      minValue: 0,
+      salePrice: 100,
+      cabinetNo: 'ALIAS-01'
+    });
+
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '返回成功');
+    assertEquals(data.data.name, aliasTestData.herbName, '药材名称正确');
+    assertEquals(data.data.alias, aliasTestData.alias, '别名正确');
+    aliasTestData.herbId = data.data.id;
+  });
+
+  await test('POST /api/stock/out/orders - 使用别名创建执药单应映射到主药材名', async () => {
+    const { response, data } = await adminRequest('POST', '/api/stock/out/orders', {
+      prescriptionId: 'ALIAS_TEST_' + Date.now(),
+      pharmacist: '测试药师',
+      items: [
+        {
+          herbName: '于术',  // 使用别名
+          quantity: 30
+        }
+      ]
+    });
+
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '返回成功');
+    // 验证药材名被映射为主药材名
+    assertEquals(data.data.items[0].herbName, aliasTestData.herbName, '别名应映射到主药材名');
+    assertEquals(data.data.items[0].unitPrice, 100, '售价应正确获取');
+    aliasOutOrderId = data.data.id;
+  });
+
+  await test('GET /api/stock/out/orders/:id - 查询执药单应显示主药材名', async () => {
+    if (!aliasOutOrderId) return 'skipped';
+
+    const { response, data } = await adminRequest('GET', `/api/stock/out/orders/${aliasOutOrderId}`);
+
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '返回成功');
+    assertEquals(data.data.items[0].herbName, aliasTestData.herbName, '药材名应为主药材名');
+    assertEquals(data.data.items[0].cabinetNo, 'ALIAS-01', '柜号应正确获取');
+  });
+
+  await test('PUT /api/stock/out/orders/:id - 更新执药单使用别名应映射', async () => {
+    if (!aliasOutOrderId) return 'skipped';
+
+    const { response, data } = await adminRequest('PUT', `/api/stock/out/orders/${aliasOutOrderId}`, {
+      items: [
+        {
+          herbName: '冬术',  // 使用另一个别名
+          quantity: 50,
+          cabinetNo: 'ALIAS-01'
+        }
+      ]
+    });
+
+    assertEquals(response.statusCode, 200, '请求成功');
+    assertEquals(data.code, 0, '返回成功');
+    assertEquals(data.data.items[0].herbName, aliasTestData.herbName, '别名应映射到主药材名');
+  });
+
+  // 清理别名测试数据
+  if (aliasOutOrderId) {
+    await adminRequest('DELETE', `/api/stock/out/orders/${aliasOutOrderId}`);
+  }
+  if (aliasTestData.herbId) {
+    await adminRequest('DELETE', `/api/stock/herbs/${aliasTestData.herbId}`);
+  }
+
   // ========== 多维度搜索测试 ==========
   console.log('\n--- 多维度搜索 ---');
 
