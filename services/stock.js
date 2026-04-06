@@ -42,6 +42,29 @@ function getNow() {
   return new Date().toISOString();
 }
 
+// 根据药材名或别名查找药材（别名用 | 分隔）
+// 返回 { herb, mappedName }，其中 mappedName 是映射后的主药材名
+async function findHerbByNameOrAlias(herbName) {
+  // 先精确匹配主药材名
+  let herb = await Herb.findOne({ where: { name: herbName } });
+  if (herb) {
+    return { herb, mappedName: herbName };
+  }
+
+  // 再匹配别名（alias 字段用 | 分隔）
+  const allHerbs = await Herb.findAll({ where: { alias: { [Op.ne]: null, [Op.ne]: '' } } });
+  for (const h of allHerbs) {
+    const aliases = (h.alias || '').split('|').map(a => a.trim()).filter(a => a);
+    if (aliases.includes(herbName)) {
+      console.log(`[findHerbByNameOrAlias] 别名映射: "${herbName}" -> "${h.name}"`);
+      return { herb: h, mappedName: h.name };
+    }
+  }
+
+  // 未找到
+  return { herb: null, mappedName: herbName };
+}
+
 // 添加操作日志
 async function addStockLog(action, orderNo, herbName, quantity, operator) {
   try {
@@ -810,14 +833,14 @@ async function updateOutOrder(id, data) {
     // 删除旧明细
     await StockOutItem.destroy({ where: { orderId: id } });
 
-    // 创建新明细
+    // 创建新明细（支持别名映射）
     for (const item of items) {
-      const herb = await Herb.findOne({ where: { name: item.herbName } });
+      const { herb, mappedName } = await findHerbByNameOrAlias(item.herbName);
       const unitPrice = herb ? (herb.salePrice || 0) : 0;
 
       await StockOutItem.create({
         orderId: id,
-        herbName: item.herbName,
+        herbName: mappedName,  // 使用映射后的主药材名
         cabinetNo: item.cabinetNo,
         quantity: item.quantity,
         unitPrice: unitPrice,
@@ -901,9 +924,9 @@ async function getOutOrders(options = {}) {
   const ordersWithItems = await Promise.all(pagedOrders.map(async (order) => {
     let items = allItems.filter(item => item.orderId == order.id);
 
-    // 为每个明细查询药材柜号
+    // 为每个明细查询药材柜号（支持别名映射）
     const itemsWithCabinetNo = await Promise.all(items.map(async (item) => {
-      const herb = await Herb.findOne({ where: { name: item.herbName } });
+      const { herb } = await findHerbByNameOrAlias(item.herbName);
       return {
         ...toPlainObject(item),
         cabinetNo: herb ? herb.cabinetNo || '' : ''
@@ -914,7 +937,7 @@ async function getOutOrders(options = {}) {
     if (order.status === 'pending' && itemsWithCabinetNo.length > 0) {
       let needUpdateTotal = false;
       for (const item of itemsWithCabinetNo) {
-        const herb = await Herb.findOne({ where: { name: item.herbName } });
+        const { herb } = await findHerbByNameOrAlias(item.herbName);
         if (herb && herb.salePrice != null && parseFloat(herb.salePrice) !== parseFloat(item.unitPrice)) {
           const newUnitPrice = parseFloat(herb.salePrice);
           const newTotalPrice = parseFloat(item.quantity) * newUnitPrice / 1000;
@@ -969,8 +992,8 @@ async function createOutOrder(data, operator = 'system', dosage = 1) {
   // 计算总金额（单价为公斤价，数量为克数，需除以1000）
   let totalPrice = 0;
   for (const item of items) {
-    // 获取药材售价
-    const herb = await Herb.findOne({ where: { name: item.herbName } });
+    // 获取药材售价（支持别名映射）
+    const { herb } = await findHerbByNameOrAlias(item.herbName);
     const unitPrice = herb ? parseFloat(herb.salePrice) || 0 : 0;
     // 实际克数 = 单剂克数 × 剂数
     const actualQuantity = parseFloat(item.quantity || 0) * dosage;
@@ -994,22 +1017,23 @@ async function createOutOrder(data, operator = 'system', dosage = 1) {
 
   // 创建明细（单价为公斤价，数量为克数，总价需除以1000）
   for (const item of items) {
-    const herb = await Herb.findOne({ where: { name: item.herbName } });
+    // 支持别名映射：将别名映射到主药材名
+    const { herb, mappedName } = await findHerbByNameOrAlias(item.herbName);
     const unitPrice = herb ? parseFloat(herb.salePrice) || 0 : 0;
     const singleQuantity = parseFloat(item.quantity || 0);
     const actualQuantity = singleQuantity * dosage;  // 实际克数 = 单剂克数 × 剂数
 
     await StockOutItem.create({
       orderId: order.id,
-      herbName: item.herbName,
+      herbName: mappedName,  // 使用映射后的主药材名
       quantity: actualQuantity,
       unitPrice,
       totalPrice: actualQuantity * unitPrice / 1000,
       createdAt: getNow()
     });
-    
+
     // 添加日志
-    await addStockLog('stock_out', orderNo, item.herbName, actualQuantity, operator);
+    await addStockLog('stock_out', orderNo, mappedName, actualQuantity, operator);
   }
   
   const created = await getOutOrderById(order.id);
@@ -1029,20 +1053,20 @@ async function getOutOrderById(id) {
   
   const items = await StockOutItem.findAll({ where: { orderId: id } });
   
-  // 为每个明细查询药材柜号
+  // 为每个明细查询药材柜号（支持别名映射）
   const itemsWithCabinetNo = await Promise.all(items.map(async (item) => {
-    const herb = await Herb.findOne({ where: { name: item.herbName } });
+    const { herb } = await findHerbByNameOrAlias(item.herbName);
     return {
       ...toPlainObject(item),
       cabinetNo: herb ? herb.cabinetNo || '' : ''
     };
   }));
-  
+
   // 待执药状态：自动同步药材单价（单价为公斤价，数量为克数，总价需除以1000）
   if (order.status === 'pending' && itemsWithCabinetNo.length > 0) {
     let needUpdateTotal = false;
     for (const item of itemsWithCabinetNo) {
-      const herb = await Herb.findOne({ where: { name: item.herbName } });
+      const { herb } = await findHerbByNameOrAlias(item.herbName);
       if (herb && herb.salePrice != null && parseFloat(herb.salePrice) !== parseFloat(item.unitPrice)) {
         const newUnitPrice = parseFloat(herb.salePrice);
         const newTotalPrice = parseFloat(item.quantity) * newUnitPrice / 1000;
@@ -1159,16 +1183,16 @@ async function settleOutOrder(id, operator = 'admin') {
   
   console.log(`[settleOutOrder] 执药单ID: ${id}, 找到明细: ${items.length} 条`);
   
-  // 先检查所有药材库存情况
+  // 先检查所有药材库存情况（支持别名映射）
   const insufficientItems = [];
   for (const item of items) {
-    const herb = await Herb.findOne({ where: { name: item.herbName } });
+    const { herb } = await findHerbByNameOrAlias(item.herbName);
     const herbStock = herb ? parseFloat(herb.stock) || 0 : 0;
-    
+
     const inventory = await StockInventory.findOne({ where: { herbName: item.herbName } });
     const inventoryQuantity = inventory ? parseFloat(inventory.quantity) || 0 : 0;
     const needQuantity = parseFloat(item.quantity) || 0;
-    
+
     // 检查库存是否充足
     if (!herb && !inventory) {
       insufficientItems.push({ name: item.herbName, need: needQuantity, have: 0, reason: '药材不存在' });
@@ -1188,9 +1212,9 @@ async function settleOutOrder(id, operator = 'admin') {
   // 库存检查通过，执行扣减
   for (const item of items) {
     const itemQuantity = parseFloat(item.quantity) || 0;
-    
-    // 更新药材表的库存
-    let herb = await Herb.findOne({ where: { name: item.herbName } });
+
+    // 更新药材表的库存（支持别名映射）
+    const { herb } = await findHerbByNameOrAlias(item.herbName);
     if (herb) {
       const oldStock = parseFloat(herb.stock) || 0;
       const newStock = Math.max(0, oldStock - itemQuantity);
