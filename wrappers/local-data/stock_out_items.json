@@ -118,5 +118,27 @@
     "updatedAt": "2026-04-02T03:08:31.581Z",
     "id": 64,
     "createTime": "2026-04-02T03:08:31.581Z"
+  },
+  {
+    "orderId": 4,
+    "herbName": "防风",
+    "quantity": 60,
+    "unitPrice": 92,
+    "totalPrice": 5.52,
+    "createdAt": "2026-04-06T11:32:15.260Z",
+    "id": 65,
+    "createTime": "2026-04-06T19:32:15.260Z",
+    "updatedAt": "2026-04-06T19:32:15.260Z"
+  },
+  {
+    "orderId": 4,
+    "herbName": "金樱子",
+    "quantity": 50,
+    "unitPrice": 27.36,
+    "totalPrice": 1.368,
+    "createdAt": "2026-04-06T11:32:15.263Z",
+    "id": 66,
+    "createTime": "2026-04-06T19:32:15.263Z",
+    "updatedAt": "2026-04-06T19:32:15.263Z"
   }
 ]

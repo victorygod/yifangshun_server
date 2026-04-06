@@ -806,6 +806,16 @@ body {
   background: #d46b08;
 }
 
+/* 复制按钮样式 */
+.action-btn-copy {
+  background: #1890ff;
+  color: white;
+}
+
+.action-btn-copy:hover {
+  background: #096dd9;
+}
+
 /* 处方详情样式 */
 .prescription-detail-row {
   background: #f6f8fc !important;

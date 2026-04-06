@@ -1044,6 +1044,71 @@ async function createOutOrder(data, operator = 'system', dosage = 1) {
   };
 }
 
+// 复制执药单
+async function copyOutOrder(orderId, operator = 'system') {
+  // 获取原执药单
+  const originalOrder = await StockOutOrder.findOne({ where: { id: orderId } });
+  if (!originalOrder) {
+    throw new Error('执药单不存在');
+  }
+
+  // 获取原执药单的明细
+  const originalItems = await StockOutItem.findAll({ where: { orderId } });
+
+  // 生成新的处方ID（加COPY_前缀）
+  const newPrescriptionId = originalOrder.prescriptionId
+    ? `COPY_${originalOrder.prescriptionId}`
+    : `COPY-MANUAL-${Date.now()}`;
+
+  // 计算新的总价（根据前端获取逻辑重新计算）
+  let totalPrice = 0;
+  for (const item of originalItems) {
+    // 获取药材售价（支持别名映射）
+    const { herb } = await findHerbByNameOrAlias(item.herbName);
+    const unitPrice = herb ? parseFloat(herb.salePrice) || 0 : item.unitPrice || 0;
+    const quantity = parseFloat(item.quantity || 0);
+    totalPrice += quantity * unitPrice / 1000;
+  }
+
+  // 生成执药单编号
+  const orderNo = `ZD-COPY-${Date.now()}`;
+
+  // 创建新的执药单
+  const newOrder = await StockOutOrder.create({
+    prescriptionId: newPrescriptionId,
+    prescriptionTime: getNow(),
+    pharmacist: originalOrder.pharmacist,
+    reviewer: originalOrder.reviewer,
+    status: 'pending',
+    remark: originalOrder.remark || '',
+    totalPrice,
+    createdAt: getNow(),
+    updatedAt: getNow()
+  });
+
+  // 复制明细（ID自增，orderId为新的执药单ID）
+  for (const item of originalItems) {
+    await StockOutItem.create({
+      orderId: newOrder.id,
+      herbName: item.herbName,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      totalPrice: item.quantity * item.unitPrice / 1000,
+      createdAt: getNow()
+    });
+
+    // 添加日志
+    await addStockLog('stock_out', orderNo, item.herbName, item.quantity, operator);
+  }
+
+  const created = await getOutOrderById(newOrder.id);
+  return {
+    code: 0,
+    message: '复制成功',
+    data: created.data
+  };
+}
+
 // 获取出库单详情
 async function getOutOrderById(id) {
   const order = await StockOutOrder.findOne({ where: { id } });
@@ -1379,11 +1444,12 @@ module.exports = {
   deleteInOrder,
   executeStockIn,
   revertStockIn,
-  
+
   // 执药管理
   getOutOrders,
   getOutOrderById,
   createOutOrder,
+  copyOutOrder,
   updateOutOrder,
   deleteOutOrder,
   settleOutOrder,

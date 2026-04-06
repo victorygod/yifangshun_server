@@ -1039,6 +1039,17 @@ app.post("/api/stock/out/orders/:id/revoke", requireRole(['admin', 'super_admin'
   }
 });
 
+// 复制执药单
+app.post("/api/stock/out/orders/:id/copy", requireRole(['admin', 'super_admin']), async (req, res) => {
+  try {
+    const operator = req.user?.name || req.user?.openid || 'system';
+    const result = await stock.copyOutOrder(req.params.id, operator);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ code: 1, message: error.message });
+  }
+});
+
 // ==================== 场次配置管理接口 ====================
 
 // 获取场次配置

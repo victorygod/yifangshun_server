@@ -125,6 +125,7 @@ const tableHandlers = {
   stock_out_orders: {
     onSettleOrder: (orderId) => window._stockModule.settleOutOrder(orderId),
     onRevokeOrder: (orderId) => window._stockModule.revokeSettledOrder(orderId),
+    onCopyOrder: (orderId) => window._stockModule.copyOutOrder(orderId),
     onExportDetail: (orderId) => window._importExportModule.exportOrderDetail(orderId),
     onSaveDetail: (id, orderId) => {
       const editRow = document.querySelector(`tr[data-detail-id="${id}"]`);
@@ -1115,7 +1116,7 @@ function handleTableClick(e) {
         deleteRow(id);
       } else if (action === 'saveDetail' || action === 'deleteDetail') {
         handler(id, orderId);
-      } else if (action === 'saveDetailNew' || action === 'exportDetail' || action === 'settleOrder' || action === 'revokeOrder') {
+      } else if (action === 'saveDetailNew' || action === 'exportDetail' || action === 'settleOrder' || action === 'revokeOrder' || action === 'copyOrder') {
         handler(orderId);
       } else if (action === 'reviewPrescription') {
         handler(id, prescriptionId);

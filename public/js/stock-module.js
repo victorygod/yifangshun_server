@@ -214,6 +214,26 @@ export async function revokeSettledOrder(orderId) {
   });
 }
 
+/**
+ * 复制执药单
+ * @param {number|string} orderId - 执药单ID
+ */
+export async function copyOutOrder(orderId) {
+  _dependencies.showConfirm('复制执药单', '确定要复制该执药单吗？将创建一份新的执药单，处方ID将添加"COPY_"前缀。', async () => {
+    try {
+      const res = await _dependencies.homeFetch(`/api/stock/out/orders/${orderId}/copy`, {
+        method: 'POST'
+      });
+      if (res.code !== 0) throw new Error(res.message);
+      _dependencies.showToast('复制成功', 'success');
+      _dependencies.loadTableData();
+      _dependencies.loadStats();
+    } catch (err) {
+      _dependencies.showToast('复制失败: ' + err.message, 'error');
+    }
+  });
+}
+
 // ==================== 明细管理 ====================
 
 /**
@@ -1030,6 +1050,7 @@ export function renderOrderDetail(row, config, detailTable) {
     if (isPending) {
       html += `<button class="action-btn action-btn-settle" data-action="settleOrder" data-order-id="${row.id}" data-prescription-id="${row.prescriptionId || ''}">确认结算</button>`;
     }
+    html += `<button class="action-btn action-btn-copy" data-action="copyOrder" data-order-id="${row.id}">复制</button>`;
     html += `<button class="action-btn action-btn-export" data-action="exportDetail" data-order-id="${row.id}">导出</button></div>`;
   } else if (currentTable === 'stock_in_orders') {
     // 入库单明细
@@ -1521,6 +1542,7 @@ if (typeof window !== 'undefined') {
     revertToDraft,
     settleOutOrder,
     revokeSettledOrder,
+    copyOutOrder,
     saveDetailNewAuto,
     saveDetailEdit,
     removeDetailRow,

@@ -24,5 +24,18 @@
     "updatedAt": "2026-04-02T03:08:31.577Z",
     "id": 3,
     "createTime": "2026-03-31T02:53:54.623Z"
+  },
+  {
+    "prescriptionId": "COPY_0055030",
+    "prescriptionTime": "2026-04-06T11:32:15.259Z",
+    "pharmacist": "home_super_admin",
+    "reviewer": "wolf",
+    "status": "settled",
+    "remark": "处方上传自动生成",
+    "totalPrice": 6.888,
+    "createdAt": "2026-04-06T11:32:15.259Z",
+    "updatedAt": "2026-04-06T19:32:40.701Z",
+    "id": 4,
+    "createTime": "2026-04-06T19:32:15.260Z"
   }
 ]
