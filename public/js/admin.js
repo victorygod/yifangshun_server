@@ -1562,7 +1562,7 @@ function buildDefaultGrid(defaultMap) {
             data-day="${day}"
             data-session="${session}"
             data-open="${isOpen ? '1' : '0'}"
-          >${isOpen ? '出诊' : '停诊'}</button>
+          >${isOpen ? '开诊' : '休息'}</button>
         </div>
       `;
     }
@@ -1583,7 +1583,7 @@ function buildOverrideList(overrides) {
     html += `<tr data-override-id="${o.id}">
       <td>${o.date}</td>
       <td>${sessionLabel}</td>
-      <td><span class="schedule-badge ${o.isOpen ? 'open' : 'closed'}">${o.isOpen ? '出诊' : '停诊'}</span></td>
+      <td><span class="schedule-badge ${o.isOpen ? 'open' : 'closed'}">${o.isOpen ? '开诊' : '休息'}</span></td>
       <td>${escapeHtml(o.reason || '-')}</td>
       <td><button class="action-btn action-btn-delete" onclick="deleteOverride(${o.id})">删除</button></td>
     </tr>`;
@@ -1628,8 +1628,8 @@ async function toggleDefaultSession(day, session, btn) {
 
     btn.dataset.open = newOpen ? '1' : '0';
     btn.className = `schedule-toggle-btn ${newOpen ? 'open' : 'closed'}`;
-    btn.textContent = newOpen ? '出诊' : '停诊';
-    showToast(`${WEEK_NAMES[day]} ${SESSION_LABELS[session]} 已设为「${newOpen ? '出诊' : '停诊'}」`, 'success');
+    btn.textContent = newOpen ? '开诊' : '休息';
+    showToast(`${WEEK_NAMES[day]} ${SESSION_LABELS[session]} 已设为「${newOpen ? '开诊' : '休息'}」`, 'success');
   } catch (err) {
     showToast('保存失败: ' + err.message, 'error');
   } finally {

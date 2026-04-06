@@ -1217,15 +1217,24 @@ app.post("/api/log", (req, res) => {
 const port = process.env.PORT || 80;
 
 async function bootstrap() {
-  await initDB();
+  try {
+    await initDB();
 
-  app.listen(port, () => {
-    console.log("=================================");
-    console.log("易方顺诊所助手服务器已启动");
-    console.log(`服务地址: http://localhost:${port}`);
-    console.log(`健康检查: http://localhost:${port}/health`);
-    console.log("=================================");
-  });
+    app.listen(port, () => {
+      console.log("=================================");
+      console.log("易方顺诊所助手服务器已启动");
+      console.log(`服务地址: http://localhost:${port}`);
+      console.log(`健康检查: http://localhost:${port}/health`);
+      console.log("=================================");
+    });
+  } catch (err) {
+    console.error("=================================");
+    console.error("服务器启动失败！");
+    console.error("错误详情:", err.message);
+    console.error("错误堆栈:", err.stack);
+    console.error("=================================");
+    process.exit(1);
+  }
 }
 
 bootstrap();
