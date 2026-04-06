@@ -106,25 +106,49 @@ export async function confirmStockIn(rowId) {
   _dependencies.showConfirm('确认入库', '确认入库后，库存将自动增加，成本价将自动更新。确定要入库吗？', async () => {
     try {
       const orderId = rowId;
+      const currentTable = _dependencies.getCurrentTable();
 
-      // 1. 先保存所有编辑中的明细（新增行 + 编辑行）
-      // 查找新增行（有数据的新增行）
-      const newRow = document.querySelector(`tr.detail-new-row[data-order-id="${orderId}"]`);
-      if (newRow) {
-        const inputs = newRow.querySelectorAll('.detail-input');
-        const hasData = Array.from(inputs).some(input => input.value.trim() !== '');
-        if (hasData) {
-          await saveDetailNewAuto(newRow);
+      // 1. 收集所有明细数据（新增行 + 编辑行），一次性保存
+      const allDetailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]`);
+      const items = [];
+
+      allDetailRows.forEach(row => {
+        // 跳过新增行中无数据的行
+        if (row.classList.contains('detail-new-row')) {
+          const inputs = row.querySelectorAll('.detail-input');
+          const hasData = Array.from(inputs).some(input => input.value.trim() !== '');
+          if (!hasData) return;
         }
+
+        const inputs = row.querySelectorAll('.detail-input');
+        const item = {};
+
+        inputs.forEach(input => {
+          const col = input.dataset.col;
+          item[col] = input.type === 'number' ? parseFloat(input.value) || 0 : input.value;
+        });
+
+        if (item.herbName || item.name) {
+          items.push(item);
+        }
+      });
+
+      // 检查是否有明细
+      if (items.length === 0) {
+        _dependencies.showToast('请先添加入库明细', 'error');
+        return;
       }
 
-      // 查找所有编辑行（已有明细的行）
-      const detailRows = document.querySelectorAll(`tr[data-order-id="${orderId}"]:not(.detail-new-row)`);
-      for (const row of detailRows) {
-        await saveDetailEdit(row.dataset.detailId, orderId, row);
-      }
+      // 一次性保存所有明细
+      const apiPath = currentTable === 'stock_in_orders' ? `/api/stock/in/orders/${orderId}` : `/api/stock/out/orders/${orderId}`;
+      const saveRes = await _dependencies.homeFetch(apiPath, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items })
+      });
+      if (saveRes.code !== 0) throw new Error(saveRes.message);
 
-      // 2. 再执行入库操作
+      // 2. 执行入库操作
       const res = await _dependencies.homeFetch(`/api/stock/in/orders/${rowId}/status`, {
         method: 'PUT',
         body: JSON.stringify({ status: 'stocked' })
